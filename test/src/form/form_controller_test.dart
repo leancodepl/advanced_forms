@@ -107,6 +107,45 @@ void main() {
       });
     });
 
+    group('allFields', () {
+      test('walks own fields and then every subform, recursively', () {
+        final nested = AdvancedFormController();
+        final nestedField = AdvancedFieldController<int, _Error2>(
+          initialValue: _initialValue2,
+        );
+        nested.registerFields([nestedField]);
+        subform
+          ..registerFields([subformField])
+          ..addSubform(nested);
+        form
+          ..registerFields([field1, field2])
+          ..addSubform(subform);
+
+        expect(
+          form.value.allFields,
+          [field1, field2, subformField, nestedField],
+        );
+        form.dispose();
+      });
+
+      test('walks a subform whose fields were registered as a typed list', () {
+        // A caller that spells the list out as
+        // `<AdvancedFieldController<dynamic, dynamic>>[...]` — as the skill's
+        // examples do — used to make this getter throw at runtime.
+        subform.registerFields(
+          <AdvancedFieldController<dynamic, dynamic>>[subformField],
+        );
+        form
+          ..registerFields(
+            <AdvancedFieldController<dynamic, dynamic>>[field1, field2],
+          )
+          ..addSubform(subform);
+
+        expect(form.value.allFields, [field1, field2, subformField]);
+        form.dispose();
+      });
+    });
+
     group('wasModified', () {
       test('is false after register', () {
         final emissions = _record<AdvancedFormState>(form);
