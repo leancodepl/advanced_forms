@@ -42,6 +42,8 @@ class AdvancedFormState with Equatable {
   final ValidationMode validationMode;
 
   /// This form's fields including every subform's fields.
+  // `followedBy` compares element types at runtime and throws when a subform's
+  // field list was written out with an explicit type. A generator doesn't.
   Iterable<AdvancedFieldController<dynamic, dynamic>> get allFields sync* {
     yield* fields;
     for (final subform in subforms) {
