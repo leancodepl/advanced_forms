@@ -159,17 +159,11 @@ class PhoneFieldController<E extends Object>
     extends AdvancedTextFieldController<E> {
   PhoneFieldController({
     String initialValue = '',
-    Validator<String, E>? validator,
-    AsyncValidation<String, E>? asyncValidation,
-    FocusNode? focusNode,
-    String? name,
-  }) : super(
-          initialValue: _digits(initialValue), // normalize before it reaches super
-          validator: validator,
-          asyncValidation: asyncValidation,
-          focusNode: focusNode,
-          name: name,
-        );
+    super.validator,
+    super.asyncValidation,
+    super.focusNode,
+    super.name,
+  }) : super(initialValue: _digits(initialValue));
 
   static String _digits(String value) => value.replaceAll(RegExp(r'\D'), '');
 
@@ -183,8 +177,9 @@ Every write to `textController` — keystroke, paste, programmatic `.text =` —
 public `setValue`, so the override always runs and the transformed value is written back with
 the caret kept on the same characters. Three writes **bypass** `setValue` and need the same
 treatment: the constructor's `initialValue` (done above), `reset()` (returns to that same
-normalized value), and `prefill()`. Forward constructor parameters explicitly rather than
-mixing `super.x` parameters with an explicit `super(...)`. Signatures for overriding:
+normalized value), and `prefill()`. Everything you do not transform forwards as a
+super-parameter; `initialValue` cannot, because it has to pass through `_digits` first, so it
+goes in the explicit `super(...)`. The two mix freely. Signatures for overriding:
 `void setValue(T newValue, {bool force = false})`, `void prefill(T newValue, {bool force = false})`.
 
 ### Field state — `AdvancedFieldState<T, E>`
