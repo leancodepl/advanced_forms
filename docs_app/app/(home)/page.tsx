@@ -100,7 +100,7 @@ export default function HomePage() {
           </li>
         </ul>
         <p className="af-section-more">
-          <Link href={`${docsRoute}/async-validation`}>How rounds, verdicts and failures fit together →</Link>
+          <Link href={`${docsRoute}/validation/async`}>How rounds, verdicts and failures fit together →</Link>
         </p>
       </Section>
 

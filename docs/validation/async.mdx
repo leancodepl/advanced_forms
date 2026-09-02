@@ -1,0 +1,144 @@
+---
+title: Async validation
+description: Server-side checks with debounce, cancellation and cached verdicts — one AsyncValidation per field.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+Some checks live on the server — "is this username taken?". Pass an `AsyncValidation`, which every field controller
+accepts, and the field runs it after its sync validator passed. Try `alice`, then `boom`.
+
+<AdvancedFormsExample preview="UsernameAvailabilityForm" title="username_form.dart">
+
+```dart title="username_form_controller.dart"
+enum UsernameError { required, tooShort, taken, checkFailed }
+
+class UsernameFormController extends AdvancedFormController {
+  UsernameFormController()
+    : super(validationMode: ValidationMode.onUserInteraction) {
+    registerFields([username]);
+  }
+
+  late final username = AdvancedTextFieldController(
+    validator:
+        filled(UsernameError.required) &
+        atLeastLength(3, UsernameError.tooShort),
+    asyncValidation: AsyncValidation(
+      validator: _isAvailable, // Future<UsernameError?> Function(String)
+      debounce: const Duration(milliseconds: 400), // default 300 ms
+      timeout: const Duration(seconds: 3), // default: no bound
+      failureToError: (error, stackTrace) => UsernameError.checkFailed,
+    ),
+  );
+
+  Future<UsernameError?> _isAvailable(String value) async {
+    await Future<void>.delayed(const Duration(milliseconds: 700));
+    if (value == 'boom') {
+      throw Exception('the directory service is down');
+    }
+    const taken = {'alice', 'bob', 'admin'};
+    return taken.contains(value) ? UsernameError.taken : null;
+  }
+}
+```
+
+```dart title="username_availability_form.dart"
+class UsernameAvailabilityForm extends StatefulWidget {
+  const UsernameAvailabilityForm({super.key});
+
+  @override
+  State<UsernameAvailabilityForm> createState() =>
+      _UsernameAvailabilityFormState();
+}
+
+class _UsernameAvailabilityFormState extends State<UsernameAvailabilityForm> {
+  final _form = UsernameFormController();
+
+  @override
+  void dispose() {
+    _form.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    // Awaits the check in flight instead of failing a busy field.
+    final ok = await _form.validate();
+    if (mounted) {
+      final name = _form.username.fieldValue;
+      ExampleLog.of(context).add(ok ? '@$name is yours.' : 'Not submitted.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const DocsHint(
+          'alice, bob and admin are taken. boom makes the check throw.',
+        ),
+        DocsFailureBanner(form: _form),
+        DocsTextField(
+          field: _form.username,
+          label: 'Username',
+          icon: Icons.person_outline,
+          translateError: (error) => switch (error) {
+            UsernameError.required => 'Pick a username',
+            UsernameError.tooShort => 'At least 3 characters',
+            UsernameError.taken => 'Already taken — try another',
+            UsernameError.checkFailed => 'Could not check availability',
+          },
+        ),
+        Row(
+          children: [
+            DocsFieldStatus(field: _form.username, label: 'status'),
+            const Spacer(),
+            DocsSubmitButton(form: _form, label: 'Claim', onPressed: _submit),
+          ],
+        ),
+      ],
+    );
+  }
+}
+```
+
+</AdvancedFormsExample>
+
+## The parameters
+
+| Parameter | Default | What it does |
+| --- | --- | --- |
+| `validator` | required | `Future<E?> Function(T)`. Returning `null` means valid. Called only after the sync validator passed, and only when a round starts |
+| `debounce` | 300 ms | How long to wait after a value change before calling `validator`. Each new value restarts the wait. `validate()` ignores it and flushes instead |
+| `timeout` | none | How long `validator` may run before the round is abandoned as a *failure*. Without it, a validator that never settles hangs `await validate()` |
+| `onFailure` | reports to `FlutterError` | Called when the validator throws or times out. Invoked after the state resolved, so a slow handler cannot hold the field in `validating` |
+| `failureToError` | none | Turns a failure into an error code the field can *show*. Without it a failed field carries no code |
+
+## What you get for free
+
+**Debounced while typing, immediate on submit.** Under `onUserInteraction` every settled keystroke starts one
+debounced round. `await validate()` runs a round still waiting out its debounce *now*, awaits a round already in
+flight instead of starting a second one, and never reports the field bad for being busy.
+
+**A stale answer can never land.** A round belongs to one value. Changing the value — or calling `setError`,
+`clearErrors`, `reset`, `markReadOnly`, `setValidationEnabled(false)` or `dispose` — kills the live round, and its
+later result is dropped.
+
+**Verdicts are reused.** A settled answer is kept while it still describes the value, so a second submit press on an
+unchanged form makes no network calls. Any edit invalidates that field's verdict. If the check depends on state
+*outside* the value — a different tenant, a changed date — invalidate it yourself with `field.clearErrors()`.
+
+**Renderable status.** The status walks `pending → validating → valid` or `invalid`, so a spinner is one check on
+`state.isInProgress`. The error goes blank while a check runs, because both errors described the previous value; to
+keep the old text up, render `state.error` only while `!state.isInProgress`.
+
+## Next
+
+<Cards>
+  <Card title="Failures and patterns" href="./async-failures.mdx" description="A thrown validator is not an error, and how to retry it." />
+  <Card title="Under the hood: rounds" href="../internals/rounds.mdx" description="Why a round never writes the value." />
+</Cards>

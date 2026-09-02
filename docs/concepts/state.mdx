@@ -1,7 +1,6 @@
 ---
-title: Core concepts
-description: Field controllers, form controllers, the state snapshot every widget reads, the five statuses, and the error type you choose.
-icon: Shapes
+title: Field state and statuses
+description: Every read goes through one immutable snapshot, and valid means "no error recorded" — not "checked and passed".
 ---
 
 {/*
@@ -10,59 +9,8 @@ AI-Provenance:
   harness: Claude Code
 */}
 
-Four ideas carry the whole package. Once they are clear, every page after this one is a variation on them.
-
-## A field controller holds one typed value
-
-`AdvancedFieldController<T, E>` holds a value of type `T`, runs validators that return errors of type `E`, and
-notifies its listeners when anything about it changes. It is a `ChangeNotifier` and a
-`ValueListenable<AdvancedFieldState<T, E>>`, nothing more exotic.
-
-Four specialisations cover the usual inputs, and the base class is concrete, so a slider or a stepper can hold an
-`int` with no subclass at all:
-
-| Controller | `T` | For |
-| --- | --- | --- |
-| `AdvancedTextFieldController<E>` | `String` | text fields; owns a `TextEditingController` |
-| `AdvancedBooleanFieldController<E>` | `bool` | checkboxes, switches |
-| `AdvancedSingleSelectFieldController<V, E>` | `V?` | dropdowns, radio groups |
-| `AdvancedMultiSelectFieldController<V, E>` | `Set<V>` | chips, checkbox lists |
-| `AdvancedFieldController<T, E>` | anything | sliders, steppers, dates, derived totals |
-
-[Field controllers](./fields.mdx) has each one's constructor and methods.
-
-## `E` is your error type
-
-The second type argument is the type of the errors a field reports. It is bounded by `Object`, never nullable, because
-`null` already means "no error". Beyond that the package does not care:
-
-```dart
-// A String is fine on day one.
-final name = AdvancedTextFieldController(validator: filled('Name is required'));
-
-// An enum scales to translations…
-enum SignupError { required, tooShort, taken }
-final email = AdvancedTextFieldController(validator: filled(SignupError.required));
-
-// …and a sealed class can carry data.
-sealed class QuantityError {}
-class TooMany extends QuantityError { TooMany(this.max); final int max; }
-```
-
-The package never formats a message. Widgets translate `E` to text where the wording belongs — often through an
-`ErrorTranslator<E>`, which is just `String Function(E)`. One field can even report several violations at once by
-choosing `E = List<PasswordRule>`; the [Validators](./validators.mdx) page shows that.
-
-<Callout type="warn" title="Spell out E when there is no validator">
-  `AdvancedTextFieldController()` with no `validator` infers `E` as its bound, `Object`. That compiles and then breaks
-  every `switch` on your error enum two files away. Write `AdvancedTextFieldController<SignupError>()` when the
-  constructor has nothing to infer from.
-</Callout>
-
-## The state is one immutable snapshot
-
-Every read goes through `AdvancedFieldState<T, E>`, the value of the `ValueListenable`. It is value-equal, so setting
-a field to the value it already holds notifies nobody.
+Every read of a field goes through `AdvancedFieldState<T, E>`, the value of the `ValueListenable`. It is value-equal,
+so setting a field to the value it already holds notifies nobody.
 
 | Member | Meaning |
 | --- | --- |
@@ -76,8 +24,8 @@ a field to the value it already holds notifies nobody.
 
 Why two error slots? Because a rule about the value (sync) and a verdict from the server (async) can both be true at
 once, and the sync rule may be re-run by a sibling's edit while the server's answer still describes this field's
-unchanged value. `error` picks `validationError` first: a rule about the value outranks a verdict that may predate
-the app state the rule reads. [Under the hood](./under-the-hood.mdx) has the sequence that made this necessary.
+unchanged value. `error` picks `validationError` first. [Rounds and error slots](../internals/rounds.mdx) has the
+sequence that made this necessary.
 
 ## The five statuses
 
@@ -96,12 +44,15 @@ enum FieldStatus { valid, invalid, pending, validating, failedValidation }
 `isInProgress` is `pending || validating`, the one check a spinner needs.
 
 <Callout type="warn" title="valid means &quot;no error recorded&quot;">
-  This is the most common misunderstanding about the package. A quiet form nobody has checked is `valid`, and so
-  `canSubmit` is `true` on it. Use `canSubmit` to enable a button; use `await validate()` to decide a submit. Note also
-  that `!isValid` is true for `pending` and `validating` too — write `isInvalid` when you mean "has an error".
+  This is the most common misunderstanding about the package. A quiet form nobody has checked is `valid`, so
+  `canSubmit` is `true` on it. Use `canSubmit` to enable a button; use `await validate()` to decide a submit. And
+  `!isValid` is true for `pending` and `validating` too — write `isInvalid` when you mean "has an error".
 </Callout>
 
-Watch the snapshot change as you interact with the field below. The async check treats `admin` as reserved.
+## Watch it change
+
+Type `admin` and watch `status` walk `pending → validating → invalid` while `error` is blank in between. Push an error
+with `setError` and then type — the edit clears it. Toggle `readOnly` and try to type.
 
 <AdvancedFormsExample preview="StateInspector" title="state_inspector.dart" code="collapsed">
 
@@ -247,45 +198,9 @@ class _StateTable extends StatelessWidget {
 
 </AdvancedFormsExample>
 
-Things to try: type `admin` and watch `status` walk `pending → validating → invalid` while `error` is blank in between;
-push an error with `setError` and then type — the edit clears it; toggle `readOnly` and try to type.
-
-## A form controller owns fields and subforms
-
-`AdvancedFormController` is the root of a tree. Its direct leaves are the fields you `registerFields`, and its subtrees
-are other form controllers attached with `addSubform`. Almost everything it does is a broadcast over that tree:
-`validate`, `resetAll`, `clearErrors`, `markReadOnly`, `setValidationMode`, `setValidationEnabled`.
-
-It is also a `ValueListenable<AdvancedFormState>`, whose derived members — `canSubmit`, `validating`,
-`hasFailedValidation`, `validationErrors` — are computed from the live fields on every read, so they can never report
-a field that has since been removed. [Form-level state](./form-state.mdx) covers them.
-
-Ownership follows registration: the form disposes every field it was ever given and every subform it was ever
-attached, in its own `dispose()`. You dispose the form, and only the form.
-
-## Widgets subscribe, one field each
-
-`AdvancedFieldBuilder<T, E>` is a thin wrapper over `ValueListenableBuilder` that hides the state type argument. It
-rebuilds its subtree when — and only when — its field notifies. A form with twenty fields rebuilds one input per
-keystroke.
-
-```dart
-AdvancedFieldBuilder<bool, SignupError>(
-  field: form.acceptTerms,
-  builder: (context, state, _) => Switch(
-    value: state.value,
-    onChanged: form.acceptTerms.getValueSetter(), // null while read-only
-  ),
-)
-```
-
-For anything the form as a whole knows — is it modified, is something validating — subscribe to the form controller
-the same way with `ValueListenableBuilder<AdvancedFormState>`.
-
 ## Next
 
 <Cards>
-  <Card title="Rendering fields" href="./rendering.mdx" description="Bind text, boolean, select and scalar fields to widgets." />
-  <Card title="Validation modes" href="./validation-modes.mdx" description="When a field validates itself." />
-  <Card title="Under the hood" href="./under-the-hood.mdx" description="Rounds, verdicts, and why the two error slots stay." />
+  <Card title="Forms, subforms and widgets" href="./form-tree.mdx" description="The tree a form controller owns." />
+  <Card title="Async validation" href="../validation/async.mdx" description="Where pending, validating and failedValidation come from." />
 </Cards>

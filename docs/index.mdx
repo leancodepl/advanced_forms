@@ -1,6 +1,6 @@
 ---
 title: Introduction
-description: What advanced_forms is, what it deliberately is not, and how its pieces fit together.
+description: What advanced_forms is, and how its pieces fit together.
 icon: BookOpen
 ---
 
@@ -12,24 +12,23 @@ AI-Provenance:
 
 `advanced_forms` is form validation and state management for Flutter without a framework on top. It gives you **typed
 field controllers**, **composable sync and async validation**, and **form-level state**, all built on `ChangeNotifier`
-and `ValueListenable` from the Flutter SDK. It does not ship widgets, it does not generate code, and it does not care
-which state-management package the rest of your app uses.
+and `ValueListenable` from the Flutter SDK. It ships no widgets, generates no code, and does not care which
+state-management package the rest of your app uses.
 
 <Cards>
   <Card title="Installation" href="./installation.mdx" description="Add the package. Requirements and the 0.1.x migration." />
   <Card title="Your first form" href="./first-form.mdx" description="A controller, two fields, a submit — running on the page." />
-  <Card title="Core concepts" href="./concepts.mdx" description="Controllers, state, statuses, and the error type you choose." />
-  <Card title="Validation modes" href="./validation-modes.mdx" description="Three rules and one table decide when a field validates." />
+  <Card title="Core concepts" href="./concepts/index.mdx" description="Controllers, state, statuses, and the error type you choose." />
+  <Card title="Validation modes" href="./validation/modes.mdx" description="Three rules and one table decide when a field validates." />
 </Cards>
 
 ## What you get
 
-- **Typed field controllers** — text fields, checkboxes and switches, dropdowns and radio groups, and multi-select
-  fields, each with its own value type *and* its own error type.
+- **Typed field controllers** — text, boolean, single-select and multi-select fields, each with its own value type
+  *and* its own error type.
 - **Validators that compose** — `filled`, `notEmpty`, `notNull`, `mustBeTrue`, `atLeastLength`, `notLongerThan`,
   `exactly` and numeric checks, combined with `&` and `|`, or any `E? Function(T)` you write yourself.
-- **Async validation** — debounced server-side checks ("is this email taken?") with a timeout, failure handling and
-  cached answers.
+- **Async validation** — debounced server-side checks with a timeout, failure handling and cached answers.
 - **Cross-field validation** — re-run a validator when the fields it depends on change, or derive one field's value
   from another.
 - **Validation modes** — validate on submit, on every keystroke, or on unfocus. Set once, applied to the whole form.
@@ -40,23 +39,11 @@ which state-management package the rest of your app uses.
 - **Read-only fields and server-side errors** — freeze a value, or push an error in from an API response.
 - **Granular rebuilds** — one builder per field, so a keystroke rebuilds one subtree and nothing else.
 
-## What it is not
-
-It is worth being explicit, because most form packages make the opposite choices:
-
-| `advanced_forms` does not… | …because |
-| --- | --- |
-| ship styled widgets | your design system already has them. A controller hands a widget exactly what it needs to bind to: a `TextEditingController`, a `FocusNode`, the typed state, the error. See [Reusable field widgets](./widgets.mdx). |
-| wrap Flutter's `Form` | it *is* the validation system. No `GlobalKey<FormState>`, no `autovalidateMode`, and a `TextFormField` outside a `Form` is just a `TextField` with a decoration. |
-| format error messages | errors are values of *your* type `E`. A `String` is fine on day one; an enum or a sealed class scales to translations and to one field reporting several violations at once. |
-| use code generation | a `build_runner` step is a cost every consumer pays. `copyWith` is written by hand; the package has three small runtime dependencies. |
-| depend on `bloc`, `provider` or `riverpod` | controllers are `ChangeNotifier`s. Own them in a `StatefulWidget`, a `ChangeNotifierProvider`, or whatever your app uses. |
-
 ## The model in one picture
 
 A **form controller** owns **field controllers**. Each field holds one typed value, runs its validators, and notifies
 its listeners. The form aggregates: it broadcasts `validate`, `reset` and `markReadOnly` to every field and every
-attached subform, and it derives `canSubmit`, `validating` and `validationErrors` from them on every read.
+attached subform, and derives `canSubmit`, `validating` and `validationErrors` from them on every read.
 
 <picture className="theme-diagram-light">
   <img
@@ -74,23 +61,8 @@ attached subform, and it derives `canSubmit`, `validating` and `validationErrors
 On the widget side, `AdvancedFieldBuilder` subscribes one subtree to one field. That is the whole binding story: no
 `onChanged`, no `initialValue`, no controller allocation in `initState`.
 
-## Where things are explained
-
-| I want to… | Read |
-| --- | --- |
-| build a form end to end | [Your first form](./first-form.mdx) |
-| understand `AdvancedFieldState`, `FieldStatus` and the error type | [Core concepts](./concepts.mdx) |
-| bind a checkbox, dropdown, chips or slider to a field | [Rendering fields](./rendering.mdx) |
-| decide when fields validate themselves | [Validation modes](./validation-modes.mdx) |
-| pick or write a validator | [Validators](./validators.mdx) |
-| check something on the server | [Async validation](./async-validation.mdx) |
-| validate a field against another, or derive a value | [Cross-field logic](./cross-field.mdx) |
-| enable a submit button, show a spinner, list every error | [Form-level state](./form-state.mdx) |
-| apply a 422 response or lock a field | [Read-only fields and server errors](./server-errors.mdx) |
-| build a wizard or a dynamic list of sections | [Subforms](./subforms.mdx) |
-| know who disposes what | [Lifecycle and ownership](./lifecycle.mdx) |
-| write a unit test for a controller | [Testing forms](./testing.mdx) |
-| know why the internals look the way they do | [Under the hood](./under-the-hood.mdx) |
+Why the package makes the choices it makes — no widgets, no `Form`, no codegen — is on
+[Design decisions](./internals/decisions.mdx).
 
 <Callout title="Using an agent that supports Agent Skills?">
   The repository ships an [Agent Skill](./agent-skill.mdx) that teaches your agent the full API, so it generates fields,

@@ -112,7 +112,7 @@ export function Rules() {
         </table>
       </div>
       <p className="af-section-more">
-        <Link href={`${docsRoute}/validation-modes`}>Every cell of that table, explained →</Link>
+        <Link href={`${docsRoute}/validation/modes`}>Every cell of that table, explained →</Link>
       </p>
     </>
   )

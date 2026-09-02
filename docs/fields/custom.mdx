@@ -1,0 +1,82 @@
+---
+title: Custom controllers
+description: Use the concrete base class for any value, extend it for domain methods, and override setValue to transform what the user types.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+## The concrete base class
+
+`AdvancedFieldController<T, E>` is not abstract. Construct it directly for any value with no dedicated controller — a
+slider, a stepper, a date, a rating, a derived total — and bind it like any other field. [Scalars](../rendering/scalar.mdx)
+has a running slider.
+
+```dart
+final rating = AdvancedFieldController<int, MyError>(
+  initialValue: 0,
+  validator: (stars) => stars == 0 ? MyError.required : null,
+  name: 'rating',
+);
+```
+
+Ordinary user writes need no `force:` — that is only for writing to a field you have marked read-only.
+
+## Domain methods
+
+Extend the base class — or `AdvancedTextFieldController` when the widget binds a text controller — to add methods on
+top of `setValue`:
+
+```dart
+class IntegerFieldController<E extends Object>
+    extends AdvancedFieldController<int, E> {
+  IntegerFieldController({
+    super.initialValue = 0,
+    super.validator,
+    super.asyncValidation,
+    super.name,
+  });
+
+  bool get isNegative => fieldValue.isNegative;
+
+  void increment() => setValue(fieldValue + 1);
+}
+```
+
+## Transforming what the user types
+
+To normalise, mask or upper-case, override `setValue` on a text controller. Every write to `textController` —
+keystroke, paste or programmatic — goes through the public `setValue`, so the override always runs, and the transformed
+value is written back into the text controller in the same turn:
+
+```dart
+class PhoneFieldController extends AdvancedTextFieldController<MyError> {
+  PhoneFieldController({String initialValue = '', super.validator})
+    : super(initialValue: _digits(initialValue));
+
+  static String _digits(String value) => value.replaceAll(RegExp(r'\D'), '');
+
+  @override
+  void setValue(String newValue, {bool force = false}) =>
+      super.setValue(_digits(newValue), force: force);
+}
+```
+
+Normalise `initialValue` before it reaches `super`, as above: `reset()` returns to *that* value without passing
+through `setValue`.
+
+## A list as the error type
+
+The example app's
+[`PasswordFieldController`](https://github.com/leancodepl/advanced_forms/blob/main/example/lib/controllers/password_field_controller.dart)
+is a text field whose error type is a `List`, so one field reports several rule violations at once —
+[Custom validators](../validation/custom-validators.mdx) has a running version.
+
+<Callout type="warn" title="Spell out E when nothing infers it">
+  With no `validator`, `E` infers to its bound `Object`. `AdvancedBooleanFieldController<MyError>()` keeps every later
+  `switch` on your enum compiling. The same goes for a map of mixed fields:
+  `Map<String, AdvancedFieldController<dynamic, MyError>>`.
+</Callout>

@@ -1,0 +1,62 @@
+---
+title: AdvancedFieldBuilder
+description: One builder per field rebuilds one subtree. The type arguments follow the controller.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+`AdvancedFieldBuilder<T, E>` rebuilds a subtree whenever its field notifies. It wraps `ValueListenableBuilder`, so the
+SDK widget works too if you would rather spell out `ValueListenableBuilder<AdvancedFieldState<String, MyError>>` — the
+wrapper exists to hide that type argument.
+
+```dart
+AdvancedFieldBuilder<String, MyError>(
+  field: firstName,
+  builder: (context, state, _) => TextFormField(
+    controller: firstName.textController,
+    focusNode: firstName.focusNode,
+    decoration: InputDecoration(
+      errorText: state.error != null ? translate(state.error!) : null,
+    ),
+  ),
+);
+```
+
+Note what is *not* in the snippet: no `TextEditingController` allocation, no `onChanged`, no `initialValue` seeding.
+The field owns both controllers and keeps them in sync. Rebuilds are granular by construction — each builder subscribes
+to one field, so a keystroke rebuilds that field's subtree and nothing else — and `AdvancedFieldState` is value-equal,
+so setting a field to the value it already holds notifies nobody.
+
+## Type arguments follow the controller
+
+| Controller | Builder |
+| --- | --- |
+| `AdvancedTextFieldController<E>` | `AdvancedFieldBuilder<String, E>` |
+| `AdvancedBooleanFieldController<E>` | `AdvancedFieldBuilder<bool, E>` |
+| `AdvancedSingleSelectFieldController<V, E>` | `AdvancedFieldBuilder<V?, E>` |
+| `AdvancedMultiSelectFieldController<V, E>` | `AdvancedFieldBuilder<Set<V>, E>` |
+| `AdvancedFieldController<T, E>` | `AdvancedFieldBuilder<T, E>` |
+
+## Two habits
+
+**Null the callback while read-only.** `field.getValueSetter()` returns `null` while the field is read-only, and a
+`null` callback is exactly what disables a Material control. Where the callback is not a `ValueSetter<T>?`, write
+`state.readOnly ? null : …`.
+
+**Translate `E` at the edge.** `ErrorTranslator<E>` is `String Function(E)`. It takes a non-null `E` while
+`state.error` is `E?`, so promote first: `final error = state.error; errorText: error == null ? null : translate(error)`.
+
+The pages in this section bind each kind of field to hand-written Material widgets — this section is about the wiring,
+so it uses none of the docs' shorthand widgets.
+
+<Cards>
+  <Card title="Text" href="./text.mdx" description="TextFormField bound to the field's own controllers, read-only made visible." />
+  <Card title="Boolean" href="./boolean.mdx" description="Checkbox and switch, with the setter adapted." />
+  <Card title="Select and multi-select" href="./select.mdx" description="A dropdown and a chip group." />
+  <Card title="Scalars" href="./scalar.mdx" description="A slider on a plain AdvancedFieldController<int, E>." />
+  <Card title="Rebuild performance" href="./performance.mdx" description="The child: passthrough, and who should subscribe." />
+</Cards>

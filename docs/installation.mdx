@@ -39,7 +39,7 @@ None are required. Two are worth knowing about:
 
 - **A DI package** — `ChangeNotifierProvider` from `provider` is a one-line way to own a form controller and have it
   disposed for you. The example app uses it; a `StatefulWidget` works just as well. See
-  [Lifecycle and ownership](./lifecycle.mdx).
+  [Lifecycle and ownership](./lifecycle/index.mdx).
 - **An [Agent Skill](./agent-skill.mdx)** — if you write forms with Claude Code or another agent that supports
   skills, copy `skills/advanced_forms/` into your project and the agent generates idiomatic `advanced_forms` code.
 
@@ -48,7 +48,7 @@ None are required. Two are worth knowing about:
 `advanced_forms` 0.2.0 is the successor of `leancode_forms`, which is discontinued on pub.dev. The form-building
 model is the same — fields, form controllers, validators, subforms — and the machinery underneath is new: `bloc` and
 `rxdart` are gone, every `*Cubit` is an `Advanced*Controller`, and validation was rebuilt around named
-[validation modes](./validation-modes.mdx).
+[validation modes](./validation/modes.mdx).
 
 The [migration guide](./migration.mdx) walks through the renames, the behaviour changes that compile but behave
 differently, and the widget-side clean-up. Budget an hour for a medium-sized app; most of it is deleting

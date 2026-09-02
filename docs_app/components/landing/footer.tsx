@@ -67,10 +67,10 @@ export function SiteFooter({ version }: { version: string }) {
               <Link href={`${docsRoute}/first-form`}>Your first form</Link>
             </li>
             <li>
-              <Link href={`${docsRoute}/validation-modes`}>Validation modes</Link>
+              <Link href={`${docsRoute}/validation/modes`}>Validation modes</Link>
             </li>
             <li>
-              <Link href={`${docsRoute}/async-validation`}>Async validation</Link>
+              <Link href={`${docsRoute}/validation/async`}>Async validation</Link>
             </li>
             <li>
               <Link href={`${docsRoute}/faq`}>FAQ</Link>

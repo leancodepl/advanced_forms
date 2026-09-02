@@ -30,13 +30,13 @@ Any Flutter target works; the app uses no platform plugins. It owns its controll
 
 | Screen | Demonstrates | Explained in |
 | --- | --- | --- |
-| [Simple Form](https://github.com/leancodepl/advanced_forms/blob/main/example/lib/screens/simple_form.dart) | Submit-time validation, an async email check with `timeout` and `failureToError`, the `hasFailedValidation` banner, `canSubmit` on the button. Try `john@email.com` (taken) and `boom@email.com` (the check throws) | [Async validation](./async-validation.mdx) |
-| [Password Form](https://github.com/leancodepl/advanced_forms/blob/main/example/lib/screens/password_form.dart) | Cross-field validation via `subscribeToFields`, one field opting into `ValidationMode.onUnfocus`, a custom controller whose error is a `List` of rule violations | [Cross-field logic](./cross-field.mdx), [Validators](./validators.mdx) |
-| [Optimized Rendering](https://github.com/leancodepl/advanced_forms/blob/main/example/lib/screens/optimized_rendering_form.dart) | Granular rebuilds and the `child:` optimisation across three layouts of increasing weight | [Rendering fields](./rendering.mdx) |
-| [Quiz Form](https://github.com/leancodepl/advanced_forms/blob/main/example/lib/screens/quiz_form.dart) | Applying a server response with `setError` / `setError(null)` after the answers are checked | [Read-only fields and server errors](./server-errors.mdx) |
-| [Complex Form](https://github.com/leancodepl/advanced_forms/blob/main/example/lib/screens/complex_form.dart) | Single-select dropdowns and swapping the active subform with `addSubform` / `removeSubform` | [Field controllers](./fields.mdx), [Subforms](./subforms.mdx) |
-| [Delivery List Form](https://github.com/leancodepl/advanced_forms/blob/main/example/lib/screens/delivery_form.dart) | A dynamic list of subforms, validated and disposed by the parent | [Subforms](./subforms.mdx) |
-| [Step Form](https://github.com/leancodepl/advanced_forms/blob/main/example/lib/screens/step_form.dart) | A multi-page wizard in a `PageView`: one subform per page, `await step.validate()` on Next, the parent's `validate()` on Submit, and a conditional invoice page that `setValidationEnabled(false)` drops from both the flow and the validation | [Subforms](./subforms.mdx) |
+| [Simple Form](https://github.com/leancodepl/advanced_forms/blob/main/example/lib/screens/simple_form.dart) | Submit-time validation, an async email check with `timeout` and `failureToError`, the `hasFailedValidation` banner, `canSubmit` on the button. Try `john@email.com` (taken) and `boom@email.com` (the check throws) | [Async validation](./validation/async.mdx) |
+| [Password Form](https://github.com/leancodepl/advanced_forms/blob/main/example/lib/screens/password_form.dart) | Cross-field validation via `subscribeToFields`, one field opting into `ValidationMode.onUnfocus`, a custom controller whose error is a `List` of rule violations | [Cross-field logic](./validation/cross-field.mdx), [Validators](./validation/validators.mdx) |
+| [Optimized Rendering](https://github.com/leancodepl/advanced_forms/blob/main/example/lib/screens/optimized_rendering_form.dart) | Granular rebuilds and the `child:` optimisation across three layouts of increasing weight | [Rendering fields](./rendering/index.mdx) |
+| [Quiz Form](https://github.com/leancodepl/advanced_forms/blob/main/example/lib/screens/quiz_form.dart) | Applying a server response with `setError` / `setError(null)` after the answers are checked | [Read-only fields and server errors](./server-errors/index.mdx) |
+| [Complex Form](https://github.com/leancodepl/advanced_forms/blob/main/example/lib/screens/complex_form.dart) | Single-select dropdowns and swapping the active subform with `addSubform` / `removeSubform` | [Field controllers](./fields/index.mdx), [Subforms](./subforms/index.mdx) |
+| [Delivery List Form](https://github.com/leancodepl/advanced_forms/blob/main/example/lib/screens/delivery_form.dart) | A dynamic list of subforms, validated and disposed by the parent | [Subforms](./subforms/index.mdx) |
+| [Step Form](https://github.com/leancodepl/advanced_forms/blob/main/example/lib/screens/step_form.dart) | A multi-page wizard in a `PageView`: one subform per page, `await step.validate()` on Next, the parent's `validate()` on Submit, and a conditional invoice page that `setValidationEnabled(false)` drops from both the flow and the validation | [Subforms](./subforms/index.mdx) |
 | [Scroll Form](https://github.com/leancodepl/advanced_forms/blob/main/example/lib/screens/scroll_form.dart) | Scrolling to the first invalid field through `field.focusNode`, plus a plain `Stream` for one-off UI events | [Focus](./focus.mdx) |
 
 ## Reusable pieces
@@ -56,5 +56,5 @@ Any Flutter target works; the app uses no platform plugins. It owns its controll
 Every `dart` listing framed as a live example in these docs is compiled into a Flutter web bundle when the site is
 built and rendered right above its source. They are smaller than the example app's screens on purpose — one lesson
 each — and they share nothing with it except the package. Multi-select fields and read-only fields, which the example
-app does not cover, have their running examples on [Field controllers](./fields.mdx) and
-[Read-only fields and server errors](./server-errors.mdx).
+app does not cover, have their running examples on [Field controllers](./fields/index.mdx) and
+[Read-only fields and server errors](./server-errors/index.mdx).

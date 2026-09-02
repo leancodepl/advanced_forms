@@ -1,0 +1,202 @@
+---
+title: Attaching subforms
+description: addSubform makes another form controller part of this one — its fields join validate, reset and every other broadcast. A dynamic list is the simplest case.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+`addSubform` attaches another `AdvancedFormController` as a child. Its fields join the parent's `validate`,
+`resetAll`, `markReadOnly`, `clearErrors`, `setValidationMode`, `setValidationEnabled` and every other broadcast, and
+they count towards the parent's `wasModified`, `canSubmit`, `validating` and `validationErrors`.
+
+```dart
+class CheckoutFormController extends AdvancedFormController {
+  CheckoutFormController() {
+    registerFields([email]);
+    addSubform(shipping); // its fields are now part of this form
+  }
+
+  final email = AdvancedTextFieldController(validator: filled(MyError.required));
+  final shipping = ShippingFormController(); // another AdvancedFormController
+}
+```
+
+## A dynamic list
+
+Every guest below is its own `AdvancedFormController`, attached when added and detached when removed. The parent's
+`validate()` walks every attached one.
+
+<AdvancedFormsExample preview="GuestListForm" title="guest_list.dart">
+
+```dart title="guest_list_controller.dart"
+class GuestController extends AdvancedFormController {
+  GuestController() {
+    registerFields([name, email]);
+  }
+
+  final name = AdvancedTextFieldController(validator: filled('Name required'));
+  final email = AdvancedTextFieldController(
+    validator: (value) => value.contains('@') ? null : 'Not an email',
+  );
+}
+
+class GuestListController extends AdvancedFormController {
+  GuestListController() {
+    addGuest();
+  }
+
+  // Navigation state of our own: which subforms are on screen, in order.
+  // AdvancedFormState.subforms is a Set and knows nothing about order.
+  final guests = <GuestController>[];
+
+  void addGuest() {
+    final guest = GuestController();
+    addSubform(guest);
+    guests.add(guest);
+    notifyListeners();
+  }
+
+  void removeGuest(GuestController guest) {
+    // Detaches only. The parent still owns it and disposes it with itself.
+    removeSubform(guest);
+    guests.remove(guest);
+    notifyListeners();
+  }
+}
+```
+
+```dart title="guest_list_form.dart"
+class GuestListForm extends StatefulWidget {
+  const GuestListForm({super.key});
+
+  @override
+  State<GuestListForm> createState() => _GuestListFormState();
+}
+
+class _GuestListFormState extends State<GuestListForm> {
+  final _form = GuestListController();
+
+  @override
+  void dispose() {
+    _form.dispose(); // disposes every guest, attached or not
+    super.dispose();
+  }
+
+  Future<void> _invite() async {
+    final ok = await _form.validate();
+    if (mounted) {
+      final count = _form.guests.length;
+      ExampleLog.of(
+        context,
+      ).add(ok ? 'Invited $count guests.' : 'Fix the list.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Rebuilds when guests are added or removed (notifyListeners above).
+    return ListenableBuilder(
+      listenable: _form,
+      builder: (context, _) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final (index, guest) in _form.guests.indexed)
+            _GuestCard(
+              key: ObjectKey(guest),
+              index: index,
+              guest: guest,
+              onRemove: _form.guests.length > 1
+                  ? () => _form.removeGuest(guest)
+                  : null,
+            ),
+          DocsActions(
+            children: [
+              OutlinedButton.icon(
+                onPressed: _form.addGuest,
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text('Add guest'),
+              ),
+              DocsSubmitButton(
+                form: _form,
+                label: 'Invite',
+                onPressed: _invite,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GuestCard extends StatelessWidget {
+  const _GuestCard({
+    super.key,
+    required this.index,
+    required this.guest,
+    required this.onRemove,
+  });
+
+  final int index;
+  final GuestController guest;
+  final VoidCallback? onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 4, 6, 8),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Text(
+                  'Guest ${index + 1}',
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+                const Spacer(),
+                IconButton(
+                  onPressed: onRemove,
+                  icon: const Icon(Icons.close, size: 18),
+                  tooltip: 'Remove',
+                ),
+              ],
+            ),
+            DocsTextField(field: guest.name, label: 'Name'),
+            DocsTextField(field: guest.email, label: 'Email'),
+          ],
+        ),
+      ),
+    );
+  }
+}
+```
+
+</AdvancedFormsExample>
+
+## Attaching, detaching, owning
+
+- **`addSubform(form)`** attaches. A no-op if already attached. The parent applies its validation mode to the subform
+  at once — unless the subform has a mode of its own.
+- **`removeSubform(form)`** detaches: the subform stops validating, notifying and counting towards the parent's state,
+  and can be re-attached later. It does **not** dispose it.
+- **The parent owns every subform it was ever given** and disposes them all in its own `dispose()`, attached or
+  detached — the same way it owns registered fields. Do not dispose subforms yourself.
+- **Ownership is single-parent.** A subform attached to two parents is not supported.
+- Calling `addSubform` with — or on — a disposed controller throws a descriptive `StateError`. A disposed controller
+  cannot be reused; build a fresh one per appearance.
+
+Both membership changes recompute `wasModified`, so attaching an already-modified subform marks the parent modified at
+once, and removing the only modified child clears the flag.
+
+## Next
+
+<Cards>
+  <Card title="Wizards" href="./wizard.mdx" description="One subform per step, validated one step at a time." />
+  <Card title="Patterns" href="./patterns.mdx" description="Detach or switch off? Swapping one section for another." />
+</Cards>
