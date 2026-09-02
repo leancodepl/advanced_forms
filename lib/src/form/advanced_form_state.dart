@@ -42,8 +42,14 @@ class AdvancedFormState with Equatable {
   final ValidationMode validationMode;
 
   /// This form's fields including every subform's fields.
-  Iterable<AdvancedFieldController<dynamic, dynamic>> get allFields =>
-      fields.followedBy(subforms.expand((e) => e.value.allFields));
+  // `followedBy` compares element types at runtime and throws when a subform's
+  // field list was written out with an explicit type. A generator doesn't.
+  Iterable<AdvancedFieldController<dynamic, dynamic>> get allFields sync* {
+    yield* fields;
+    for (final subform in subforms) {
+      yield* subform.value.allFields;
+    }
+  }
 
   // Fields that count — disabled subtrees excluded, matching what validate()
   // checks, so validate() and canSubmit always agree.
