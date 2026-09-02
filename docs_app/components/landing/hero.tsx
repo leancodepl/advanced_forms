@@ -57,7 +57,13 @@ export function Hero({ version, demo }: { version: string; demo: ReactNode }) {
             </ExternalLink>
           </div>
         </div>
-        <div className="af-hero-demo">{demo}</div>
+        <div className="af-hero-demo">
+          <p className="af-demo-label">
+            <span className="af-demo-dot" aria-hidden="true" />
+            Try it — a live demo running in Flutter. Nothing you type is sent anywhere.
+          </p>
+          {demo}
+        </div>
       </div>
     </section>
   )

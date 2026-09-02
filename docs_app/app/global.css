@@ -590,6 +590,30 @@ a.af-pill-accent:hover {
   justify-content: center;
 }
 
+/* "This is real, go ahead" — the label above the hero's live form. */
+.af-demo-label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--af-accent-text);
+}
+
+.af-demo-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--af-ok);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--af-ok) 25%, transparent);
+  animation: af-pulse 1.6s ease-in-out infinite;
+}
+
 .af-copy-button {
   display: inline-flex;
   align-items: center;
@@ -1344,7 +1368,8 @@ a.af-pill-accent:hover {
     transition: none;
   }
 
-  .af-example-status[data-status="attaching"]::before {
+  .af-example-status[data-status="attaching"]::before,
+  .af-demo-dot {
     animation: none;
   }
 }

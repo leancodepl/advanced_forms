@@ -34,7 +34,7 @@ interface ExampleFrameProps {
 const statusLabels: Record<IslandStatus, string> = {
   waiting: "idle",
   attaching: "starting",
-  ready: "live",
+  ready: "live · try it",
   evicted: "paused",
   failed: "offline",
 }
@@ -87,7 +87,7 @@ export function ExampleFrame({
         </span>
         <span className="af-example-title">{title ?? `${preview} · live example`}</span>
         <span className="af-example-status" data-status={isolate ? "ready" : status} aria-live="polite">
-          {isolate ? "live" : statusLabels[status]}
+          {isolate ? "live · try it" : statusLabels[status]}
         </span>
       </div>
 
