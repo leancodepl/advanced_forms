@@ -1,0 +1,74 @@
+---
+title: The submit button
+description: What to bind the button to, why not canSubmit, how to track your own save request, and how to render an error summary.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+## Three sensible bindings
+
+In order of how often they are what the task actually asks for:
+
+1. **Gate on nothing.** Let `validate()` do its job on tap; it is idempotent under a double tap.
+2. **Gate on `!state.validating`**, or show a spinner while it is true, so the user sees the check running.
+3. **Gate on `state.wasModified`** when the task says "disabled until something changed" — an edit form with a discard
+   button.
+
+<Callout type="warn" title="Do not gate a validate-on-submit button on canSubmit">
+  It is `false` while any round is pending or validating, and `false` while a field sits in `failedValidation` — so the
+  button dies exactly when the user needs to retry, and the "submit is the retry" promise breaks. `canSubmit` is for
+  greying out over *known* errors on a form that validates live.
+</Callout>
+
+## Your own save request
+
+A save request in flight is **yours** to track. `validating` covers async *validators* only; the package knows
+nothing about your network call. Keep your own flag on the controller and set it **before** the first `await` in the
+submit, or a double tap sends two requests:
+
+```dart
+class ProfileFormController extends AdvancedFormController {
+  bool get isSaving => _isSaving;
+  var _isSaving = false;
+
+  Future<bool> save() async {
+    if (_isSaving) {
+      return false;
+    }
+    _isSaving = true;
+    notifyListeners(); // ChangeNotifier: subclasses may call it
+    try {
+      if (!await validate()) {
+        return false;
+      }
+      await api.save(/* … */);
+      return true;
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
+  }
+}
+```
+
+## An error summary
+
+`validationErrors` keys on the field controller, so the summary can be rendered in the order the fields were
+registered, and it reports `error` — sync **or** async — so a field invalid from a server check appears too. Give
+fields a `name` if the summary needs labels; the package never reads `name`, it only carries it. The map's values are
+`dynamic`, because fields of different error types share one form; cast to `E` where you know it.
+
+```dart
+for (final MapEntry(key: field, value: error) in state.validationErrors.entries)
+  Text('${field.name}: ${translate(error as MyError)}'),
+```
+
+## `wasModified` on an edit form
+
+`wasModified` is baselined at `registerFields` time. A controller that registers its fields in the constructor and
+*then* loads server data reports `wasModified: true` forever. [Prefilled forms](../lifecycle/prefilled-forms.mdx) has
+the two ways out.

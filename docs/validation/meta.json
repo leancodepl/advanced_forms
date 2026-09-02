@@ -1,0 +1,15 @@
+{
+  "title": "Validation",
+  "icon": "ShieldCheck",
+  "pages": [
+    "modes",
+    "configuring",
+    "validate",
+    "validators",
+    "custom-validators",
+    "async",
+    "async-failures",
+    "cross-field",
+    "relations"
+  ]
+}

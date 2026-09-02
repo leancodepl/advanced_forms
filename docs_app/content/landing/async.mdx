@@ -1,0 +1,101 @@
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+<AdvancedFormsExample preview="UsernameAvailabilityForm" title="username_form.dart" layout="split">
+
+```dart title="username_form_controller.dart"
+enum UsernameError { required, tooShort, taken, checkFailed }
+
+class UsernameFormController extends AdvancedFormController {
+  UsernameFormController()
+    : super(validationMode: ValidationMode.onUserInteraction) {
+    registerFields([username]);
+  }
+
+  late final username = AdvancedTextFieldController(
+    validator:
+        filled(UsernameError.required) &
+        atLeastLength(3, UsernameError.tooShort),
+    asyncValidation: AsyncValidation(
+      validator: _isAvailable, // Future<UsernameError?> Function(String)
+      debounce: const Duration(milliseconds: 400), // default 300 ms
+      timeout: const Duration(seconds: 3), // default: no bound
+      failureToError: (error, stackTrace) => UsernameError.checkFailed,
+    ),
+  );
+
+  Future<UsernameError?> _isAvailable(String value) async {
+    await Future<void>.delayed(const Duration(milliseconds: 700));
+    if (value == 'boom') {
+      throw Exception('the directory service is down');
+    }
+    const taken = {'alice', 'bob', 'admin'};
+    return taken.contains(value) ? UsernameError.taken : null;
+  }
+}
+```
+
+```dart title="username_availability_form.dart"
+class UsernameAvailabilityForm extends StatefulWidget {
+  const UsernameAvailabilityForm({super.key});
+
+  @override
+  State<UsernameAvailabilityForm> createState() =>
+      _UsernameAvailabilityFormState();
+}
+
+class _UsernameAvailabilityFormState extends State<UsernameAvailabilityForm> {
+  final _form = UsernameFormController();
+
+  @override
+  void dispose() {
+    _form.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    // Awaits the check in flight instead of failing a busy field.
+    final ok = await _form.validate();
+    if (mounted) {
+      final name = _form.username.fieldValue;
+      ExampleLog.of(context).add(ok ? '@$name is yours.' : 'Not submitted.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const DocsHint(
+          'alice, bob and admin are taken. boom makes the check throw.',
+        ),
+        DocsFailureBanner(form: _form),
+        DocsTextField(
+          field: _form.username,
+          label: 'Username',
+          icon: Icons.person_outline,
+          translateError: (error) => switch (error) {
+            UsernameError.required => 'Pick a username',
+            UsernameError.tooShort => 'At least 3 characters',
+            UsernameError.taken => 'Already taken — try another',
+            UsernameError.checkFailed => 'Could not check availability',
+          },
+        ),
+        Row(
+          children: [
+            DocsFieldStatus(field: _form.username, label: 'status'),
+            const Spacer(),
+            DocsSubmitButton(form: _form, label: 'Claim', onPressed: _submit),
+          ],
+        ),
+      ],
+    );
+  }
+}
+```
+
+</AdvancedFormsExample>

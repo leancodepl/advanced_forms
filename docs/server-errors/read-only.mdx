@@ -1,0 +1,47 @@
+---
+title: Read-only, clearErrors and reset
+description: markReadOnly freezes the value and nothing else; clearErrors and reset differ in exactly what they keep.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+## Read-only fields
+
+`markReadOnly()` freezes the value: `setValue` becomes a no-op unless you pass `force: true`, and text typed into a
+read-only text field is reverted in the same turn. It also aborts a live async round, so a frozen field does not keep
+transitioning on its own. Everything else still works on a read-only field:
+
+- `validate()` still validates it, and `revalidateSync()` still re-runs its rule — freezing a value does not exempt it
+  from the rules.
+- `reset()` still resets it, but **keeps** `readOnly`: that is configuration, and configuration changes only through its
+  own API.
+- A `failedValidation` status survives `markReadOnly()`, so a frozen field that could not be checked still blocks
+  submit; only its `lastFailure` details are dropped.
+
+`AdvancedFormController.markReadOnly()` and `unmarkReadOnly()` reach the whole tree. How a read-only field *looks* is
+the widget's business — see [Text fields](../rendering/text.mdx#read-only-visibly).
+
+## `setError(null)`, `clearErrors` and `reset`
+
+| | value | `validationError` | `asyncError` | verdict | touched | `readOnly`, mode |
+| --- | --- | --- | --- | --- | --- | --- |
+| `setError(null)` | kept | cleared | kept | kept | kept | kept |
+| `clearErrors()` | kept | cleared | cleared | dropped | kept | kept |
+| `reset()` | `initialValue` | cleared | cleared | dropped | untouched again | kept |
+
+"Touched" is the flag that lets the [validation mode](../validation/modes.mdx) fire: after `reset()` the field is quiet
+again until the user edits it or `validate()` runs. `hasFailedValidation` on the form clears on any `setValue`,
+`clearErrors()`, `reset()`, `setError(null)` or the next `validate()`.
+
+`AdvancedFormController` has `clearErrors()` and `resetAll()` for the whole tree.
+
+## Switching validation off instead
+
+To take a *section* out of the rules while keeping it on screen — invoice details behind an unchecked switch —
+`setValidationEnabled(false)` on that subform is better than freezing or detaching it: its errors are cleared, its
+fields stop counting towards `canSubmit` and `validate()`, and everything else — `resetAll`, `markReadOnly`, disposal —
+still reaches it. See [Subform patterns](../subforms/patterns.mdx).

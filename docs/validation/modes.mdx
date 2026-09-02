@@ -1,0 +1,151 @@
+---
+title: Validation modes
+description: Three rules and one table decide when a field validates itself — on submit, on every keystroke, or when it loses focus.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+A validator is a function: value in, error out, `null` means valid. *When* it runs is decided by the form's
+`ValidationMode`, and the whole trigger behaviour fits in three rules.
+
+1. **The mode decides which events make a field validate itself.** Set it once on the form; it reaches every field and
+   subform, including ones registered or attached later.
+2. **A field the user has never edited validates nothing on its own**, in every mode. `validate()` is what checks
+   those, so a prefilled form does not greet the user with errors.
+3. **A round runs the sync validator first, and the async validator only if sync passed.**
+
+`validate()` obeys none of them: it ignores the mode, never changes it, and runs every field — touched or not.
+
+## The three modes
+
+| `ValidationMode` | What the user sees |
+| --- | --- |
+| `manual` (default) | Nothing validates until `validate()` is called — usually on submit. Editing a field still clears the error that described its old value |
+| `onUserInteraction` | Every edit validates the field being edited; the async check waits out its debounce |
+| `onUnfocus` | Leaving a field the user edited validates it. Tabbing through an untouched field costs nothing; a debounced async check is flushed on the way out |
+
+The gate, in full — the row is the mode, the column is the event:
+
+| mode | value changed | focus left | a dependency changed |
+| --- | --- | --- | --- |
+| `manual` | — | — | — |
+| `onUserInteraction` | validate | — (the edit already did) | sync only |
+| `onUnfocus` | — (still typing) | validate | sync only |
+
+"A dependency changed" is what [`subscribeToFields`](./cross-field.mdx) and `validateAll` produce; it re-runs the sync
+validator only, because this field's own value did not change and its async verdict still stands.
+
+## Try it
+
+Switch the mode while you type. The form is the same; only the trigger changes.
+
+<AdvancedFormsExample preview="ValidationModesDemo" title="validation_modes.dart" code="collapsed">
+
+```dart title="profile_form_controller.dart"
+class ProfileFormController extends AdvancedFormController {
+  ProfileFormController() {
+    registerFields([username, website]);
+  }
+
+  final username = AdvancedTextFieldController(
+    validator:
+        filled('Username is required') &
+        atLeastLength(3, 'At least 3 characters'),
+  );
+
+  final website = AdvancedTextFieldController(
+    validator: (value) => value.isEmpty || value.startsWith('https://')
+        ? null
+        : 'Must start with https://',
+  );
+}
+```
+
+```dart title="validation_modes_demo.dart"
+class ValidationModesDemo extends StatefulWidget {
+  const ValidationModesDemo({super.key});
+
+  @override
+  State<ValidationModesDemo> createState() => _ValidationModesDemoState();
+}
+
+class _ValidationModesDemoState extends State<ValidationModesDemo> {
+  final _form = ProfileFormController();
+  var _mode = ValidationMode.manual;
+
+  @override
+  void dispose() {
+    _form.dispose();
+    super.dispose();
+  }
+
+  void _setMode(ValidationMode mode) {
+    setState(() => _mode = mode);
+    // One call reaches every field and subform in the tree.
+    _form.setValidationMode(mode);
+  }
+
+  Future<void> _submit() async {
+    final ok = await _form.validate();
+    if (mounted) {
+      ExampleLog.of(context).add(ok ? 'Saved.' : 'Not saved: invalid.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hint = switch (_mode) {
+      ValidationMode.manual =>
+        'Nothing validates until you press Save. An edit still clears '
+            'the error that described the old value.',
+      ValidationMode.onUserInteraction =>
+        'Every keystroke validates the field being edited.',
+      ValidationMode.onUnfocus =>
+        'Leaving a field you edited validates it. Tabbing through an '
+            'untouched field costs nothing.',
+    };
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SegmentedButton<ValidationMode>(
+          showSelectedIcon: false,
+          segments: [
+            for (final mode in ValidationMode.values)
+              ButtonSegment(value: mode, label: Text(mode.name)),
+          ],
+          selected: {_mode},
+          onSelectionChanged: (selection) => _setMode(selection.first),
+        ),
+        const SizedBox(height: 8),
+        DocsHint(hint),
+        DocsTextField(field: _form.username, label: 'Username'),
+        DocsTextField(
+          field: _form.website,
+          label: 'Website',
+          hint: 'https://…',
+        ),
+        DocsActions(
+          children: [
+            DocsSubmitButton(form: _form, label: 'Save', onPressed: _submit),
+            TextButton(onPressed: _form.resetAll, child: const Text('Reset')),
+          ],
+        ),
+      ],
+    );
+  }
+}
+```
+
+</AdvancedFormsExample>
+
+## Next
+
+<Cards>
+  <Card title="Configuring the mode" href="./configuring.mdx" description="Per form, per field, per subform; prefill; switching validation off." />
+  <Card title="What validate() does" href="./validate.mdx" description="The one call that ignores the mode." />
+</Cards>

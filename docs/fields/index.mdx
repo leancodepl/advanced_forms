@@ -1,0 +1,157 @@
+---
+title: The four controllers
+description: Text, boolean, single-select and multi-select — constructors, setters, and the methods they all share.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+| Controller | Value | Constructor | Setters |
+| --- | --- | --- | --- |
+| `AdvancedTextFieldController<E>` | `String` | `{initialValue = '', validator, asyncValidation, focusNode, name}` | typing into `textController`, `setValue` |
+| `AdvancedBooleanFieldController<E>` | `bool` | `{initialValue = false, validator, asyncValidation, focusNode, name}` | `setValue` |
+| `AdvancedSingleSelectFieldController<V, E>` | `V?` | `{required V? initialValue, required List<V> options, validator, asyncValidation, focusNode, name}` | `select(V? option)`; `null` clears |
+| `AdvancedMultiSelectFieldController<V, E>` | `Set<V>` | `{required Set<V> initialValue, required List<V> options, validator, asyncValidation, focusNode, name}` | `toggleElement`, `addValue`, `removeValue` |
+
+All of them support `reset()`, `markReadOnly()` / `unmarkReadOnly()`, `setError()`, `clearErrors()`,
+`setValidationMode()`, `subscribeToFields()`, `validate()`, `getValueSetter()`, `focus()`, and both sync and async
+validation. `name` labels the field in reported errors and as its `FocusNode`'s debug label; it is not used for
+identity — fields are identified by reference.
+
+<AdvancedFormsExample preview="PizzaOrderForm" title="pizza_order.dart" code="collapsed">
+
+```dart title="pizza_order_controller.dart"
+enum Size { small, medium, large }
+
+enum Topping { mozzarella, basil, olives, mushrooms, pepperoni }
+
+class PizzaOrderController extends AdvancedFormController {
+  PizzaOrderController() {
+    registerFields([size, toppings, extraCrispy, notes]);
+  }
+
+  // A required dropdown: null to start, notNull to enforce a choice.
+  final size = AdvancedSingleSelectFieldController<Size, String>(
+    initialValue: null,
+    options: Size.values,
+    validator: notNull('Pick a size'),
+  );
+
+  // A Set value; there is no built-in Set validator, so a closure.
+  final toppings = AdvancedMultiSelectFieldController<Topping, String>(
+    initialValue: const {Topping.mozzarella},
+    options: Topping.values,
+    validator: (chosen) => chosen.length > 3 ? 'At most 3 toppings' : null,
+  );
+
+  final extraCrispy = AdvancedBooleanFieldController<String>();
+
+  final notes = AdvancedTextFieldController<String>(
+    validator: notLongerThan(60, 'Keep it short'),
+  );
+
+  String get summary =>
+      '${size.fieldValue?.name} with ${toppings.fieldValue.map((t) => t.name).join(', ')}'
+      '${extraCrispy.fieldValue ? ', extra crispy' : ''}';
+}
+```
+
+```dart title="pizza_order_form.dart"
+class PizzaOrderForm extends StatefulWidget {
+  const PizzaOrderForm({super.key});
+
+  @override
+  State<PizzaOrderForm> createState() => _PizzaOrderFormState();
+}
+
+class _PizzaOrderFormState extends State<PizzaOrderForm> {
+  final _form = PizzaOrderController();
+
+  @override
+  void dispose() {
+    _form.dispose();
+    super.dispose();
+  }
+
+  Future<void> _order() async {
+    final ok = await _form.validate();
+    if (mounted) {
+      final summary = _form.summary;
+      ExampleLog.of(context).add(ok ? 'Ordered: $summary.' : 'Not ordered.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        DocsDropdownField(
+          field: _form.size,
+          label: 'Size',
+          hint: 'Choose…',
+          optionLabel: (size) => size.name,
+        ),
+        DocsChipsField(
+          field: _form.toppings,
+          label: 'Toppings',
+          optionLabel: (topping) => topping.name,
+        ),
+        DocsSwitchField(field: _form.extraCrispy, label: 'Extra crispy'),
+        DocsTextField(field: _form.notes, label: 'Notes for the kitchen'),
+        DocsActions(
+          children: [
+            DocsSubmitButton(form: _form, label: 'Order', onPressed: _order),
+            TextButton(onPressed: _form.resetAll, child: const Text('Reset')),
+          ],
+        ),
+      ],
+    );
+  }
+}
+```
+
+</AdvancedFormsExample>
+
+## Text
+
+Owns a `TextEditingController` — `field.textController` — kept in two-way sync with the value: user input flows into
+the field, and programmatic changes (`setValue`, `reset`, `prefill`, a relation) flow back into the visible text, with
+the caret kept on the same characters where possible. Text typed into a read-only field is reverted in the same turn.
+
+## Boolean
+
+Defaults to `false`. The one rule a boolean usually needs is built in: `validator: mustBeTrue(MyError.mustAccept)`.
+
+## Single select
+
+Holds a `V?` and a non-nullable `List<V> options`. A required dropdown is `initialValue: null` plus
+`validator: notNull(MyError.required)`. `select(option)` asserts in debug builds that the option is one of `options`;
+`select(null)` clears and is always allowed. `initialValue` is never checked, so an off-list initial value is the way
+to represent "unknown".
+
+## Multi select
+
+Holds a `Set<V>`. `toggleElement(v)` adds or removes; `addValue` asserts membership in `options`, `removeValue` stays
+silent for an off-list value. The controller copies the `initialValue` set and the `options` list, so mutating what you
+passed in never reaches the field.
+
+## Reading a field
+
+The full state is `field.value`, an [`AdvancedFieldState<T, E>`](../concepts/state.mdx). Two shortcuts cover most
+reads:
+
+```dart
+field.fieldValue; // the current value — short for field.value.value
+field.error;      // the current error, or null — short for field.value.error
+```
+
+## Next
+
+<Cards>
+  <Card title="Custom controllers" href="./custom.mdx" description="The concrete base class, and controllers with domain methods." />
+  <Card title="Rendering fields" href="../rendering/index.mdx" description="The widget side of every controller above." />
+</Cards>

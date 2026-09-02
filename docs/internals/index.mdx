@@ -1,0 +1,74 @@
+---
+title: Vocabulary and the gate
+description: The words the code uses precisely, and the twenty lines that decide when a field validates itself.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+The package is about two thousand lines of Dart and reads in an afternoon. What the code does not tell you is which
+alternatives were tried and why they lost. This section is that context, for readers who want to reason about edge
+cases or contribute.
+
+## Vocabulary
+
+These words mean exactly one thing each, in code, dartdoc and tests. Keeping them apart is what made the design
+arguable at all.
+
+| Term | Meaning |
+| --- | --- |
+| **error** | A code of type `E` describing what is wrong with the value. Shown to the user after translation |
+| **failure** | The async validator threw, or the round timed out. A technical fault, **not** a verdict about the value |
+| **round** | One validation pass over one value: the sync validator, then the async validator if sync passed |
+| **verdict** | The settled result of a round's async validator, for one specific value |
+| **current** (of a verdict) | The verdict describes the value the field holds right now |
+| **gate** | The decision of whether an event makes a field validate itself |
+| **abort point** | An operation that kills the armed or in-flight round so it can never write state again |
+
+The error/failure split is why the hook is `onFailure` and the status is `failedValidation`: the word reserved for
+codes is never used for the throw path.
+
+## The gate reads no field status
+
+The whole trigger behaviour is one function of the mode, the event, and whether the user has edited the field:
+
+```dart
+bool validatesOn(
+  ValidationEvent event, {
+  required ValidationMode mode,
+  required bool hasInteracted,
+}) =>
+    hasInteracted &&
+    switch (mode) {
+      ValidationMode.manual => false,
+      ValidationMode.onUserInteraction => event != ValidationEvent.unfocus,
+      ValidationMode.onUnfocus => event != ValidationEvent.valueChanged,
+    };
+```
+
+It reads no field *status* on purpose. A debounced round overwrites the status with `pending` and the write path clears
+both error slots, so any gate that looked at "does this field currently have an error" would disarm itself exactly as
+the user started fixing the value.
+
+## Why three modes and not Flutter's five
+
+An earlier design took Flutter's whole `AutovalidateMode`. Cutting to three deleted, in one move: a latch flipped by
+settling checks, a gate that read `status`, a sweep on registration and on mode change, escalation at submit, and a
+live parent link with its own lifecycle. Escalation was what forced inheritance to be a live link, and the live link is
+what produced the bug where late-attached subforms missed the push. Deleting escalation deleted the bug's cause rather
+than its symptom.
+
+Mode and the enabled flag reach children **by broadcast**, never through a back-reference to the parent. "Validation
+disabled" is expressed as broadcasting an effective mode of `manual`, so there is one mechanism instead of two. A form
+with its own mode stops following its parent; a field's `setValidationMode` is a one-way opt-out.
+
+## Next
+
+<Cards>
+  <Card title="Rounds and error slots" href="./rounds.mdx" description="Who may write field state, and when." />
+  <Card title="validate() and failures" href="./validate-and-failures.mdx" description="Verdict reuse, coalescing, and the failure model." />
+  <Card title="Design decisions" href="./decisions.mdx" description="What will not change, and why." />
+</Cards>

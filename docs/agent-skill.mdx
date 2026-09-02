@@ -1,0 +1,87 @@
+---
+title: Agent Skill
+description: Teach Claude Code, or any agent that supports Agent Skills, the advanced_forms API so it writes forms idiomatically.
+icon: Bot
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+The repository ships an [Agent Skill](https://github.com/leancodepl/advanced_forms/blob/main/skills/advanced_forms/SKILL.md):
+a Markdown file that an agent loads when a task looks like form work, so it generates fields, validation, cross-field
+logic and subforms the way these docs describe them rather than the way a generic Flutter tutorial would.
+
+<Callout title="Why a skill and not just the README?">
+  An agent reads a skill *before* it writes code, and a skill can say what the README should not — which mistakes agents
+  make with this API, which signatures they tend to invent, and which patterns to reach for first. The skill was
+  hardened by having agents generate real forms from it alone, compiling those forms, and feeding every defect back.
+</Callout>
+
+## Install it
+
+<Steps>
+<Step>
+
+### Copy the folder
+
+Into the project, so every contributor's agent picks it up:
+
+```sh
+mkdir -p .claude/skills
+cp -r path/to/advanced_forms/skills/advanced_forms .claude/skills/
+```
+
+Or into your home directory, so it applies to every project you work on:
+
+```sh
+mkdir -p ~/.claude/skills
+cp -r path/to/advanced_forms/skills/advanced_forms ~/.claude/skills/
+```
+
+The `path/to/advanced_forms` is a clone of the repository, or the package in your pub cache:
+`~/.pub-cache/hosted/pub.dev/advanced_forms-<version>/skills/advanced_forms`.
+
+</Step>
+<Step>
+
+### Check it is loaded
+
+In Claude Code, `/skills` lists the skills in scope. The skill's description mentions forms, fields, validation and
+subforms, so it triggers on a request like *"add a shipping address section to the checkout"* even when the word
+"form" never appears.
+
+</Step>
+<Step>
+
+### Ask for a form
+
+The skill is enough on its own: the agent does not need the docs, the README or the package source in context. It
+knows the two rules that prevent most bugs — call `registerFields` once with every field, and bind text widgets to
+`field.textController` — and it knows the API surface well enough not to invent parameters.
+
+</Step>
+</Steps>
+
+## What it teaches
+
+- The model: a form controller owns typed field controllers; `E` is your error type; widgets subscribe with
+  `AdvancedFieldBuilder`.
+- Every field controller with its constructor, and when to construct `AdvancedFieldController<T, E>` directly for a
+  slider, a stepper or a derived total.
+- Binding checkboxes, switches, dropdowns, chips and scalar widgets, including the `ValueSetter<T>?` trick for
+  read-only.
+- Validation modes, the built-in validators with their exact types, and the `String?` combinator gotcha.
+- Async validation: debounce, cancellation, verdict reuse, `failedValidation`, the form-level banner.
+- Cross-field logic with `subscribeToFields`, `addRelation` and `validateAll`, including how to wire a *mutual* pair
+  without a stack overflow.
+- Form-level state and the submit button — why not to gate a submit button on `canSubmit`.
+- Server errors, read-only fields, reset, subforms, lifecycle and ownership.
+
+## Keep it current
+
+The skill ships to consumers and agents read it as truth, so it is re-verified whenever validation semantics, the
+subform broadcast order or the text-controller sync change. If you find a claim in it that the package no longer
+honours, [open an issue](https://github.com/leancodepl/advanced_forms/issues) — a wrong skill is worse than no skill.

@@ -1,0 +1,49 @@
+---
+title: What validate() does
+description: The one call that ignores the mode, runs every validator including the async ones, and is safe to double-tap.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+`await form.validate()` walks every field and every subform, concurrently and with no short-circuit, runs their async
+validators too, and returns `false` if anything ended up invalid. It neither consults the mode nor changes it: the mode
+you set is the mode the form keeps for its whole life.
+
+```dart
+Future<void> submit() async {
+  if (await form.validate()) {
+    await api.signUp(/* … */);
+  }
+}
+```
+
+## Three properties
+
+- **Await it.** The result is the only thing that says the values were actually checked. `canSubmit` is a snapshot of
+  *known* errors and is `true` on a form nobody has checked yet. A bare `validate();` statement compiles and silently
+  ignores the result.
+- **Concurrent calls coalesce.** Calling `validate()` again before the first call finishes returns the same future, so
+  a double-tapped submit button runs one pass.
+- **The errors stay on the fields.** The form-level result is just a `bool` — "may this submit proceed?". The widgets
+  showing errors are already subscribed to their fields.
+
+## On a single field
+
+`field.validate()` has the same signature and the same contract: sync first, always; then, if sync passed and the field
+has an `AsyncValidation`, exactly one of — flush a check waiting out its debounce, await a check already in flight,
+reuse a verdict that still describes the value, or run the check now. It returns the *status*, so a check that could not
+run counts as `false`. [Async validation](./async.mdx) has the details.
+
+## What it does not do
+
+- It does not turn validation on. 0.1.x's `validate()` switched autovalidate on for every field; 0.2.0 leaves the mode
+  alone. For "quiet until the first submit, live afterwards", set `ValidationMode.onUserInteraction` after a failed
+  submit — the [wizard](../subforms/wizard.mdx) does this per step.
+- It does not skip untouched fields. Rule 2 applies to fields validating *themselves*; a submit checks everything,
+  which is how a bad prefilled value is caught.
+- It does not run on a subtree with validation switched off. That subtree returns `true`, matching what `canSubmit`
+  counts, so the two never disagree.

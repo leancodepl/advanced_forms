@@ -1,0 +1,27 @@
+{
+  "title": "advanced_forms",
+  "pages": [
+    "---Getting started---",
+    "index",
+    "installation",
+    "first-form",
+    "concepts",
+    "---Guides---",
+    "rendering",
+    "validation",
+    "form-state",
+    "fields",
+    "server-errors",
+    "subforms",
+    "focus",
+    "lifecycle",
+    "testing",
+    "widgets",
+    "---Reference---",
+    "internals",
+    "faq",
+    "example-app",
+    "migration",
+    "agent-skill"
+  ]
+}

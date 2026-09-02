@@ -1,0 +1,60 @@
+---
+title: Design decisions
+description: What the package deliberately is not, the residue that is recorded rather than fixed, the decisions that will not change, and how all of it is verified.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+## What it deliberately is not
+
+| `advanced_forms` does not… | …because |
+| --- | --- |
+| ship styled widgets | your design system already has them. A controller hands a widget exactly what it needs to bind to: a `TextEditingController`, a `FocusNode`, the typed state, the error. See [Reusable field widgets](../widgets.mdx) |
+| wrap Flutter's `Form` | it *is* the validation system. No `GlobalKey<FormState>`, no `autovalidateMode`, and a `TextFormField` outside a `Form` is just a `TextField` with a decoration |
+| format error messages | errors are values of *your* type `E`. A `String` is fine on day one; an enum or a sealed class scales to translations and to one field reporting several violations at once |
+| use code generation | a `build_runner` step is a cost every consumer pays. `copyWith` is written by hand; the package has three small runtime dependencies |
+| depend on `bloc`, `provider` or `riverpod` | controllers are `ChangeNotifier`s. Own them in a `StatefulWidget`, a `ChangeNotifierProvider`, or whatever your app uses |
+
+## Deliberate residue
+
+Recorded so it is not mistaken for oversight:
+
+- **`valid` means "no error recorded", not "checked and passed".** A quiet form is `valid`, so `canSubmit` is `true`
+  on it; `await validate()` is the guarantee. A `FieldStatus.unverified` — "never checked, or changed since" — would
+  fix the confusion at the root and is the natural next state-model change, deferred because 0.2.0 was already a large
+  break.
+- **No predicate answers "not valid for any reason".** `!isValid` is also true for `pending`; write `isInvalid` when
+  you mean "has an error".
+- **Illegal combinations are representable** (`status: valid` beside a non-null error) because the state is one class
+  with a status enum. What prevents them in practice is that no caller ever picks a status.
+
+## Decisions that will not change
+
+- **No code generation, ever.** `copyWith` is hand-written. `equatable` is fine — a small, pure-Dart runtime
+  dependency — and both state classes use it.
+- **`AdvancedFieldState` stays one class with a `FieldStatus`**, not a sealed hierarchy. Every status carries identical
+  data, so there are no per-variant shapes to justify one.
+- **Misuse throws.** `addSubform`, `registerFields`, `setValidationEnabled`, `removeSubform`, `subscribeToFields`,
+  `addRelation` and `setValue` throw a `StateError` on a disposed controller. A returned failure object that every
+  caller ignores fails quietly; a throw fails loudly, and these guard *programmer* error.
+- **The parent owns subform disposal.** `removeSubform` detaches only. A subform has exactly one parent.
+- **A re-entrant membership change double-wires children, and that is not fixed.** A *synchronous* form listener that
+  calls `registerFields`, `addSubform` or `removeSubform` from inside those methods' own notification leaves children
+  wired twice. The library never does this and it takes consumer code of a very specific shape; the fix exists and was
+  measured, and was judged not worth its lines.
+- **Line count is a feature.** A controller over ~500 lines is treated as a defect and split into `part` files; public
+  dartdoc is written for a junior developer, not for completeness. Every feature is weighed against the lines it adds.
+
+## How this is verified
+
+Every defect the 0.2.0 rewrite fixed was reproduced by execution before it was fixed, and every fix was checked by
+mutating the code to confirm the new test fails for the right reason. The suite is about 240 tests across 15 files.
+The gate table on the [Validation modes](../validation/modes.mdx) page is pinned one cell per test; round ownership,
+the failure model, cross-field wiring, focus handling, coalescing and the text-controller sync each have a file.
+
+The docs are verified the same way: every live example on this site is compiled into the Flutter bundle at build time,
+so a snippet the API has outgrown fails the build rather than misleading a reader.

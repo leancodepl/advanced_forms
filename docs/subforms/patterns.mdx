@@ -1,0 +1,59 @@
+---
+title: Subform patterns
+description: Detach a section or switch its validation off? Swap one section for another? The trade-offs, and where the example app shows each.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+## Detach, or switch validation off?
+
+A section that is *visible but not applicable* — invoice details behind an unchecked "I need an invoice" switch — is
+better kept attached with `setValidationEnabled(false)`:
+
+- its errors are cleared and its fields leave `canSubmit`, `validating`, `hasFailedValidation` and `validationErrors`;
+- its `validate()` returns `true` without running;
+- everything else — `resetAll`, `markReadOnly`, `clearErrors`, disposal — still reaches it;
+- switching back on re-runs the sync validators at once, and the values are still there.
+
+Detach with `removeSubform` when the section genuinely leaves the screen and its values should not take part in
+anything. A detached subform is still owned — and disposed — by the parent, and can be re-attached later.
+
+```dart
+CheckoutFormController() {
+  registerFields([email, needsInvoice]);
+  addSubform(invoice);
+  addRelation(needsInvoice, (on) => on, invoice.setValidationEnabled);
+  invoice.setValidationEnabled(needsInvoice.fieldValue); // relations fire on change only
+}
+```
+
+## Swapping one section for another
+
+A type selector that swaps the active section — a *person* or a *company* — is `removeSubform` of one and
+`addSubform` of the other, reacting to the selector field with `addRelation`. Only the attached section takes part in
+validation; the detached one keeps its values in case the user switches back, and both are disposed with the parent.
+
+```dart
+addRelation(type, (t) => t, (t) {
+  if (t == CustomerType.company) {
+    removeSubform(person);
+    addSubform(company);
+  } else {
+    removeSubform(company);
+    addSubform(person);
+  }
+});
+```
+
+The example app's *Complex Form* screen is this pattern; *Delivery List Form* is the dynamic list; *Step Form* is the
+wizard with a conditional step. See the [example app](../example-app.mdx).
+
+## Things that throw
+
+`addSubform` and `removeSubform` throw a descriptive `StateError` when called on a disposed form, and `addSubform`
+also when handed a disposed subform. A disposed controller cannot be reused — build a fresh one per appearance, or keep
+the section attached and switch it off. [Lifecycle and ownership](../lifecycle/index.mdx) has the full table.

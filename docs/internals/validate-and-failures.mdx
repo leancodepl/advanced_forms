@@ -1,0 +1,63 @@
+---
+title: validate() and failures
+description: Verdict reuse, how validate() picks what to do, why concurrent calls coalesce, the failure model, and why form aggregates are derived on read.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+## Verdict reuse
+
+A settled verdict is reused while it still describes the current value.
+
+- A second submit press on an unchanged form makes **zero** network calls.
+- One edit invalidates only that field's verdict.
+- A round that **failed** records no verdict, so submit re-runs it. That is the retry, and it needs no API — a
+  `revalidateFailed()` was designed and then dropped for this reason.
+- The async validator is treated as a function of the value. A check depending on state outside the value must be
+  invalidated explicitly with `clearErrors()`, and the dartdoc says so.
+
+## `validate()`
+
+On a field: run the sync validator on the current value, **always**, and write what it concludes. If it failed, abort
+any live round and return `false` — no network call for a value already known bad. Otherwise exactly one of, in order:
+a round waiting out its debounce is **flushed**; a round in flight is **awaited**, not duplicated; a current verdict is
+**reused** with no call; the check **runs now**. Return the **status**, not the error slots: a failed round leaves no
+code unless `failureToError` supplied one, so reading `error == null` would report success for a check that never
+completed.
+
+On a form: validate every field and every subform **concurrently with no short-circuit** — every field must be
+visited — then AND the results. Return `true` immediately when `validationEnabled` is false. Concurrent calls on
+either coalesce: while one `validate()` is in flight the same future is returned, so a double-tapped submit button
+cannot start two passes. A field disposed mid-flight completes `false` rather than hanging.
+
+## The failure model
+
+`failedValidation` is **not sticky**; submit is the retry.
+
+- `hasFailedValidation` on the form drives one banner. No per-field message appears unless the app opts in with
+  `failureToError`, which exists so no app is forced to add a "could not verify" member to its error enum.
+- `failedValidation` is not `valid`, so `canSubmit` is `false` while it stands.
+- `timeout` defaults to `null`. On expiry the round is abandoned, the field goes to `failedValidation`, and
+  `lastFailure.timedOut` is `true`. Without a timeout, a validator that never settles still hangs `await validate()` —
+  the package's guarantee is narrower and precise: every round *it* starts settles exactly once.
+- `lastFailure` lives on the controller, deliberately **outside** the state and without value equality. State equality
+  gates every write; an arbitrary exception inside `==` would hand third-party code control over whether a write
+  happens, and excluding the field from `==` would make a failure-to-different-failure transition compare equal and
+  silently keep the old exception. It is assigned in one place and the getter gates on the status.
+
+## Form aggregates are derived on read
+
+```dart
+bool get validating          => _countedFields.any((f) => f.value.isInProgress);
+bool get hasFailedValidation => _countedFields.any((f) => f.value.isFailedValidation);
+bool get canSubmit           => _countedFields.every((f) => f.value.isValid);
+```
+
+No aggregate can outlive the child that justified it. `validating` used to be stored, which is how removing a subform
+mid-validation once latched it `true` forever with zero fields left. `_countedFields` skips subtrees with validation
+switched off, so `canSubmit` and `validate()` can never disagree. `wasModified` stays stored because it needs the
+baseline captured at `registerFields`, and is recomputed on every membership change.

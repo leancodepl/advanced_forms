@@ -1,0 +1,99 @@
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+<AdvancedFormsExample preview="SignupForm" title="signup_form.dart" layout="split">
+
+```dart title="signup_form_controller.dart"
+class SignupFormController extends AdvancedFormController {
+  SignupFormController() {
+    registerFields([firstName, lastName]);
+  }
+
+  final firstName = AdvancedTextFieldController(
+    validator: filled('First name is required'),
+  );
+  final lastName = AdvancedTextFieldController(
+    validator: filled('Last name is required'),
+  );
+
+  Future<bool> submit() async {
+    if (await validate()) {
+      // The values were checked — send them.
+      return true;
+    }
+    return false;
+  }
+}
+```
+
+```dart title="signup_form.dart"
+class SignupForm extends StatefulWidget {
+  const SignupForm({super.key});
+
+  @override
+  State<SignupForm> createState() => _SignupFormState();
+}
+
+class _SignupFormState extends State<SignupForm> {
+  final _form = SignupFormController();
+
+  @override
+  void dispose() {
+    _form.dispose(); // disposes the registered fields too
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final sent = await _form.submit();
+    if (mounted) {
+      ExampleLog.of(context).add(
+        sent
+            ? 'Welcome, ${_form.firstName.fieldValue}!'
+            : 'Fix the errors above.',
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _SignupTextField(field: _form.firstName, label: 'First name'),
+        _SignupTextField(field: _form.lastName, label: 'Last name'),
+        const SizedBox(height: 12),
+        FilledButton(onPressed: _submit, child: const Text('Submit')),
+      ],
+    );
+  }
+}
+```
+
+```dart title="signup_text_field.dart"
+class _SignupTextField extends StatelessWidget {
+  const _SignupTextField({required this.field, required this.label});
+
+  final AdvancedTextFieldController<String> field; // <String> is the error type
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return AdvancedFieldBuilder<String, String>(
+      field: field,
+      builder: (context, state, _) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: TextFormField(
+          controller: field.textController,
+          focusNode: field.focusNode,
+          decoration: InputDecoration(labelText: label, errorText: state.error),
+        ),
+      ),
+    );
+  }
+}
+```
+
+</AdvancedFormsExample>
