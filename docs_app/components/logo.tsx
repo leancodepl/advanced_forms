@@ -26,26 +26,26 @@ export function Logo({ large = false, className }: { large?: boolean; className?
  */
 export function LogoMark({ size = 56 }: { size?: number }) {
   return (
-    <svg viewBox="128 53 372 372" height={size} width={size} fill="none" aria-hidden="true">
-      <rect x="128" y="53" width="372" height="372" rx="72" fill="black" />
+    <svg viewBox="107.2 50.3 372 372" height={size} width={size} fill="none" aria-hidden="true">
+      <rect x="107.2" y="50.3" width="372" height="372" rx="72" fill="black" />
       <rect
-        x="277.981"
-        y="187.783"
-        width="137.638"
+        x="266.423"
+        y="183.133"
+        width="147.277"
         height="42.2665"
-        rx="17.4974"
-        transform="rotate(120 277.981 187.783)"
+        rx="21.1333"
+        transform="rotate(120 266.423 183.133)"
         fill="white"
       />
       <rect
-        width="137.688"
+        width="142.634"
         height="42.2727"
-        rx="17.5"
-        transform="matrix(0.5 0.866025 0.866025 -0.5 220.824 188.278)"
+        rx="21.1364"
+        transform="matrix(0.5 0.866025 0.866025 -0.5 209.527 183.354)"
         fill="white"
       />
-      <rect x="290.922" y="171.48" width="147.351" height="31.4026" rx="15.7013" fill="#F9FF07" />
-      <rect x="325.948" y="221" width="112.325" height="31.4026" rx="15.7013" fill="#F9FF07" />
+      <rect x="282.922" y="171.48" width="147.351" height="31.4026" rx="15.7013" fill="#F9FF07" />
+      <rect x="317.948" y="221" width="112.325" height="31.4026" rx="15.7013" fill="#F9FF07" />
     </svg>
   )
 }
