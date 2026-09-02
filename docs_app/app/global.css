@@ -1406,3 +1406,125 @@ a.af-pill-accent:hover {
     order: 1;
   }
 }
+
+/* ---------- Live examples: one file at a time ---------- */
+
+.af-example-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.35rem 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.af-example-tab {
+  flex: none;
+  padding: 0.45rem 0.8rem;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: 8px 8px 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--af-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.af-example-tab:hover {
+  color: var(--af-text);
+}
+
+.af-example-tab[aria-selected="true"] {
+  color: var(--af-text);
+  background: var(--af-bg-2);
+  border-color: var(--af-border);
+  box-shadow: inset 0 2px 0 var(--af-accent);
+}
+
+.af-example-copy {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-left: auto;
+  border-radius: 6px;
+  color: var(--af-muted);
+  cursor: pointer;
+}
+
+.af-example-copy:hover {
+  color: var(--af-text);
+  background: var(--af-surface-2);
+}
+
+.af-example-copy[data-copied="true"] {
+  color: var(--af-ok);
+}
+
+.af-example-copy svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* In tabbed mode the tab strip is the title bar: hide the fence's own. */
+.af-example-code[data-tabs="true"] {
+  gap: 0;
+  padding-top: 0;
+}
+
+.af-example-code[data-tabs="true"] figure.shiki {
+  margin-top: -1px;
+  border-top-left-radius: 0;
+}
+
+.af-example-code[data-tabs="true"] figure.shiki > div:first-child:has(figcaption) {
+  display: none;
+}
+
+/* Code scrolls inside the frame instead of stretching the page. */
+.af-example-code figure.shiki [role="region"] {
+  max-height: 460px;
+}
+
+.af-example[data-layout="split"] .af-example-code figure.shiki [role="region"] {
+  max-height: 420px;
+}
+
+/* ---------- Landing: the three modes ---------- */
+
+.af-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.af-mode-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.af-mode h3 {
+  margin: 0.25rem 0 0;
+}
+
+.af-mode h3 code {
+  padding: 0.05em 0.4em;
+  border: 1px solid var(--af-border);
+  border-radius: 6px;
+  background: var(--af-surface-2);
+  font-size: 0.95rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.af-mode-when {
+  color: var(--af-text) !important;
+  font-weight: 600;
+}

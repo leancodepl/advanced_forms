@@ -6,7 +6,8 @@
 "use client"
 
 import Link from "fumadocs-core/link"
-import { useState, type ReactNode } from "react"
+import { Check, Copy } from "lucide-react"
+import { Children, isValidElement, useEffect, useRef, useState, type ReactElement, type ReactNode } from "react"
 import { FlutterIsland, type IslandStatus } from "./flutter-island"
 import { docsRoute } from "@/lib/shared"
 
@@ -41,7 +42,8 @@ const statusLabels: Record<IslandStatus, string> = {
 
 /**
  * The window around a live example: a title bar with the island's status, the
- * running Flutter view, and the source that produced it.
+ * running Flutter view, and the source that produced it — one file at a time
+ * when the example is split across several fences.
  */
 export function ExampleFrame({
   exampleId,
@@ -106,7 +108,7 @@ export function ExampleFrame({
                 </span>
               )}
             </summary>
-            <div className="af-example-code">{children}</div>
+            <SourceTabs>{children}</SourceTabs>
           </details>
         )}
       </div>
@@ -129,5 +131,68 @@ export function ExampleFrame({
         </figcaption>
       )}
     </figure>
+  )
+}
+
+/**
+ * The fences of an example, one at a time behind a tab per file. A single
+ * fence is rendered as it is. The fences arrive already highlighted, as the
+ * `<figure>` elements Fumadocs renders for a code block, with the fence's
+ * `title` still on their props — that is what labels the tabs.
+ */
+function SourceTabs({ children }: { children: ReactNode }) {
+  const fences = Children.toArray(children).filter(isValidElement) as ReactElement<{ title?: string }>[]
+  const [active, setActive] = useState(0)
+  const [copied, setCopied] = useState(false)
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!copied) return
+    const timer = setTimeout(() => setCopied(false), 2000)
+    return () => clearTimeout(timer)
+  }, [copied])
+
+  if (fences.length < 2) {
+    return <div className="af-example-code">{children}</div>
+  }
+
+  const current = fences[Math.min(active, fences.length - 1)]
+
+  function copy() {
+    const pre = panelRef.current?.querySelector("pre")
+    if (!pre) return
+    navigator.clipboard.writeText(pre.textContent ?? "").then(
+      () => setCopied(true),
+      () => undefined,
+    )
+  }
+
+  return (
+    <div className="af-example-code" data-tabs="true">
+      <div className="af-example-tabs" role="tablist" aria-label="Source files">
+        {fences.map((fence, index) => (
+          <button
+            key={fence.key ?? index}
+            type="button"
+            role="tab"
+            aria-selected={index === active}
+            className="af-example-tab"
+            onClick={() => setActive(index)}>
+            {fence.props.title ?? `file ${index + 1}`}
+          </button>
+        ))}
+        <button
+          type="button"
+          className="af-example-copy"
+          onClick={copy}
+          aria-label={copied ? "Copied" : "Copy this file"}
+          data-copied={copied}>
+          {copied ? <Check /> : <Copy />}
+        </button>
+      </div>
+      <div ref={panelRef} role="tabpanel">
+        {current}
+      </div>
+    </div>
   )
 }

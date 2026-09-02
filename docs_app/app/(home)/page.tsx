@@ -61,8 +61,8 @@ export default function HomePage() {
         heading="Validation you can predict."
         lead={
           <>
-            The trigger behaviour is twenty lines of Dart and one table. Switch the mode below while you type to see
-            each row of it.
+            The whole trigger behaviour is twenty lines of Dart. Pick a mode, then switch it below while you type to
+            feel the difference.
           </>
         }>
         <Rules />

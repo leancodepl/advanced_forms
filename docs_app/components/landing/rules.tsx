@@ -4,6 +4,7 @@
  *   harness: Claude Code
  */
 import Link from "fumadocs-core/link"
+import { Keyboard, LogOut, Send } from "lucide-react"
 import type { ReactNode } from "react"
 import { docsRoute } from "@/lib/shared"
 
@@ -37,38 +38,31 @@ const rules: { title: string; body: ReactNode }[] = [
   },
 ]
 
-type Cell = "yes" | "sync" | "no"
-
-const gate: { mode: string; valueChanged: Cell; unfocus: Cell; dependency: Cell }[] = [
-  { mode: "manual", valueChanged: "no", unfocus: "no", dependency: "no" },
-  { mode: "onUserInteraction", valueChanged: "yes", unfocus: "no", dependency: "sync" },
-  { mode: "onUnfocus", valueChanged: "no", unfocus: "yes", dependency: "sync" },
+const modes = [
+  {
+    icon: Send,
+    name: "manual",
+    tag: "default",
+    when: "Validates on submit.",
+    body: "Nothing shouts while the user fills the form in. After the first submit, an edit clears the error that described the old value.",
+  },
+  {
+    icon: Keyboard,
+    name: "onUserInteraction",
+    tag: "live",
+    when: "Validates on every keystroke.",
+    body: "Immediate feedback on the field being edited. Async checks wait out their debounce, so typing runs one request, not ten.",
+  },
+  {
+    icon: LogOut,
+    name: "onUnfocus",
+    tag: "on leave",
+    when: "Validates when a field loses focus.",
+    body: "The user finishes a field, moves on, and sees the verdict. Tabbing through a field they never touched costs nothing.",
+  },
 ]
 
-function Mark({ cell }: { cell: Cell }) {
-  switch (cell) {
-    case "yes":
-      return (
-        <span className="af-mark af-mark-yes" aria-label="validates">
-          ✓ validates
-        </span>
-      )
-    case "sync":
-      return (
-        <span className="af-mark af-mark-partial" aria-label="sync validator only">
-          sync only
-        </span>
-      )
-    case "no":
-      return (
-        <span className="af-mark af-mark-no" aria-label="nothing">
-          —
-        </span>
-      )
-  }
-}
-
-/** The three rules and the gate table — the whole trigger behaviour on one screen. */
+/** The three rules and the three modes — the whole trigger behaviour on one screen. */
 export function Rules() {
   return (
     <>
@@ -81,38 +75,25 @@ export function Rules() {
         ))}
       </ol>
 
-      <div className="af-table-wrap" style={{ marginTop: "2.5rem" }}>
-        <table className="af-table">
-          <thead>
-            <tr>
-              <th scope="col">Mode</th>
-              <th scope="col">Value changed</th>
-              <th scope="col">Focus left</th>
-              <th scope="col">A dependency changed</th>
-            </tr>
-          </thead>
-          <tbody>
-            {gate.map(row => (
-              <tr key={row.mode}>
-                <th scope="row">
-                  <code>{row.mode}</code>
-                </th>
-                <td>
-                  <Mark cell={row.valueChanged} />
-                </td>
-                <td>
-                  <Mark cell={row.unfocus} />
-                </td>
-                <td>
-                  <Mark cell={row.dependency} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ul className="af-feature-grid" style={{ marginTop: "2.5rem" }}>
+        {modes.map(mode => (
+          <li key={mode.name} className="af-card af-mode">
+            <div className="af-mode-head">
+              <span className="af-feature-icon">
+                <mode.icon aria-hidden="true" />
+              </span>
+              <span className="af-pill af-pill-accent">{mode.tag}</span>
+            </div>
+            <h3>
+              <code>{mode.name}</code>
+            </h3>
+            <p className="af-mode-when">{mode.when}</p>
+            <p>{mode.body}</p>
+          </li>
+        ))}
+      </ul>
       <p className="af-section-more">
-        <Link href={`${docsRoute}/validation/modes`}>Every cell of that table, explained →</Link>
+        <Link href={`${docsRoute}/validation/modes`}>Every mode and every event, explained →</Link>
       </p>
     </>
   )
