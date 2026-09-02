@@ -10,7 +10,9 @@ export default function Layout({ children }: LayoutProps<"/">) {
   const options = baseOptions()
 
   return (
-    <HomeLayout {...options} nav={{ ...options.nav, transparentMode: "top" }}>
+    // No search box on the landing page: it searches the docs, and the docs
+    // pages have it in the same spot.
+    <HomeLayout {...options} nav={{ ...options.nav, transparentMode: "top" }} searchToggle={{ enabled: false }}>
       {children}
     </HomeLayout>
   )
