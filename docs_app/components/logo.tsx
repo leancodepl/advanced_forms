@@ -22,7 +22,7 @@ export function Logo({ large = false, className }: { large?: boolean; className?
 
 /**
  * The mark alone, squared: the chevron and the bars on a rounded black tile.
- * Also what `public/favicon.svg` is; keep the two in step.
+ * Also what `app/icon.svg` is; keep the two in step.
  */
 export function LogoMark({ size = 56 }: { size?: number }) {
   return (

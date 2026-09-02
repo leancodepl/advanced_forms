@@ -32,9 +32,6 @@ export const metadata: Metadata = {
     default: `${appName} — ${tagline}`,
   },
   description,
-  icons: {
-    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
-  },
 }
 
 export default function Layout({ children }: LayoutProps<"/">) {
