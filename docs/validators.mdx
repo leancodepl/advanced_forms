@@ -35,6 +35,7 @@ Every built-in takes the error to return as its last argument, so it works with 
 | `positiveDecimal(e)` / `nonNegativeDecimal(e)` | `String?` | the same, with `double.tryParse` |
 | `boundedNonNegativeInteger(max, e)` | `String?` | anything but `0..max`, or the literal string `>max` |
 | `notNull(e)` | `T?` | `null` — the required-dropdown validator |
+| `mustBeTrue(e)` | `bool?` | `null` and `false` — the accept-the-terms validator |
 | `notEmpty(e)` | `List<T>?` | `null` and the empty list |
 
 Two helpers wrap another validator:
@@ -53,11 +54,12 @@ final vatId = AdvancedTextFieldController(
 );
 ```
 
-<Callout type="info" title="There is no bool validator, and notEmpty is for lists">
-  A rule on a `bool` or a `Set` is a one-line closure:
+<Callout type="info" title="notEmpty is for lists">
+  There is no built-in `Set` validator, so a rule on a multi-select is a one-line closure. For a checkbox that has to be
+  ticked, `mustBeTrue` is the built-in:
 
   ```dart
-  validator: (accepted) => accepted ? null : MyError.mustAccept, // bool
+  validator: mustBeTrue(MyError.mustAccept),                       // bool
   validator: (chosen) => chosen.isEmpty ? MyError.pickOne : null, // Set<V>
   ```
 </Callout>

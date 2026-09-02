@@ -127,9 +127,9 @@ a read-only field is reverted in the same turn. Bind `controller: field.textCont
 
 ## Boolean
 
-`AdvancedBooleanFieldController` defaults to `false`. A rule is a closure — `(accepted) => accepted ? null :
-MyError.mustAccept`. `Switch.onChanged` is exactly a `ValueSetter<bool>?`, so `field.getValueSetter()` goes straight
-in; `Checkbox.onChanged` takes a `bool?`, so adapt it: `(v) => setter(v ?? false)`.
+`AdvancedBooleanFieldController` defaults to `false`. The one rule a boolean usually needs is built in:
+`validator: mustBeTrue(MyError.mustAccept)`. `Switch.onChanged` is exactly a `ValueSetter<bool>?`, so
+`field.getValueSetter()` goes straight in; `Checkbox.onChanged` takes a `bool?`, so adapt it: `(v) => setter(v ?? false)`.
 
 ## Single select
 

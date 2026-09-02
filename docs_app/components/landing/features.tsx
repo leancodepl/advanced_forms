@@ -40,8 +40,9 @@ const features: Feature[] = [
     title: "Validators that compose",
     body: (
       <>
-        <code>filled</code>, <code>atLeastLength</code>, <code>notNull</code> and the numeric checks, combined with{" "}
-        <code>&amp;</code> and <code>|</code> — or any <code>E? Function(T)</code> you write yourself.
+        <code>filled</code>, <code>atLeastLength</code>, <code>notNull</code>, <code>mustBeTrue</code> and the numeric
+        checks, combined with <code>&amp;</code> and <code>|</code> — or any <code>E? Function(T)</code> you write
+        yourself.
       </>
     ),
   },

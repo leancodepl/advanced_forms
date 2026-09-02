@@ -26,8 +26,8 @@ which state-management package the rest of your app uses.
 
 - **Typed field controllers** — text fields, checkboxes and switches, dropdowns and radio groups, and multi-select
   fields, each with its own value type *and* its own error type.
-- **Validators that compose** — `filled`, `notEmpty`, `notNull`, `atLeastLength`, `notLongerThan`, `exactly` and
-  numeric checks, combined with `&` and `|`, or any `E? Function(T)` you write yourself.
+- **Validators that compose** — `filled`, `notEmpty`, `notNull`, `mustBeTrue`, `atLeastLength`, `notLongerThan`,
+  `exactly` and numeric checks, combined with `&` and `|`, or any `E? Function(T)` you write yourself.
 - **Async validation** — debounced server-side checks ("is this email taken?") with a timeout, failure handling and
   cached answers.
 - **Cross-field validation** — re-run a validator when the fields it depends on change, or derive one field's value

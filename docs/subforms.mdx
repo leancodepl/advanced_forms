@@ -262,7 +262,7 @@ class ConfirmStep extends WizardStep {
   String get title => 'Confirm';
 
   final terms = AdvancedBooleanFieldController<String>(
-    validator: (accepted) => accepted ? null : 'You have to accept the terms',
+    validator: mustBeTrue('You have to accept the terms'),
   );
 }
 ```

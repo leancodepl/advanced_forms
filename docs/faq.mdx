@@ -86,8 +86,8 @@ over `String?` like the built-ins. See [Validators](./validators.mdx#combining-v
 </Accordion>
 <Accordion title="Is there a bool validator? A Set validator?">
 
-No, and `notEmpty` is for `List`. A rule on a `bool` or a `Set` is a one-line closure:
-`(accepted) => accepted ? null : MyError.mustAccept`, `(chosen) => chosen.isEmpty ? MyError.pickOne : null`.
+`mustBeTrue(MyError.mustAccept)` covers the checkbox that has to be ticked. There is no `Set` validator, and `notEmpty`
+is for `List`, so a rule on a multi-select is a one-line closure: `(chosen) => chosen.isEmpty ? MyError.pickOne : null`.
 
 </Accordion>
 <Accordion title="DropdownButtonFormField complains about value / initialValue.">

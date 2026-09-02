@@ -39,7 +39,7 @@ class HeroSignupController extends AdvancedFormController {
   );
 
   final terms = AdvancedBooleanFieldController<SignupError>(
-    validator: (accepted) => accepted ? null : SignupError.mustAccept,
+    validator: mustBeTrue(SignupError.mustAccept),
   );
 
   Future<SignupError?> _isTaken(String value) async {
