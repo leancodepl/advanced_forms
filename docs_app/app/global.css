@@ -996,45 +996,20 @@ a.af-pill-accent:hover {
   color: var(--af-text-2);
 }
 
-/* Logo mark. */
+/* Logo: the designer's word mark, one file per theme. */
 .af-logo {
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
-  font-weight: 700;
-  font-size: 1.05rem;
-  letter-spacing: -0.03em;
-  color: var(--af-text);
 }
 
-.af-logo-mark {
-  display: inline-grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: var(--af-accent);
-  color: var(--af-accent-ink);
+.af-logo img {
+  height: 34px;
+  width: auto;
+  vertical-align: middle;
 }
 
-.af-logo-mark svg {
-  width: 18px;
-  height: 18px;
-}
-
-.af-logo-large {
-  font-size: 1.4rem;
-}
-
-.af-logo-large .af-logo-mark {
-  width: 40px;
-  height: 40px;
-  border-radius: 11px;
-}
-
-.af-logo-large .af-logo-mark svg {
-  width: 26px;
-  height: 26px;
+.af-logo-large img {
+  height: 44px;
 }
 
 /* ---------- Live examples ---------- */

@@ -6,6 +6,7 @@
 import { getPageImageUrl, source } from "@/lib/source"
 import { notFound } from "next/navigation"
 import { ImageResponse } from "next/og"
+import { LogoMark } from "@/components/logo"
 import { appName } from "@/lib/shared"
 
 export const revalidate = false
@@ -36,31 +37,7 @@ export async function GET(_req: Request, { params }: RouteContext<"/og/[...slug]
         fontFamily: "sans-serif",
       }}>
       <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: 56,
-            height: 56,
-            borderRadius: 16,
-            background: accent,
-          }}>
-          <svg
-            viewBox="0 0 24 24"
-            width="34"
-            height="34"
-            fill="none"
-            stroke="#0b0c00"
-            strokeWidth="2.4"
-            strokeLinecap="round"
-            strokeLinejoin="round">
-            <path d="M4 6h16" />
-            <path d="M4 12h10" />
-            <path d="M4 18h6" />
-            <path d="m14 17 2.5 2.5L21 15" />
-          </svg>
-        </div>
+        <LogoMark size={56} />
         <div style={{ fontSize: 34, fontWeight: 700, letterSpacing: -1 }}>{appName}</div>
         <div
           style={{
