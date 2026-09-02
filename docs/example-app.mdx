@@ -1,0 +1,60 @@
+---
+title: Example app
+description: A runnable gallery where every pattern in these docs has a working screen — and the reusable widgets it is built from.
+icon: AppWindow
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+The [`example/`](https://github.com/leancodepl/advanced_forms/tree/main/example) folder of the repository is a
+gallery app: one screen per documented pattern, reachable from the home page. Where the docs and the app ever
+disagree, the app wins and the docs get fixed — it is the ground truth.
+
+## Run it
+
+```sh
+git clone https://github.com/leancodepl/advanced_forms.git
+cd advanced_forms/example
+flutter pub get
+flutter run
+```
+
+Any Flutter target works; the app uses no platform plugins. It owns its controllers with `provider`'s
+`ChangeNotifierProvider`, which is a choice of the example, not a requirement of the package.
+
+## Screen guide
+
+| Screen | Demonstrates | Explained in |
+| --- | --- | --- |
+| [Simple Form](https://github.com/leancodepl/advanced_forms/blob/main/example/lib/screens/simple_form.dart) | Submit-time validation, an async email check with `timeout` and `failureToError`, the `hasFailedValidation` banner, `canSubmit` on the button. Try `john@email.com` (taken) and `boom@email.com` (the check throws) | [Async validation](./async-validation.mdx) |
+| [Password Form](https://github.com/leancodepl/advanced_forms/blob/main/example/lib/screens/password_form.dart) | Cross-field validation via `subscribeToFields`, one field opting into `ValidationMode.onUnfocus`, a custom controller whose error is a `List` of rule violations | [Cross-field logic](./cross-field.mdx), [Validators](./validators.mdx) |
+| [Optimized Rendering](https://github.com/leancodepl/advanced_forms/blob/main/example/lib/screens/optimized_rendering_form.dart) | Granular rebuilds and the `child:` optimisation across three layouts of increasing weight | [Rendering fields](./rendering.mdx) |
+| [Quiz Form](https://github.com/leancodepl/advanced_forms/blob/main/example/lib/screens/quiz_form.dart) | Applying a server response with `setError` / `setError(null)` after the answers are checked | [Read-only fields and server errors](./server-errors.mdx) |
+| [Complex Form](https://github.com/leancodepl/advanced_forms/blob/main/example/lib/screens/complex_form.dart) | Single-select dropdowns and swapping the active subform with `addSubform` / `removeSubform` | [Field controllers](./fields.mdx), [Subforms](./subforms.mdx) |
+| [Delivery List Form](https://github.com/leancodepl/advanced_forms/blob/main/example/lib/screens/delivery_form.dart) | A dynamic list of subforms, validated and disposed by the parent | [Subforms](./subforms.mdx) |
+| [Step Form](https://github.com/leancodepl/advanced_forms/blob/main/example/lib/screens/step_form.dart) | A multi-page wizard in a `PageView`: one subform per page, `await step.validate()` on Next, the parent's `validate()` on Submit, and a conditional invoice page that `setValidationEnabled(false)` drops from both the flow and the validation | [Subforms](./subforms.mdx) |
+| [Scroll Form](https://github.com/leancodepl/advanced_forms/blob/main/example/lib/screens/scroll_form.dart) | Scrolling to the first invalid field through `field.focusNode`, plus a plain `Stream` for one-off UI events | [Focus](./focus.mdx) |
+
+## Reusable pieces
+
+- [`lib/widgets/`](https://github.com/leancodepl/advanced_forms/tree/main/example/lib/widgets) — the field widgets the
+  screens share: a text field, a password field, a dropdown, a switch, and three `child:`-optimised variants. Plain
+  `StatelessWidget`s over `AdvancedFieldBuilder`, ready to copy and restyle. See
+  [Reusable field widgets](./widgets.mdx).
+- [`lib/controllers/password_field_controller.dart`](https://github.com/leancodepl/advanced_forms/blob/main/example/lib/controllers/password_field_controller.dart)
+  — a custom field controller written against `AdvancedTextFieldController`, with `List<ValidationError>` as its
+  error type.
+- [`test/screens/`](https://github.com/leancodepl/advanced_forms/tree/main/example/test/screens) — widget tests for
+  three of the screens, a template for [testing your own forms](./testing.mdx).
+
+## And the examples on this site
+
+Every `dart` listing framed as a live example in these docs is compiled into a Flutter web bundle when the site is
+built and rendered right above its source. They are smaller than the example app's screens on purpose — one lesson
+each — and they share nothing with it except the package. Multi-select fields and read-only fields, which the example
+app does not cover, have their running examples on [Field controllers](./fields.mdx) and
+[Read-only fields and server errors](./server-errors.mdx).

@@ -14,3 +14,6 @@ flutter/
 # Build output and codegen.
 public/flutter-examples/
 lib/flutter-examples/manifest.generated.ts
+
+# Landing-page MDX: the Dart fences are formatted by `npm run examples:format`.
+content/

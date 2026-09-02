@@ -2,6 +2,7 @@
  * AI-Provenance:
  *   model: Claude Opus 5
  *   harness: Cursor
+ *   edited-by: Claude Fable 5.1 (Claude Code)
  */
 
 /// Everything a docs snippet may use without writing an import.

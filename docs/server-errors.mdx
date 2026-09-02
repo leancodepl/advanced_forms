@@ -1,0 +1,226 @@
+---
+title: Read-only fields and server errors
+description: Freeze a value with markReadOnly, push a 422 response in with setError, and let the next edit clear it — with clearErrors and reset for the rest.
+icon: Lock
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+Four methods cover everything a form has to do to a field from the outside:
+
+```dart
+field.markReadOnly();               // setValue becomes a no-op unless force: true
+field.setError(MyError.emailTaken); // push an error in, e.g. from a 422 response
+field.clearErrors();                // forget everything, including the async verdict
+field.reset();                      // back to initialValue; errors and verdict gone
+```
+
+`AdvancedFormController` has `markReadOnly()`, `unmarkReadOnly()`, `clearErrors()`, `resetAll()` and
+`setValidationEnabled(bool)` for the whole tree.
+
+Save the form below with an email ending in `@taken.com` and the server rejects it; save anything else and the form
+locks itself.
+
+<AdvancedFormsExample preview="ProfileForm" title="profile_form.dart">
+
+```dart title="profile_form_controller.dart"
+enum ProfileError { required, invalid, emailTaken, nameTaken }
+
+class ProfileFormController extends AdvancedFormController {
+  ProfileFormController() : super(validationMode: ValidationMode.onUnfocus) {
+    registerFields([displayName, email]);
+  }
+
+  final displayName = AdvancedTextFieldController(
+    initialValue: 'Ada',
+    validator: filled(ProfileError.required),
+  );
+
+  final email = AdvancedTextFieldController(
+    initialValue: 'ada@example.com',
+    validator: filled(ProfileError.required) & isEmail(ProfileError.invalid),
+  );
+
+  /// Validates, then applies the server's verdict field by field.
+  Future<bool> save() async {
+    if (!await validate()) {
+      return false;
+    }
+
+    final rejected = await _fakeSave(email.fieldValue, displayName.fieldValue);
+
+    // After the await, never before: validate() re-runs the sync validators
+    // and would overwrite a code pushed earlier. `null` clears, so accepted
+    // fields end up cleanly valid.
+    email.setError(rejected['email']);
+    displayName.setError(rejected['displayName']);
+
+    if (rejected.values.any((error) => error != null)) {
+      return false;
+    }
+    markReadOnly(); // saved — freeze the whole form until "Edit"
+    return true;
+  }
+
+  Future<Map<String, ProfileError?>> _fakeSave(
+    String email,
+    String name,
+  ) async {
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    return {
+      'email': email.endsWith('@taken.com') ? ProfileError.emailTaken : null,
+      'displayName': name.toLowerCase() == 'admin'
+          ? ProfileError.nameTaken
+          : null,
+    };
+  }
+}
+
+Validator<String?, E> isEmail<E extends Object>(E error) =>
+    (value) => value != null && value.contains('@') ? null : error;
+
+String describe(ProfileError error) => switch (error) {
+  ProfileError.required => 'Required',
+  ProfileError.invalid => 'Not an email address',
+  ProfileError.emailTaken => 'The server says this email is taken',
+  ProfileError.nameTaken => 'The server says this name is taken',
+};
+```
+
+```dart title="profile_form.dart"
+class ProfileForm extends StatefulWidget {
+  const ProfileForm({super.key});
+
+  @override
+  State<ProfileForm> createState() => _ProfileFormState();
+}
+
+class _ProfileFormState extends State<ProfileForm> {
+  final _form = ProfileFormController();
+
+  @override
+  void dispose() {
+    _form.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final saved = await _form.save();
+    if (mounted) {
+      ExampleLog.of(
+        context,
+      ).add(saved ? 'Saved and locked. Press Edit to change it.' : 'Rejected.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const DocsHint(
+          'An email at @taken.com, or the name "admin", is rejected by the '
+          'fake server.',
+        ),
+        DocsTextField(
+          field: _form.displayName,
+          label: 'Display name',
+          translateError: describe,
+        ),
+        DocsTextField(
+          field: _form.email,
+          label: 'Email',
+          translateError: describe,
+        ),
+        ValueListenableBuilder<AdvancedFieldState<String, ProfileError>>(
+          valueListenable: _form.email,
+          builder: (context, state, _) => DocsActions(
+            children: [
+              if (state.readOnly)
+                FilledButton.icon(
+                  onPressed: _form.unmarkReadOnly,
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                  label: const Text('Edit'),
+                )
+              else
+                DocsSubmitButton(form: _form, label: 'Save', onPressed: _save),
+              TextButton(
+                onPressed: state.readOnly ? null : _form.resetAll,
+                child: const Text('Reset'),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+```
+
+</AdvancedFormsExample>
+
+## Pushing a server error
+
+`setError(E?)` writes the field's `validationError` — the same slot the sync validator writes — and the status follows.
+Three consequences shape the pattern above:
+
+- **Push after the `await`, never before.** `validate()` and anything else that re-runs the sync validator — an edit
+  with the gate open, `subscribeToFields`, `validateAll` — overwrites a pushed code with whatever the validator returns.
+  `validate()` does this whatever the mode says.
+- **That is also why the error clears itself.** The next edit, or the next submit, replaces the pushed code with the
+  validator's verdict — no bookkeeping, no "clear server errors" step.
+- **`setError(null)` is what makes "apply the response to every field" work.** Fields the server accepted end up
+  `valid` with nothing to show, rather than `invalid` with nothing to show.
+
+`setError` leaves `asyncError` alone. A code an async check recorded survives it, and the field stays `invalid`
+showing that code — use `clearErrors()` when you mean "forget everything, including the async answer". Pushing an error
+aborts a live async round, so the round cannot erase what you just pushed; the settled verdict is kept, because the
+value did not change.
+
+A map over fields of mixed value types is `Map<String, AdvancedFieldController<dynamic, MyError>>` — spell `E` out,
+inference widens it to `Object`.
+
+## Read-only fields
+
+`markReadOnly()` freezes the value: `setValue` becomes a no-op unless you pass `force: true`, and text typed into a
+read-only text field is reverted in the same turn. It also aborts a live async round, so a frozen field does not keep
+transitioning on its own. Everything else still works on a read-only field:
+
+- `validate()` still validates it, and `revalidateSync()` still re-runs its rule — freezing a value does not exempt it
+  from the rules.
+- `reset()` still resets it, but **keeps** `readOnly`: that is configuration, and configuration changes only through its
+  own API.
+- A `failedValidation` status survives `markReadOnly()`, so a frozen field that could not be checked still blocks
+  submit; only its `lastFailure` details are dropped.
+
+How a read-only field *looks* is the widget's business — see [Rendering fields](./rendering.mdx#read-only-visibly).
+
+## `clearErrors` and `reset`
+
+| | value | `validationError` | `asyncError` | verdict | touched | `readOnly`, mode |
+| --- | --- | --- | --- | --- | --- | --- |
+| `setError(null)` | kept | cleared | kept | kept | kept | kept |
+| `clearErrors()` | kept | cleared | cleared | dropped | kept | kept |
+| `reset()` | `initialValue` | cleared | cleared | dropped | untouched again | kept |
+
+"Touched" is the flag that lets the [validation mode](./validation-modes.mdx) fire: after `reset()` the field is quiet
+again until the user edits it or `validate()` runs. `hasFailedValidation` on the form clears on any `setValue`,
+`clearErrors()`, `reset()`, `setError(null)` or the next `validate()`.
+
+## Switching validation off instead
+
+To take a *section* out of the rules while keeping it on screen — invoice details behind an unchecked switch —
+`setValidationEnabled(false)` on that subform is better than freezing or detaching it: its errors are cleared, its
+fields stop counting towards `canSubmit` and `validate()`, and everything else — `resetAll`, `markReadOnly`, disposal —
+still reaches it. See [Subforms](./subforms.mdx).
+
+## Next
+
+<Cards>
+  <Card title="Form-level state" href="./form-state.mdx" description="Tracking your own save request next to the form's validating flag." />
+  <Card title="Lifecycle and ownership" href="./lifecycle.mdx" description="Prefilled forms, re-baselining, and who disposes what." />
+</Cards>

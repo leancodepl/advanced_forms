@@ -14,6 +14,8 @@
     "examples:generate": "node scripts/flutter-examples.mjs generate",
     "examples:watch": "node scripts/flutter-examples.mjs generate --watch",
     "examples:check": "node scripts/flutter-examples.mjs check",
+    "examples:format": "node scripts/format-snippets.mjs",
+    "examples:format:check": "node scripts/format-snippets.mjs --check",
     "examples:build": "node scripts/flutter-examples.mjs build",
     "examples:serve": "cd flutter && flutter run -d web-server --web-port 5333"
   },

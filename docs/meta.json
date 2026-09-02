@@ -1,14 +1,30 @@
 {
   "title": "advanced_forms",
   "pages": [
+    "---Getting started---",
     "index",
     "installation",
     "first-form",
+    "concepts",
+    "---Guides---",
     "rendering",
+    "validation-modes",
+    "validators",
+    "async-validation",
+    "cross-field",
     "form-state",
-    "validation",
     "fields",
+    "server-errors",
     "subforms",
-    "widgets"
+    "focus",
+    "lifecycle",
+    "testing",
+    "widgets",
+    "---Reference---",
+    "under-the-hood",
+    "faq",
+    "example-app",
+    "migration",
+    "agent-skill"
   ]
 }

@@ -2,6 +2,7 @@
  * AI-Provenance:
  *   model: Claude Opus 5
  *   harness: Cursor
+ *   edited-by: Claude Fable 5.1 (Claude Code)
  */
 import 'package:flutter/material.dart';
 
@@ -32,8 +33,7 @@ class ExampleLog extends ChangeNotifier {
 
   /// The log for the surrounding example.
   static ExampleLog of(BuildContext context) {
-    final scope = context
-        .dependOnInheritedWidgetOfExactType<ExampleLogScope>();
+    final scope = context.dependOnInheritedWidgetOfExactType<ExampleLogScope>();
     assert(scope != null, 'No ExampleLog above this widget.');
     return scope!.log;
   }
@@ -41,11 +41,7 @@ class ExampleLog extends ChangeNotifier {
 
 /// Publishes an [ExampleLog] to the example below it.
 class ExampleLogScope extends InheritedWidget {
-  const ExampleLogScope({
-    super.key,
-    required this.log,
-    required super.child,
-  });
+  const ExampleLogScope({super.key, required this.log, required super.child});
 
   final ExampleLog log;
 
@@ -53,7 +49,8 @@ class ExampleLogScope extends InheritedWidget {
   bool updateShouldNotify(ExampleLogScope oldWidget) => log != oldWidget.log;
 }
 
-/// Renders [log] as a compact transcript under an example.
+/// Renders [log] as a compact transcript under an example, the way a terminal
+/// would: one line per entry, newest at the bottom.
 class ExampleLogView extends StatelessWidget {
   const ExampleLogView({super.key, required this.log});
 
@@ -62,6 +59,7 @@ class ExampleLogView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
 
     return ListenableBuilder(
       listenable: log,
@@ -73,10 +71,11 @@ class ExampleLogView extends StatelessWidget {
         return Container(
           width: double.infinity,
           margin: const EdgeInsets.only(top: 16),
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.fromLTRB(14, 8, 8, 12),
           decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(8),
+            color: scheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: scheme.outlineVariant),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,9 +84,11 @@ class ExampleLogView extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      'Output',
+                      'OUTPUT',
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                        color: scheme.onSurfaceVariant,
+                        letterSpacing: 1.2,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -100,7 +101,24 @@ class ExampleLogView extends StatelessWidget {
                 ],
               ),
               for (final line in log.lines)
-                Text(line, style: theme.textTheme.bodySmall),
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '› ',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: scheme.secondary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(line, style: theme.textTheme.bodySmall),
+                      ),
+                    ],
+                  ),
+                ),
             ],
           ),
         );

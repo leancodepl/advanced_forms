@@ -82,9 +82,10 @@ jobs:
         run: npm run examples:generate
 
       # Snippets are written inside MDX, where nothing formats them. This is
-      # what keeps the code the docs display canonically formatted.
+      # what keeps the code the docs display canonically formatted; `npm run
+      # examples:format` rewrites the MDX when it fails.
       - name: Check snippet formatting
-        run: dart format --output=none --set-exit-if-changed lib/generated
+        run: dart format --output=none --set-exit-if-changed lib/generated lib/support
         working-directory: docs_app/flutter
 
       - name: Analyze the example bundle

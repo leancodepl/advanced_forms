@@ -1,18 +1,62 @@
 ---
 title: Installation
-description: Add advanced_forms to a Flutter app, or migrate from the 0.1.x bloc-based release.
+description: Add advanced_forms to a Flutter app, check the requirements, and find the way in from 0.1.x.
+icon: Download
 ---
 
 {/*
 AI-Provenance:
-  model: Cursor Grok 4.6
-  harness: Cursor
-  skills:
-    - mark-ai-provenance
+  model: Claude Fable 5.1
+  harness: Claude Code
 */}
 
 ```sh
 flutter pub add advanced_forms
 ```
 
-Migrating from 0.1.x, the bloc-based version? See [MIGRATION.md](https://github.com/leancodepl/advanced_forms/blob/main/MIGRATION.md) in the repository.
+Then import the one library the package exposes:
+
+```dart
+import 'package:advanced_forms/advanced_forms.dart';
+```
+
+## Requirements
+
+| | |
+| --- | --- |
+| Flutter | 3.19.0 or newer |
+| Dart | 3.3 or newer |
+| Runtime dependencies | `collection`, `equatable`, `meta` — and Flutter itself |
+| Code generation | none |
+| Platforms | every platform Flutter supports; the package uses no plugins |
+
+The package is developed against the lower bound, so an app on an older-but-supported Flutter is not an
+afterthought. Nothing in it is web- or mobile-specific.
+
+## Optional companions
+
+None are required. Two are worth knowing about:
+
+- **A DI package** — `ChangeNotifierProvider` from `provider` is a one-line way to own a form controller and have it
+  disposed for you. The example app uses it; a `StatefulWidget` works just as well. See
+  [Lifecycle and ownership](./lifecycle.mdx).
+- **An [Agent Skill](./agent-skill.mdx)** — if you write forms with Claude Code or another agent that supports
+  skills, copy `skills/advanced_forms/` into your project and the agent generates idiomatic `advanced_forms` code.
+
+## Coming from `leancode_forms` 0.1.x
+
+`advanced_forms` 0.2.0 is the successor of `leancode_forms`, which is discontinued on pub.dev. The form-building
+model is the same — fields, form controllers, validators, subforms — and the machinery underneath is new: `bloc` and
+`rxdart` are gone, every `*Cubit` is an `Advanced*Controller`, and validation was rebuilt around named
+[validation modes](./validation-modes.mdx).
+
+The [migration guide](./migration.mdx) walks through the renames, the behaviour changes that compile but behave
+differently, and the widget-side clean-up. Budget an hour for a medium-sized app; most of it is deleting
+`TextEditingController` plumbing.
+
+## Next
+
+<Cards>
+  <Card title="Your first form" href="./first-form.mdx" description="Two fields, a submit button, live on the page." />
+  <Card title="Example app" href="./example-app.mdx" description="Every pattern in these docs as a runnable screen." />
+</Cards>

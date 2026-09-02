@@ -48,3 +48,6 @@ docs_app/*.tsbuildinfo
 docs_app/public/flutter-examples/
 .vercel
 .env*
+
+# Local browser-preview launch config (machine-specific paths).
+.claude/launch.json

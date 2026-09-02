@@ -1,0 +1,172 @@
+---
+title: FAQ and gotchas
+description: The questions that come up in review, the type errors that look like package bugs and are not, and the behaviours that surprise on first contact.
+icon: CircleHelp
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+## Validation
+
+<Accordions type="multiple">
+<Accordion title="canSubmit is true on an empty form. Is that a bug?">
+
+No. `valid` means *no error recorded*, not *checked and passed*, and a field nobody has validated has no error. Use
+`canSubmit` to grey out a button over **known** errors; use `await validate()` to decide a submit. Do not gate a
+validate-on-submit button on `canSubmit` at all — it turns `false` while a check is in flight and while a field sits in
+`failedValidation`, exactly when the user needs to retry. See [Form-level state](./form-state.mdx).
+
+</Accordion>
+<Accordion title="Nothing happens when I type. Where are my errors?">
+
+The default mode is `manual`: nothing validates until the first `validate()`. That is deliberate — a form should not
+shout before the user has done anything. For live feedback give the form `ValidationMode.onUserInteraction`; for
+feedback when a field is left, `ValidationMode.onUnfocus` — which also needs the widget to bind `field.focusNode`. And
+in every mode a field the user has never edited stays quiet on its own. See [Validation modes](./validation-modes.mdx).
+
+</Accordion>
+<Accordion title="My subscribeToFields dependency does not re-validate.">
+
+Two gates sit in front of it: the dependent field must be in a mode other than `manual`, and the user must have edited
+it at least once. Under `manual` the mismatch shows up on submit instead. Also check that the *value* of a watched
+field changed — a status-only change never fires it. See [Cross-field logic](./cross-field.mdx).
+
+</Accordion>
+<Accordion title="The error disappears while I type and comes back a moment later.">
+
+Both errors are cleared when an async round starts, because they described the previous value, so the message is
+blank for the debounce plus the request and returns if the answer is still bad. To keep the old text up during the
+check, render `state.error` only while `!state.isInProgress`.
+
+</Accordion>
+<Accordion title="validate() returned false but no field shows an error.">
+
+A field is probably on `failedValidation`: its async validator threw or timed out. That is not `valid`, so `validate()`
+is `false`, but the field carries no error code unless you supplied `failureToError`. Bind `form.value.hasFailedValidation`
+to a banner, and check `field.lastFailure` for the exception. See [Async validation](./async-validation.mdx#failure-is-not-error).
+
+</Accordion>
+<Accordion title="How do I know a field was checked and passed, not just never checked?">
+
+There is no status for it yet — `valid` covers both. Keep your own flag: set it after `await validate()` returned `true`,
+clear it on `onValuesChanged`. A `FieldStatus.unverified` that would distinguish the two is the planned next
+state-model change; see [Under the hood](./under-the-hood.mdx#deliberate-residue).
+
+</Accordion>
+<Accordion title="Can a submit be double-tapped?">
+
+Not into two validation passes: concurrent `validate()` calls share one future. Your *save request* is another
+matter — the package knows nothing about it. Keep a flag on the controller and set it before the first `await`. See
+[Form-level state](./form-state.mdx#the-submit-button).
+
+</Accordion>
+</Accordions>
+
+## Types
+
+<Accordions type="multiple">
+<Accordion title="filled(...) & myValidator does not compile.">
+
+The built-in string validators are `Validator<String?, E>`, and `&` needs both sides to have the same `T`. An
+unannotated closure `(value) => …` infers `String`. Annotate it — `(String? value) => …` — or write custom string rules
+over `String?` like the built-ins. See [Validators](./validators.mdx#combining-validators).
+
+</Accordion>
+<Accordion title="switch (state.error) says my enum cases are not exhaustive.">
+
+`E` was inferred as `Object`, which happens whenever the constructor has no `validator` to infer it from —
+`AdvancedTextFieldController()`, `AdvancedBooleanFieldController()`. Spell it out:
+`AdvancedTextFieldController<MyError>()`. The same applies to a map of mixed fields:
+`Map<String, AdvancedFieldController<dynamic, MyError>>`.
+
+</Accordion>
+<Accordion title="Is there a bool validator? A Set validator?">
+
+No, and `notEmpty` is for `List`. A rule on a `bool` or a `Set` is a one-line closure:
+`(accepted) => accepted ? null : MyError.mustAccept`, `(chosen) => chosen.isEmpty ? MyError.pickOne : null`.
+
+</Accordion>
+<Accordion title="DropdownButtonFormField complains about value / initialValue.">
+
+That is Flutter, not the package: the selected-value parameter is `value:` up to Flutter 3.33 and `initialValue:` from
+3.35 on. A `DropdownButton` inside an `InputDecorator` compiles on every version and, unlike a form field seeded with
+an initial value, always shows the field's current value — including after `reset()`. See
+[Rendering fields](./rendering.mdx).
+
+</Accordion>
+</Accordions>
+
+## Widgets
+
+<Accordions type="multiple">
+<Accordion title="Do I still need Flutter's Form and a GlobalKey?">
+
+No. `advanced_forms` *is* the validation system; a second one fights it. Use `TextFormField` for its decoration if you
+like — outside a `Form` it is a `TextField` — and never set `autovalidateMode`.
+
+</Accordion>
+<Accordion title="My programmatic setValue / reset does not show up in the text field.">
+
+The widget is bound to a `TextEditingController` of its own. Bind `controller: field.textController` instead: the field
+owns that controller and keeps it in two-way sync. Delete the `onChanged` and `initialValue` plumbing while you are
+there.
+
+</Accordion>
+<Accordion title="A read-only text field still looks enabled.">
+
+`TextField.readOnly` blocks typing but keeps the enabled styling. Pass `enabled: !state.readOnly` as well. Widgets
+with a nullable callback — `Switch`, `Checkbox`, `Dropdown`, `Slider` — grey out on their own once
+`field.getValueSetter()` returns `null`.
+
+</Accordion>
+<Accordion title="Does it work with riverpod / bloc / get_it?">
+
+Yes. A controller is a `ChangeNotifier` and a `ValueListenable`; nothing in the package knows about any DI or
+state-management library. Own it wherever you own other notifiers, subscribe with `AdvancedFieldBuilder` or
+`ValueListenableBuilder`, and dispose it once.
+
+</Accordion>
+</Accordions>
+
+## Lifecycle
+
+<Accordions type="multiple">
+<Accordion title="wasModified is true before the user touched anything.">
+
+The baseline is captured at `registerFields` time, and the form was filled *after* that — by `prefill`, `setValue` or a
+relation. Build the field controllers with the loaded data as `initialValue:`, or re-call `registerFields` once the
+data is in. See [Lifecycle and ownership](./lifecycle.mdx#prefilled-and-edit-forms).
+
+</Accordion>
+<Accordion title="I get &quot;used after being disposed&quot; on a field.">
+
+Something disposed it twice, or used it after its form was disposed. The form disposes every registered field and
+every attached subform; you dispose only the form. A field or subform that must outlive a screen needs an owner above
+that screen. See [Lifecycle and ownership](./lifecycle.mdx).
+
+</Accordion>
+<Accordion title="addSubform threw a StateError.">
+
+Either the parent or the subform was already disposed. `removeSubform` does not dispose — the parent still owns the
+subform and disposes it with itself — so a section that comes and goes can be re-attached; a section that was disposed
+needs a fresh controller. Consider `setValidationEnabled(false)` instead of detaching.
+
+</Accordion>
+<Accordion title="Where did the streams go?">
+
+0.1.x controllers were cubits, so they had a `stream`. 0.2.0 is `Listenable`-based: `addListener`,
+`subscribeToFields`, `onValuesChanged`, `onStatusChanged`, and the builder widgets. A deprecated
+`AdvancedFieldController.stream` extension exists as a migration bridge and is removed in 0.3.0. See
+[Migration](./migration.mdx).
+
+</Accordion>
+</Accordions>
+
+## Something else?
+
+If the docs do not answer it, the [example app](./example-app.mdx) probably has a screen for it, and the
+[issue tracker](https://github.com/leancodepl/advanced_forms/issues) is where questions turn into docs.

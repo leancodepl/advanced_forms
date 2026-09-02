@@ -8,9 +8,11 @@ version: 0.0.1
 
 environment:
   # Element embedding with `viewConstraints` and `ui_web.views.getInitialData`
-  # landed in Flutter 3.24 / Dart 3.5.
-  sdk: ">=3.5.0 <4.0.0"
-  flutter: ">=3.24.0"
+  # landed in Flutter 3.24 / Dart 3.5. The floor is Dart 3.8 so that the
+  # snippets the docs show are formatted in the current ("tall") style —
+  # `dart format` picks the style from the language version.
+  sdk: ">=3.8.0 <4.0.0"
+  flutter: ">=3.32.0"
 
 dependencies:
   advanced_forms:

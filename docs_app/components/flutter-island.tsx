@@ -1,15 +1,14 @@
 /*
  * AI-Provenance:
- *   model: Claude Opus 5
- *   harness: Cursor
+ *   model: Claude Fable 5.1
+ *   harness: Claude Code
  */
 "use client"
 
 import { useEffect, useRef, useState, type ReactNode } from "react"
 import { attachIsland, autoHeightConstraints, type AttachedIsland } from "@/lib/flutter-examples/runtime"
-import { cn } from "@/lib/cn"
 
-type Status = "waiting" | "attaching" | "ready" | "evicted" | "failed"
+export type IslandStatus = "waiting" | "attaching" | "ready" | "evicted" | "failed"
 
 interface FlutterIslandProps {
   exampleId: string
@@ -17,6 +16,8 @@ interface FlutterIslandProps {
   preview: string
   /** Fixed height in pixels. Omit to let the island size itself. */
   height?: number
+  /** Reports every status change, so the frame around the island can show it. */
+  onStatusChange?: (status: IslandStatus) => void
 }
 
 /**
@@ -27,13 +28,21 @@ interface FlutterIslandProps {
  * shared runtime evicts the least useful view if a page has more islands than
  * the browser will give rendering surfaces for.
  */
-export function FlutterIsland({ exampleId, preview, height }: FlutterIslandProps) {
+export function FlutterIsland({ exampleId, preview, height, onStatusChange }: FlutterIslandProps) {
   const hostRef = useRef<HTMLDivElement>(null)
   const visibleRef = useRef(false)
   const [near, setNear] = useState(false)
   const [attempt, setAttempt] = useState(0)
-  const [status, setStatus] = useState<Status>("waiting")
+  const [status, setStatusState] = useState<IslandStatus>("waiting")
   const [error, setError] = useState<string>()
+
+  const reportRef = useRef(onStatusChange)
+  reportRef.current = onStatusChange
+
+  function setStatus(next: IslandStatus) {
+    setStatusState(next)
+    reportRef.current?.(next)
+  }
 
   // Touch devices need an explicit gate: the engine sets `touch-action: none`
   // on its view root, so an un-gated island swallows the scroll gesture
@@ -101,15 +110,14 @@ export function FlutterIsland({ exampleId, preview, height }: FlutterIslandProps
       cancelled = true
       island?.detach()
     }
+    // `setStatus` only forwards to refs and state setters, which are stable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [near, attempt, exampleId, height])
 
   const settled = status === "ready"
 
   return (
-    <div
-      role="group"
-      aria-label={`Live example: ${preview}`}
-      className={cn("relative overflow-hidden rounded-lg border border-fd-border bg-fd-card", !settled && "min-h-32")}>
+    <div role="group" aria-label={`Live example: ${preview}`} className="relative">
       <div
         ref={hostRef}
         style={{
@@ -121,8 +129,6 @@ export function FlutterIsland({ exampleId, preview, height }: FlutterIslandProps
         className="block w-full"
       />
 
-      {status === "attaching" && <Notice>Loading the live example…</Notice>}
-
       {status === "failed" && (
         <Notice>
           <span className="font-medium">The live example could not be loaded.</span> The code below is what it would
@@ -133,32 +139,21 @@ export function FlutterIsland({ exampleId, preview, height }: FlutterIslandProps
 
       {status === "evicted" && (
         <Notice>
-          Unloaded to stay within the browser&rsquo;s rendering budget.
-          <button
-            type="button"
-            onClick={() => setAttempt(n => n + 1)}
-            className="mx-auto mt-2 block rounded-md bg-fd-primary px-3 py-1 text-fd-primary-foreground">
-            Load it again
+          Paused to stay within the browser&rsquo;s rendering budget.
+          <button type="button" onClick={() => setAttempt(n => n + 1)}>
+            Resume
           </button>
         </Notice>
       )}
 
       {needsActivation && !activated && settled && (
-        <button
-          type="button"
-          onClick={() => setActivated(true)}
-          className="absolute inset-0 flex items-center justify-center bg-fd-card/60 backdrop-blur-[1px]">
-          <span className="rounded-full bg-fd-primary px-4 py-1.5 text-sm font-medium text-fd-primary-foreground">
-            Try it
-          </span>
+        <button type="button" onClick={() => setActivated(true)} className="af-example-gate">
+          <span>Try it</span>
         </button>
       )}
 
       {needsActivation && activated && (
-        <button
-          type="button"
-          onClick={() => setActivated(false)}
-          className="absolute top-1 right-1 rounded-md bg-fd-muted px-2 py-0.5 text-xs text-fd-muted-foreground">
+        <button type="button" onClick={() => setActivated(false)} className="af-example-gate-done">
           Done
         </button>
       )}
@@ -168,7 +163,7 @@ export function FlutterIsland({ exampleId, preview, height }: FlutterIslandProps
 
 function Notice({ children }: { children: ReactNode }) {
   return (
-    <div className="absolute inset-0 flex items-center justify-center p-4 text-center text-xs text-fd-muted-foreground">
+    <div className="af-example-notice">
       <p>{children}</p>
     </div>
   )

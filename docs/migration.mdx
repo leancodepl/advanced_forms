@@ -1,0 +1,124 @@
+---
+title: Migrating from 0.1.x
+description: leancode_forms 0.1.x to advanced_forms 0.2.0 — the renames, the behaviour changes that compile but behave differently, and the widget clean-up, in the order to do them.
+icon: ArrowRightLeft
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+0.2.0 keeps the form-building model of 0.1.x — fields, form groups, validators, subforms — and replaces the
+state-management machinery underneath it. This page is the map; the
+[full migration guide](https://github.com/leancodepl/advanced_forms/blob/main/MIGRATION.md) in the repository has
+every detail and every before/after snippet.
+
+## What changed
+
+- **`flutter_bloc` and `rxdart` are gone.** Fields and forms mix in `ChangeNotifier` and implement `ValueListenable`,
+  both from the Flutter SDK, so the library no longer constrains the app's state-management stack.
+- **Every `*Cubit` is an `Advanced*Controller`.** Most members carry over unchanged.
+- **Lifecycle is synchronous.** `void dispose()` replaces `Future<void> close()`; the `Disposable` mixin is gone.
+- **`AdvancedTextFieldController` owns its `TextEditingController` and `FocusNode`**, so widgets stop allocating
+  their own.
+- **Validation was rebuilt.** `validate()` is `Future<bool>` and reaches async validators; `bool autovalidate` became a
+  three-member `ValidationMode`; fourteen defects in the async pipeline were fixed, each with a regression test.
+- **The package was renamed** from `leancode_forms` to `advanced_forms`, and the floor is Flutter 3.19 / Dart 3.3.
+
+## Checklist
+
+<Steps>
+<Step>
+**Update `pubspec.yaml`.** Replace `leancode_forms` with `advanced_forms`; remove `flutter_bloc`, `rxdart`, and
+`bloc_test`, `bloc_presentation` or `flutter_hooks` if forms were the only reason for them. Add `provider` if you
+used `BlocProvider`.
+</Step>
+<Step>
+**Rename the classes** with the table below, and change every `package:leancode_forms/` import.
+</Step>
+<Step>
+**Replace `.state` reads** with `.value`, or the `fieldValue` and `error` shortcuts.
+</Step>
+<Step>
+**Move `asyncValidator:` and `asyncValidationDebounce:`** into `asyncValidation: AsyncValidation(validator:, debounce:)`.
+</Step>
+<Step>
+**Replace `clear()` with `reset()`**, and `setAutovalidate(bool)` with `setValidationMode(ValidationMode)`.
+</Step>
+<Step>
+**Migrate the widgets:** a third `child` parameter on builders, and delete the `TextEditingController` plumbing in
+favour of `controller: field.textController`.
+</Step>
+<Step>
+**Convert `close()` overrides to `dispose()`**, and `addDisposable(...)` registrations to explicit cleanup.
+</Step>
+<Step>
+**Replace stream subscriptions** — `onValuesChangedStream.listen` becomes `onValuesChanged.addListener`.
+</Step>
+<Step>
+**Read the behaviour changes** below against your code. They compile, and behave differently.
+</Step>
+</Steps>
+
+## Rename reference
+
+| 0.1.x | 0.2.0 |
+| --- | --- |
+| `FieldCubit<T, E>` | `AdvancedFieldController<T, E>` |
+| `TextFieldCubit<E>` | `AdvancedTextFieldController<E>` |
+| `BooleanFieldCubit<E>` | `AdvancedBooleanFieldController<E>` |
+| `SingleSelectFieldCubit<V, E>` | `AdvancedSingleSelectFieldController<V, E>` |
+| `MultiSelectFieldCubit<V, E>` | `AdvancedMultiSelectFieldController<V, E>` |
+| `FormGroupCubit` | `AdvancedFormController` |
+| `FieldState<T, E>` / `FormGroupState` | `AdvancedFieldState<T, E>` / `AdvancedFormState` |
+| `FieldBuilder<T, E>` | `AdvancedFieldBuilder<T, E>` — `builder` gains a third `child` parameter |
+| `cubit.state` | `controller.value`, plus `fieldValue` and `error` |
+| `cubit.isClosed` | `controller.isDisposed` |
+| `field.clear()` | removed — `field.reset()` |
+| `asyncValidator:`, `asyncValidationDebounce:` | `asyncValidation: AsyncValidation(validator:, debounce:, timeout:, onFailure:, failureToError:)` |
+| `bool validate()` | `Future<bool> validate()` — **await it** |
+| `setAutovalidate(bool)`, `state.autovalidate` | `setValidationMode(ValidationMode)`, `state.validationMode` |
+| `validate(enableAutovalidate: …)` | removed — `validate()` never changes the mode |
+| `form.validateWithAutovalidate()` | `form.revalidateSync()` |
+| `onValuesChangedStream` / `onStatusChangedStream` | `onValuesChanged` / `onStatusChanged` — `Listenable`s, no payload |
+| `removeSubform(form, close: …)` | `removeSubform(form)` — detaches only, returns `void` |
+| `Future<void> close()`, `addDisposable`, `Disposable` | `void dispose()` |
+| `BlocBuilder<FormGroupCubit, FormGroupState>` | `ValueListenableBuilder<AdvancedFormState>` |
+| `FieldCubit.stream` | `AdvancedFieldController.stream` — deprecated bridge, removed in 0.3.0 |
+
+## Behaviour changes that are not renames
+
+These compile after the renames and behave differently, so nothing points you at them.
+
+- **`validate()` is asynchronous and runs the async validators.** Every call site needs `await`; a bare `validate();`
+  statement still compiles and silently ignores the result.
+- **`autovalidate: true` is `ValidationMode.onUserInteraction`; `false` is `manual`, the default.** `onUnfocus` is new.
+  `validate()` no longer turns validation on: if you relied on "quiet until the first submit, live afterwards", set
+  `onUserInteraction` up front.
+- **Only a field the user has edited validates itself.** In every mode. Write programmatic values with the new
+  `prefill(value)`, not `setValue`, so a profile fetch does not arm the field.
+- **A throwing async validator no longer hangs the field.** It lands on the new `FieldStatus.failedValidation`;
+  exhaustive `switch`es over `FieldStatus` need a new arm.
+- **`setError(null)` clears instead of marking the field invalid**, and `setError` leaves `asyncError` alone.
+- **`reset()` keeps the validation mode and `readOnly`.** `form.resetAll()` no longer unlocks fields you locked.
+- **`subscribeToFields` re-runs the sync validator only**, fires on the first value change to any watched field, and
+  never on a status-only change.
+- **`removeSubform` only detaches.** The parent owns every subform it was given and disposes them all.
+- **A disposed controller throws** a `StateError` from `registerFields`, `addSubform`, `removeSubform`,
+  `setValidationEnabled`, `subscribeToFields` and `setValue`.
+- **Form state settles synchronously**, in the same call stack as the field change — no microtask hop.
+- **`setValue` clears both errors in `manual` mode**, and the error goes blank while an async check runs.
+- **The select controllers assert** that `select` and `addValue` are given one of `options`, in debug builds.
+- **`validationErrors` reports `error`**, sync or async, instead of `validationError`.
+
+The [full guide](https://github.com/leancodepl/advanced_forms/blob/main/MIGRATION.md#3-behavior-changes-that-are-not-renames)
+explains each with a before/after, and covers migrating custom fields, `bloc_test` suites and `bloc_presentation`
+events.
+
+## After the port
+
+Everything in these docs applies. Start with [Validation modes](./validation-modes.mdx) — it is where the mental
+model moved the most — and [Lifecycle and ownership](./lifecycle.mdx) for the single-owner rule that `close()`-era
+code tends to violate.

@@ -1,22 +1,106 @@
 ---
 title: Reusable field widgets
-description: The package ships no styled widgets — copy the extract-once pattern from the example app.
+description: The package ships no styled widgets on purpose. Extract each binding once, restyle it to your design system, and reuse it across every form.
+icon: Component
 ---
 
 {/*
 AI-Provenance:
-  model: Cursor Grok 4.6
-  harness: Cursor
-  skills:
-    - mark-ai-provenance
+  model: Claude Fable 5.1
+  harness: Claude Code
 */}
 
-The package deliberately ships no styled widgets — it gives you what a widget needs to bind to: the text controller, the focus node, the typed state, the error. For the extract-once pattern see the full set in [`example/lib/widgets/`](https://github.com/leancodepl/advanced_forms/tree/main/example/lib/widgets), ready to copy and restyle.
+The package deliberately ships no styled widgets — it gives you what a widget needs to bind to: the text controller,
+the focus node, the typed state, the error. A design system already has the inputs; what it lacks is the five lines of
+wiring, and those are written once.
 
-The [example app](https://github.com/leancodepl/advanced_forms/blob/main/example/example.md) is a gallery: one screen per documented pattern, reachable from the home page. Run it with:
+## The extract-once pattern
 
-```sh
-cd example
-flutter pub get
-flutter run
+A reusable field widget takes the **field** and an **error translator**, and nothing else the controller already
+knows:
+
+```dart
+class AppTextField<E extends Object> extends StatelessWidget {
+  const AppTextField({
+    super.key,
+    required this.field,
+    required this.translateError,
+    this.label,
+    this.hint,
+    this.obscureText = false,
+  });
+
+  final AdvancedTextFieldController<E> field;
+  final ErrorTranslator<E> translateError; // String Function(E)
+  final String? label;
+  final String? hint;
+  final bool obscureText;
+
+  @override
+  Widget build(BuildContext context) {
+    return AdvancedFieldBuilder<String, E>(
+      field: field,
+      builder: (context, state, _) {
+        final error = state.error; // promote E? to E before translating
+        return TextFormField(
+          controller: field.textController,
+          focusNode: field.focusNode,
+          obscureText: obscureText,
+          readOnly: state.readOnly,
+          enabled: !state.readOnly,
+          decoration: InputDecoration(
+            labelText: label,
+            hintText: hint,
+            errorText: error == null ? null : translateError(error),
+            suffixIcon: state.isInProgress ? const _Spinner() : null,
+          ),
+        );
+      },
+    );
+  }
+}
 ```
+
+Being generic in `E` is what lets one widget serve every form in the app, whatever error type each one chose. A
+generic select widget binds `AdvancedFieldBuilder<V?, E>` over `AdvancedSingleSelectFieldController<V, E>` the same
+way; the [Rendering fields](./rendering.mdx) page has a working set of five.
+
+## Where the translator lives
+
+`ErrorTranslator<E>` is `String Function(E)` — a plain function, so put it where the wording belongs. One shared
+translator per error enum is the cheapest start:
+
+```dart
+String translate(SignupError error) => switch (error) {
+  SignupError.required => 'This field is required',
+  SignupError.tooShort => 'At least 8 characters',
+  SignupError.taken => 'Already registered',
+};
+```
+
+The same code often wants different wording per field — "Required" versus "Pick a country" — so the widget takes the
+function rather than the enum, and a call site can pass a field-specific one. In a localised app the translator calls
+`AppLocalizations.of(context)`, which is why it is a parameter of the widget and not a method on the error.
+
+## The docs' own shorthand
+
+The live examples on this site use `DocsTextField`, `DocsDropdownField`, `DocsSubmitButton` and friends, so a page
+about validation does not re-teach binding before it gets to the point. They are exactly the pattern above — generic
+in `E`, bound to the field's controllers, callbacks nulled while read-only — and every example that uses one says so
+under its code. They are **not** part of the package; copy the idea, not the import.
+
+## Ready to copy
+
+[`example/lib/widgets/`](https://github.com/leancodepl/advanced_forms/tree/main/example/lib/widgets) in the repository
+has the example app's set: a text field, a password field with a list-typed error, a dropdown, a switch, and three
+variants that demonstrate the `child:` optimisation with a leading icon, an avatar card and a banner. Each is a plain
+`StatelessWidget` over `AdvancedFieldBuilder`, ready to restyle.
+
+The [example app](./example-app.mdx) itself is a gallery: one screen per documented pattern.
+
+## Next
+
+<Cards>
+  <Card title="Rendering fields" href="./rendering.mdx" description="A binding for every kind of field, hand-written." />
+  <Card title="Example app" href="./example-app.mdx" description="Run it, and see every pattern as a screen." />
+</Cards>

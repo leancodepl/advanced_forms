@@ -1,23 +1,25 @@
 ---
 title: Rendering fields
-description: AdvancedFieldBuilder rebuilds a subtree whenever its field notifies.
+description: AdvancedFieldBuilder rebuilds one subtree per field. Bind text, boolean, select, multi-select and scalar fields to Material widgets, and keep the static parts out of the rebuild.
+icon: LayoutTemplate
 ---
 
 {/*
 AI-Provenance:
-  model: Cursor Grok 4.6
-  harness: Cursor
-  skills:
-    - mark-ai-provenance
+  model: Claude Fable 5.1
+  harness: Claude Code
 */}
 
-`AdvancedFieldBuilder` rebuilds a subtree whenever its field notifies:
+`AdvancedFieldBuilder<T, E>` rebuilds a subtree whenever its field notifies. It wraps `ValueListenableBuilder`, so the
+SDK widget works too if you would rather spell out `ValueListenableBuilder<AdvancedFieldState<String, MyError>>` — the
+wrapper exists to hide that type argument.
 
 ```dart
 AdvancedFieldBuilder<String, MyError>(
   field: firstName,
   builder: (context, state, _) => TextFormField(
     controller: firstName.textController,
+    focusNode: firstName.focusNode,
     decoration: InputDecoration(
       errorText: state.error != null ? translate(state.error!) : null,
     ),
@@ -25,12 +27,327 @@ AdvancedFieldBuilder<String, MyError>(
 );
 ```
 
-It wraps `ValueListenableBuilder`, so the SDK widget works too if you'd rather spell out `ValueListenableBuilder<AdvancedFieldState<String, MyError>>` — the wrapper exists to hide that type argument.
+Note what is *not* in the snippet: no `TextEditingController` allocation, no `onChanged`, no `initialValue` seeding.
+The field owns both controllers and keeps them in sync. Rebuilds are granular by construction — each builder
+subscribes to one field, so a keystroke rebuilds that field's subtree and nothing else — and `AdvancedFieldState` is
+value-equal, so setting a field to the value it already holds notifies nobody.
 
-Note what's *not* in the snippet: no `TextEditingController` allocation, no `onChanged`, no `initialValue` seeding. `AdvancedTextFieldController` owns its `TextEditingController` (`field.textController`) and keeps it in two-way sync — user input flows into the field state, and programmatic changes (`setValue`, `reset`) flow back into the visible text. It also owns a `FocusNode` (`field.focusNode`), so "jump to the first invalid field" is `field.focus()`. Working example: the "Scroll Form" screen in the example app (`example/lib/screens/scroll_form.dart`).
+## One widget per kind of field
 
-Rebuilds are granular by construction: each builder subscribes to one field, so a keystroke rebuilds that field's subtree and nothing else. `AdvancedFieldState` is value-equal, so setting a field to the value it already holds notifies nobody.
+The type arguments follow the controller: `<String, E>` for text, `<bool, E>` for boolean, `<V?, E>` for single
+select, `<Set<V>, E>` for multi select, `<T, E>` for a scalar. Everything below is hand-written Material — this is the
+page about the wiring, so it uses none of the docs' shorthand widgets.
 
-`builder`'s third parameter is a `child:` you can pass for a subtree that doesn't depend on field state — built once and reused on every rebuild. See `example/lib/widgets/form_text_field_with_icon.dart` and the "Optimized Rendering" screen in the example app.
+<AdvancedFormsExample preview="KitchenSinkForm" title="kitchen_sink.dart">
 
-For parent widgets, grab the controller with `context.read<SignupFormController>()` — no subscription, no parent rebuilds — and let each field widget subscribe to its own field.
+```dart title="kitchen_sink_controller.dart"
+enum Plan { free, pro, team }
+
+enum Interest { flutter, design, backend, testing }
+
+class KitchenSinkController extends AdvancedFormController {
+  KitchenSinkController() {
+    registerFields([name, plan, interests, volume, newsletter]);
+  }
+
+  final name = AdvancedTextFieldController(validator: filled('Required'));
+
+  final plan = AdvancedSingleSelectFieldController<Plan, String>(
+    initialValue: null,
+    options: Plan.values,
+    validator: notNull('Pick a plan'),
+  );
+
+  final interests = AdvancedMultiSelectFieldController<Interest, String>(
+    initialValue: const {},
+    options: Interest.values,
+    validator: (chosen) => chosen.isEmpty ? 'Pick at least one' : null,
+  );
+
+  // No dedicated controller for an int: the base class is concrete.
+  final volume = AdvancedFieldController<int, String>(
+    initialValue: 3,
+    validator: (level) => level > 8 ? 'That is too loud' : null,
+  );
+
+  final newsletter = AdvancedBooleanFieldController<String>();
+}
+```
+
+```dart title="kitchen_sink_form.dart"
+class KitchenSinkForm extends StatefulWidget {
+  const KitchenSinkForm({super.key});
+
+  @override
+  State<KitchenSinkForm> createState() => _KitchenSinkFormState();
+}
+
+class _KitchenSinkFormState extends State<KitchenSinkForm> {
+  final _form = KitchenSinkController();
+
+  @override
+  void dispose() {
+    _form.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final ok = await _form.validate();
+    if (mounted) {
+      ExampleLog.of(context).add(ok ? 'All fields valid.' : 'Invalid.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _TextInput(field: _form.name, label: 'Name'),
+        _DropdownInput(field: _form.plan, label: 'Plan'),
+        _ChipsInput(field: _form.interests, label: 'Interests'),
+        _SliderInput(field: _form.volume, label: 'Volume', max: 10),
+        _CheckboxInput(
+          field: _form.newsletter,
+          label: 'Send me the newsletter',
+        ),
+        const SizedBox(height: 8),
+        FilledButton(onPressed: _submit, child: const Text('Submit')),
+      ],
+    );
+  }
+}
+```
+
+```dart title="inputs.dart"
+/// Text: bind the field's own controllers. `enabled` makes read-only *look*
+/// read-only — `readOnly` alone keeps the enabled styling.
+class _TextInput extends StatelessWidget {
+  const _TextInput({required this.field, required this.label});
+
+  final AdvancedTextFieldController<String> field;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return AdvancedFieldBuilder<String, String>(
+      field: field,
+      builder: (context, state, _) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: TextFormField(
+          controller: field.textController,
+          focusNode: field.focusNode,
+          readOnly: state.readOnly,
+          enabled: !state.readOnly,
+          decoration: InputDecoration(labelText: label, errorText: state.error),
+        ),
+      ),
+    );
+  }
+}
+
+/// Boolean: `getValueSetter()` is null while read-only, which is exactly what
+/// disables a Material control. Checkbox takes `bool?`, so adapt it.
+class _CheckboxInput extends StatelessWidget {
+  const _CheckboxInput({required this.field, required this.label});
+
+  final AdvancedBooleanFieldController<String> field;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return AdvancedFieldBuilder<bool, String>(
+      field: field,
+      builder: (context, state, _) {
+        final setter = field.getValueSetter();
+        return CheckboxListTile(
+          value: state.value,
+          onChanged: setter == null ? null : (v) => setter(v ?? false),
+          title: Text(label),
+          subtitle: state.error == null ? null : Text(state.error!),
+          controlAffinity: ListTileControlAffinity.leading,
+        );
+      },
+    );
+  }
+}
+
+/// Single select: an InputDecorator gives a DropdownButton a label and an
+/// errorText, and always reflects the field's value, even after reset().
+class _DropdownInput<V> extends StatelessWidget {
+  const _DropdownInput({required this.field, required this.label});
+
+  final AdvancedSingleSelectFieldController<V, String> field;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return AdvancedFieldBuilder<V?, String>(
+      field: field,
+      builder: (context, state, _) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: InputDecorator(
+          decoration: InputDecoration(labelText: label, errorText: state.error),
+          isEmpty: state.value == null,
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<V>(
+              value: state.value,
+              isExpanded: true,
+              isDense: true,
+              focusNode: field.focusNode,
+              items: [
+                for (final option in field.options)
+                  DropdownMenuItem(value: option, child: Text('$option')),
+              ],
+              onChanged: state.readOnly ? null : field.select,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Multi select: one chip per option, toggled through the controller.
+class _ChipsInput<V> extends StatelessWidget {
+  const _ChipsInput({required this.field, required this.label});
+
+  final AdvancedMultiSelectFieldController<V, String> field;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return AdvancedFieldBuilder<Set<V>, String>(
+      field: field,
+      builder: (context, state, _) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: InputDecorator(
+          decoration: InputDecoration(labelText: label, errorText: state.error),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              for (final option in field.options)
+                FilterChip(
+                  label: Text('$option'),
+                  selected: state.value.contains(option),
+                  onSelected: state.readOnly
+                      ? null
+                      : (_) => field.toggleElement(option),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Scalar: Slider works in doubles, the field in ints — adapt both ways.
+class _SliderInput extends StatelessWidget {
+  const _SliderInput({
+    required this.field,
+    required this.label,
+    required this.max,
+  });
+
+  final AdvancedFieldController<int, String> field;
+  final String label;
+  final int max;
+
+  @override
+  Widget build(BuildContext context) {
+    return AdvancedFieldBuilder<int, String>(
+      field: field,
+      builder: (context, state, _) {
+        final setter = field.getValueSetter();
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: InputDecorator(
+            decoration: InputDecoration(
+              labelText: '$label: ${state.value}',
+              errorText: state.error,
+              contentPadding: EdgeInsets.zero,
+            ),
+            child: Slider(
+              value: state.value.toDouble(),
+              max: max.toDouble(),
+              divisions: max,
+              onChanged: setter == null ? null : (v) => setter(v.round()),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+```
+
+</AdvancedFormsExample>
+
+The private widgets above are what an app extracts once and reuses — see [Reusable field widgets](./widgets.mdx).
+
+## Read-only, visibly
+
+`markReadOnly()` freezes the value; how the widget *looks* is yours to decide. Widgets with a nullable callback —
+`Switch`, `Checkbox`, `DropdownButton`, `Slider`, `FilterChip` — grey out on their own once the callback is `null`,
+which is what `field.getValueSetter()` returns while the field is read-only. A text field does not: `TextField.readOnly`
+blocks typing but keeps the enabled styling, so pass `enabled: !state.readOnly` too when a frozen field should also
+look frozen.
+
+## Keeping the static parts out of the rebuild
+
+`builder`'s third parameter is the `child:` you can pass to `AdvancedFieldBuilder` — a subtree that does not depend on
+field state, built once and handed back on every rebuild. Reach for it when part of the subtree is genuinely expensive:
+a decorated header, an avatar, an image. Otherwise a plain builder is shorter and equally correct.
+
+```dart
+AdvancedFieldBuilder<String, MyError>(
+  field: email,
+  child: const _MarketingBanner(), // built once
+  builder: (context, state, banner) => Column(
+    children: [
+      banner!, // the same instance every rebuild
+      TextFormField(
+        controller: email.textController,
+        decoration: InputDecoration(errorText: translate(state.error)),
+      ),
+    ],
+  ),
+)
+```
+
+The example app's *Optimized Rendering* screen shows this across three layouts of increasing weight, with an
+async-validated field underneath so the rebuilds are frequent enough to notice.
+
+## Parents read, children subscribe
+
+A parent widget that lays fields out does not need to rebuild when they change. Grab the controller without
+subscribing — `context.read<SignupFormController>()` with `provider`, or a field on your `State` — and let each field
+widget subscribe to its own field. Subscribe the parent only to what the parent renders: a submit button bound to
+`ValueListenableBuilder<AdvancedFormState>`, an error summary, a step indicator.
+
+## A widget that manages focus itself
+
+`ValidationMode.onUnfocus` fires when the field's `focusNode` loses focus. A `TextFormField` bound to `field.focusNode`
+does that for free; a date picker, a bottom-sheet picker or a custom dropdown does not, so tell the field when the
+interaction ends:
+
+```dart
+onTap: () async {
+  final date = await showDatePicker(context: context, /* … */);
+  if (date != null) {
+    field.setValue(date);
+  }
+  await field.handleUnfocus();
+},
+```
+
+[Focus](./focus.mdx) covers the node, `focus()`, and scrolling to the first invalid field.
+
+## Next
+
+<Cards>
+  <Card title="Reusable field widgets" href="./widgets.mdx" description="Extract the bindings above once, restyle, reuse." />
+  <Card title="Field controllers" href="./fields.mdx" description="Every controller's constructor and methods." />
+</Cards>

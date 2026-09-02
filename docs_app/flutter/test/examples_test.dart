@@ -42,7 +42,8 @@ void main() {
         expect(
           size.height,
           lessThan(5000),
-          reason: 'an island that tall probably means something took '
+          reason:
+              'an island that tall probably means something took '
               'constraints.biggest — use height={...} for it',
         );
       });

@@ -1,0 +1,169 @@
+---
+title: Focus
+description: Every field owns a FocusNode. Use it to jump to the first invalid field, to chain fields on submit, and to make onUnfocus validation work.
+icon: Crosshair
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+Every `AdvancedFieldController` — not only the text one — has a `focusNode`, and a `focus()` shortcut that requests
+focus on it. The field creates the node on first use and disposes it with itself. Pass `focusNode:` to the constructor
+to bind a node you already own instead; the field then listens to it but never disposes it.
+
+```dart
+TextFormField(
+  controller: field.textController,
+  focusNode: field.focusNode,
+)
+```
+
+Binding the node does two things: the field learns when it loses focus, which is what
+[`ValidationMode.onUnfocus`](./validation-modes.mdx) reacts to, and your code can move focus by talking to the field
+rather than to the widget tree.
+
+## Jump to the first invalid field
+
+After a failed submit, focus the first field with an error. `allFields` is in registration order, own fields first and
+then each subform's, so "first" means what the user sees. Press **Submit** below with the fields empty, then press
+Enter in a field to move to the next one.
+
+<AdvancedFormsExample preview="FocusForm" title="focus_form.dart">
+
+```dart title="focus_form_controller.dart"
+class FocusFormController extends AdvancedFormController {
+  FocusFormController() {
+    registerFields([street, city, postalCode]);
+  }
+
+  final street = AdvancedTextFieldController(validator: filled('Required'));
+  final city = AdvancedTextFieldController(validator: filled('Required'));
+  final postalCode = AdvancedTextFieldController(
+    validator: filled('Required') & atLeastLength(5, 'At least 5 characters'),
+  );
+
+  /// Validates, and on failure focuses the first field that has an error.
+  Future<bool> submit() async {
+    if (await validate()) {
+      return true;
+    }
+    for (final field in value.allFields) {
+      if (field.value.isInvalid) {
+        field.focus();
+        break;
+      }
+    }
+    return false;
+  }
+}
+```
+
+```dart title="focus_form.dart"
+class FocusForm extends StatefulWidget {
+  const FocusForm({super.key});
+
+  @override
+  State<FocusForm> createState() => _FocusFormState();
+}
+
+class _FocusFormState extends State<FocusForm> {
+  final _form = FocusFormController();
+
+  @override
+  void dispose() {
+    _form.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final ok = await _form.submit();
+    if (mounted) {
+      ExampleLog.of(
+        context,
+      ).add(ok ? 'Address saved.' : 'Focused the first invalid field.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        DocsTextField(
+          field: _form.street,
+          label: 'Street',
+          // Enter moves on to the next field.
+          onSubmitted: (_) => _form.city.focus(),
+        ),
+        DocsTextField(
+          field: _form.city,
+          label: 'City',
+          onSubmitted: (_) => _form.postalCode.focus(),
+        ),
+        DocsTextField(
+          field: _form.postalCode,
+          label: 'Postal code',
+          onSubmitted: (_) => _submit(),
+        ),
+        DocsActions(
+          children: [
+            DocsSubmitButton(
+              form: _form,
+              label: 'Save address',
+              onPressed: _submit,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+```
+
+</AdvancedFormsExample>
+
+In a scrolling form, focusing a text field also scrolls it into view — Flutter's `EditableText` calls
+`Scrollable.ensureVisible` when it gains focus. The example app's *Scroll Form* screen shows it with fields spaced far
+apart, and reports the failed submit from the controller to the widget over a plain broadcast `Stream`, the one-off UI
+event pattern.
+
+For fields with no text input — a dropdown, a chip group — `focus()` still moves keyboard focus to whatever widget is
+bound to `field.focusNode`, but there is nothing for the keyboard to type into. Scroll to or highlight those yourself.
+
+## Widgets that manage focus themselves
+
+A `TextFormField` bound to `field.focusNode` reports focus loss for free. A picker opened from a tap does not have a
+text field to bind, so it tells the field when the interaction is over:
+
+```dart
+onTap: () async {
+  final date = await showDatePicker(context: context, /* … */);
+  if (date != null) {
+    field.setValue(date);
+  }
+  await field.handleUnfocus(); // what onUnfocus reacts to
+},
+```
+
+`handleUnfocus()` also flushes a debounced async check in any mode — leaving a half-typed field runs the check now
+rather than after the debounce — and it reports its own failures, so nothing escapes into the caller's zone. Awaiting
+it is optional.
+
+## Rules of the node
+
+- **The field owns the node it created.** Never dispose `field.focusNode`; the field does it in its own `dispose()`.
+- **A supplied node stays yours.** With `focusNode:` in the constructor, the field only listens.
+- **Reading `focusNode` on a disposed field throws** a `StateError`, so never touch it from a widget that can outlive
+  its form. `focus()` on a disposed field is a safe no-op.
+- The node's `debugLabel` is `AdvancedFieldController(<name>)`, so giving fields a `name` makes the focus tree
+  readable in DevTools.
+
+## Next
+
+<Cards>
+  <Card title="Validation modes" href="./validation-modes.mdx" description="onUnfocus, and what it needs from the widget." />
+  <Card title="Rendering fields" href="./rendering.mdx" description="Binding the node to every kind of widget." />
+</Cards>

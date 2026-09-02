@@ -1,0 +1,152 @@
+---
+title: Testing forms
+description: Controllers are plain ChangeNotifiers with synchronous setters, so a form test is a plain test — with a pump or a fake clock only where async validation is involved.
+icon: FlaskConical
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+Nothing in a form controller needs a widget tree to be tested. `setValue`, `setError`, `reset` and the other setters
+notify synchronously — no stream, no microtask hop — so assertions go right after the call.
+
+## A controller test
+
+```dart
+import 'package:advanced_forms/advanced_forms.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  late SignupFormController form;
+
+  setUp(() => form = SignupFormController());
+  tearDown(() => form.dispose());
+
+  test('an empty form does not validate', () async {
+    expect(await form.validate(), isFalse);
+    expect(form.email.error, SignupError.required);
+    expect(form.value.canSubmit, isFalse);
+  });
+
+  test('a filled form validates', () async {
+    form.email.setValue('ada@example.com');
+    form.password.setValue('correct horse');
+
+    expect(await form.validate(), isTrue);
+    expect(form.value.validationErrors, isEmpty);
+  });
+
+  test('editing clears the error that described the old value', () async {
+    await form.validate();
+    form.email.setValue('a');
+
+    expect(form.email.error, isNull);
+  });
+}
+```
+
+`flutter_test` is needed only because the package depends on Flutter; the tests above never pump a widget. The
+package's own suite is written the same way.
+
+## Asserting a sequence of states
+
+Collect what a listener sees. Spell out both type arguments in the expectation: field state is value-equal only within
+the same `<T, E>`, and `E` cannot be inferred from the constructor arguments.
+
+```dart
+test('setValue publishes the value with both errors cleared', () {
+  final field = AdvancedFieldController<int, MyError>(initialValue: 0);
+  addTearDown(field.dispose);
+  final emissions = <AdvancedFieldState<int, MyError>>[];
+  field.addListener(() => emissions.add(field.value));
+
+  field.setValue(10);
+
+  expect(emissions, [const AdvancedFieldState<int, MyError>(value: 10)]);
+});
+```
+
+## Async validation needs a clock
+
+A debounced round waits out its debounce and then awaits the validator, so a test has to let time pass. Three ways,
+from most to least explicit:
+
+- **Call `validate()`.** It flushes a waiting debounce and awaits the round, so `await field.validate()` is enough to
+  assert the async outcome without touching timers.
+- **`fakeAsync`**, from `package:fake_async` (re-exported by `flutter_test`): `async.elapse(const Duration(milliseconds: 300))`
+  fires the debounce, `async.flushMicrotasks()` settles the validator.
+- **`testWidgets` and `tester.pump(duration)`** when the form is under a widget anyway.
+
+```dart
+test('a settled verdict is reused on the next validate()', () async {
+  var calls = 0;
+  final field = AdvancedTextFieldController<MyError>(
+    asyncValidation: AsyncValidation(
+      validator: (value) async {
+        calls++;
+        return value == 'taken' ? MyError.taken : null;
+      },
+    ),
+  );
+  addTearDown(field.dispose);
+
+  field.setValue('free');
+  expect(await field.validate(), isTrue);
+  expect(await field.validate(), isTrue);
+
+  expect(calls, 1, reason: 'the value did not change, so the verdict stands');
+});
+```
+
+A validator that throws lands the field on `failedValidation`; assert `field.value.isFailedValidation` and
+`field.lastFailure`, and remember `validate()` returns `false` for it. If the test's own zone should not see the
+exception reported through `FlutterError.reportError`, supply an `onFailure` in the test.
+
+## Widget tests
+
+Bind the field to a widget and drive it like any other:
+
+```dart
+testWidgets('the error shows after a failed submit', (tester) async {
+  final form = SignupFormController();
+  addTearDown(form.dispose);
+
+  await tester.pumpWidget(MaterialApp(home: SignupForm(form: form)));
+  await tester.tap(find.text('Submit'));
+  await tester.pumpAndSettle();
+
+  expect(find.text('Email is required'), findsOneWidget);
+
+  await tester.enterText(find.byType(TextFormField).first, 'ada@example.com');
+  await tester.pump();
+
+  expect(find.text('Email is required'), findsNothing);
+});
+```
+
+`tester.enterText` writes through the field's `textController`, so the field sees it exactly as a keystroke. For a
+`ValidationMode.onUnfocus` form, move focus with `FocusManager.instance.primaryFocus?.unfocus()` or by tapping another
+field, then `pump`.
+
+## Testing a validator on its own
+
+A validator is a function; call it:
+
+```dart
+test('isEmail', () {
+  final validate = isEmail(MyError.invalidEmail);
+  expect(validate('ada@example.com'), isNull);
+  expect(validate('ada'), MyError.invalidEmail);
+  expect(validate(null), MyError.invalidEmail);
+});
+```
+
+## Next
+
+<Cards>
+  <Card title="Under the hood" href="./under-the-hood.mdx" description="What the package's own 240-odd tests pin down." />
+  <Card title="Example app" href="./example-app.mdx" description="Its `test/` folder has widget tests for three screens." />
+</Cards>

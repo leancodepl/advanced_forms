@@ -1,18 +1,18 @@
 /*
  * AI-Provenance:
- *   model: Cursor Grok 4.6
- *   harness: Cursor
- *   skills:
- *     - mark-ai-provenance
+ *   model: Claude Fable 5.1
+ *   harness: Claude Code
  */
 import { NextRequest, NextResponse } from "next/server"
 import { isMarkdownPreferred, rewritePath } from "fumadocs-core/negotiation"
-import { docsContentRoute } from "@/lib/shared"
+import { docsContentRoute, docsRoute } from "@/lib/shared"
 
-const skipPrefixes = ["/api", "/og", "/llms"]
+const skipPrefixes = ["/api", "/og", "/llms", "/flutter-examples"]
 
-const { rewrite: rewriteDocs } = rewritePath(`/{/*path}`, `${docsContentRoute}{/*path}/content.md`)
-const { rewrite: rewriteSuffix } = rewritePath(`/{/*path}.md`, `${docsContentRoute}{/*path}/content.md`)
+// `/docs/validation.md`, or `/docs/validation` with `Accept: text/markdown`,
+// serve the page's Markdown instead of the HTML.
+const { rewrite: rewriteDocs } = rewritePath(`${docsRoute}{/*path}`, `${docsContentRoute}{/*path}/content.md`)
+const { rewrite: rewriteSuffix } = rewritePath(`${docsRoute}{/*path}.md`, `${docsContentRoute}{/*path}/content.md`)
 
 function shouldSkip(pathname: string) {
   return skipPrefixes.some(

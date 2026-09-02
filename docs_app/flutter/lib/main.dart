@@ -28,8 +28,7 @@ void main() {
     MultiViewApp(
       viewBuilder: (context) {
         final viewId = View.of(context).viewId;
-        final options =
-            ui_web.views.getInitialData(viewId) as _IslandOptions?;
+        final options = ui_web.views.getInitialData(viewId) as _IslandOptions?;
         final exampleId = options?.exampleId;
 
         return IslandShell(
