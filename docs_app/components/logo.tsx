@@ -26,8 +26,8 @@ export function Logo({ large = false, className }: { large?: boolean; className?
  */
 export function LogoMark({ size = 56 }: { size?: number }) {
   return (
-    <svg viewBox="124 35 372 372" height={size} width={size} fill="none" aria-hidden="true">
-      <rect x="124" y="35" width="372" height="372" rx="72" fill="black" />
+    <svg viewBox="128 53 372 372" height={size} width={size} fill="none" aria-hidden="true">
+      <rect x="128" y="53" width="372" height="372" rx="72" fill="black" />
       <rect
         x="277.981"
         y="187.783"
