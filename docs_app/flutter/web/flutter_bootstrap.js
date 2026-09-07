@@ -26,10 +26,14 @@
   const config = {
     renderer: "canvaskit",
     multiViewEnabled: true,
-    // Each view gets its own surface. The default OffscreenCanvasRasterizer
-    // shares one surface across views and races on its size when several views
-    // render in the same frame (flutter/flutter#185034).
-    canvasKitForceMultiSurfaceRasterizer: true,
+    // One shared surface for every view, the engine's default. The
+    // multi-surface rasterizer gives each view its own WebGL context and the
+    // engine keeps allocating them across view add/remove cycles, until the
+    // browser starts revoking the oldest ones: the islands flicker and then
+    // go blank ("Too many active WebGL contexts"). The size race the shared
+    // rasterizer has when several views first render in the same frame
+    // (flutter/flutter#185034) is avoided by attaching one island at a time,
+    // in runtime.ts.
     // One CanvasKit for every browser. `auto` would try the Chromium-only
     // build first, which the bundle no longer ships, costing a 404 per load.
     canvasKitVariant: "full",
