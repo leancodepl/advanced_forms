@@ -4,7 +4,7 @@
  *   harness: Claude Code
  */
 export const appName = "advanced_forms"
-export const tagline = "Form validation for Flutter, without a framework on top"
+export const tagline = "Complicated forms. Simple code."
 export const description =
   "Typed field controllers, composable sync and async validation, and form-level state for Flutter — built on " +
   "ChangeNotifier and ValueListenable, so it fits any state-management stack."

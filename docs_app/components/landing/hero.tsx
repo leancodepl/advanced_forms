@@ -27,11 +27,12 @@ export function Hero({ version, demo }: { version: string; demo: ReactNode }) {
             <span className="af-pill">No codegen</span>
           </p>
           <h1 id="hero-heading">
-            Form validation for <span className="af-accent">Flutter</span>, without a framework on top.
+            Complicated forms. <span className="af-accent">Simple code.</span>
           </h1>
           <p className="af-hero-lead">
-            Typed field controllers, composable sync and async validation, and form-level state — built on{" "}
-            <code>ChangeNotifier</code> and <code>ValueListenable</code>, the primitives your app already uses.
+            Typed fields, three validation modes out of the box, async checks with cancellation, cross-field rules and
+            wizards for Flutter — wired the same way a two-field sign-up is, on the <code>ChangeNotifier</code> and{" "}
+            <code>ValueListenable</code> your app already uses.
           </p>
           <div className="af-install">
             <div className="af-install-command">
