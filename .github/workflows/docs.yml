@@ -20,7 +20,9 @@ name: docs
 #   change.
 on:
   push:
-    branches: [main]
+    # `main` deploys to production; `docs` deploys a preview of the same Vercel
+    # project, so the site can be reviewed before the documentation PR merges.
+    branches: [main, docs]
     tags-ignore: ['v*']
     paths:
       - 'docs/**'
@@ -155,16 +157,33 @@ jobs:
         run: flutter pub get
         working-directory: docs_app/flutter
 
+      # Only `main` is production. Any other deploying branch gets a preview
+      # deployment of the same project, with its own URL printed in the log.
+      - name: Pick the Vercel environment
+        if: env.VERCEL_TOKEN != ''
+        run: |
+          if [ "$GITHUB_REF_NAME" = "main" ]; then
+            echo "VERCEL_ENV=production" >> "$GITHUB_ENV"
+            echo "VERCEL_PROD_FLAG=--prod" >> "$GITHUB_ENV"
+          else
+            echo "VERCEL_ENV=preview" >> "$GITHUB_ENV"
+            echo "VERCEL_PROD_FLAG=" >> "$GITHUB_ENV"
+          fi
+
       - name: Pull Vercel environment
         if: env.VERCEL_TOKEN != ''
-        run: npx vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+        run: npx vercel pull --yes --environment="$VERCEL_ENV" --token="$VERCEL_TOKEN"
 
       # Runs the project's own build command, which needs the Flutter SDK — the
       # reason the site is built here rather than in Vercel's build container.
       - name: Build for Vercel
         if: env.VERCEL_TOKEN != ''
-        run: npx vercel build --prod --token="$VERCEL_TOKEN"
+        run: npx vercel build $VERCEL_PROD_FLAG --token="$VERCEL_TOKEN"
 
       - name: Deploy
         if: env.VERCEL_TOKEN != ''
-        run: npx vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+        run: npx vercel deploy --prebuilt $VERCEL_PROD_FLAG --token="$VERCEL_TOKEN" | tee deployment-url.txt
+
+      - name: Summarize
+        if: env.VERCEL_TOKEN != ''
+        run: echo "Deployed ($VERCEL_ENV): $(tail -n 1 deployment-url.txt)" >> "$GITHUB_STEP_SUMMARY"

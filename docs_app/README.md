@@ -140,11 +140,22 @@ so the two sites read as one family.
 
 ## Deployment
 
+One Next.js app, one Vercel project: the landing page, the docs, the search API, the Open Graph images, the Markdown
+endpoints and the Flutter bundle under `public/flutter-examples/` all ship in a single deployment, and Next handles the
+routing for every page.
+
 `npm run build` runs `flutter build web`, so **the Flutter SDK has to be present where the site is built**. Vercel's
-build container has no Flutter, so `vercel.json` turns its Git integration off and `.github/workflows/docs.yml` builds
-and deploys instead, using `vercel deploy --prebuilt`. It needs three repository secrets: `VERCEL_TOKEN`,
-`VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`. Without them the deploy job does nothing and the build job still guards every
-pull request.
+build container has no Flutter, so `vercel.json` turns Vercel's own Git deployments off and `.github/workflows/docs.yml`
+builds and deploys instead, with `vercel build` + `vercel deploy --prebuilt`:
+
+| Push to | Deploys                                                 |
+| ------- | ------------------------------------------------------- |
+| `main`  | production                                              |
+| `docs`  | a preview of the same project, URL in the run's summary |
+
+Pull requests only run the build job, as a guard. The deploy job needs three repository secrets: `VERCEL_TOKEN`,
+`VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` (from `vercel link` on the existing project). Without them the deploy job does
+nothing and the build job still guards every pull request.
 
 ## Routes
 
