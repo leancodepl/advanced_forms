@@ -1,3 +1,10 @@
+## 0.2.5
+
+* Added `mustBeTrue` validator for boolean fields: rejects `false` and null.
+* Fixed `AdvancedFormState.allFields` throwing when a subform's fields were registered as an explicitly typed list.
+* Updated the `advanced_forms` skill with the latest features.
+* The README overview diagram is a single dark version with its own background, so it renders the same in light and dark themes.
+
 ## 0.2.0+3
 
 * Fix static analysis for latest Flutter versions

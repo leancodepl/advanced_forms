@@ -25,11 +25,7 @@ Flutter form validation and state management without a framework on top. `advanc
 
 ## General overview
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/leancodepl/advanced_forms/refs/heads/main/doc/overview_dark.svg">
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/leancodepl/advanced_forms/refs/heads/main/doc/overview_light.svg">
-  <img alt="Overview" src="https://raw.githubusercontent.com/leancodepl/advanced_forms/refs/heads/main/doc/overview_light.svg">
-</picture>
+<img alt="Overview" src="https://raw.githubusercontent.com/leancodepl/advanced_forms/refs/heads/main/doc/overview.svg">
 
 ## Installation
 
