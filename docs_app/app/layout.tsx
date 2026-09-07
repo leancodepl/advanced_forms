@@ -36,7 +36,14 @@ export const metadata: Metadata = {
 
 export default function Layout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable}`} suppressHydrationWarning>
+    // `data-scroll-behavior`: global.css sets `scroll-behavior: smooth`, and Next
+    // only switches it off for the scroll-to-top of a route change when told
+    // so; otherwise the animated scroll lands a little below the top.
+    <html
+      lang="en"
+      className={`${sans.variable} ${mono.variable}`}
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning>
       <body className="flex flex-col min-h-screen">
         <RootProvider theme={{ defaultTheme: "dark" }}>{children}</RootProvider>
       </body>
