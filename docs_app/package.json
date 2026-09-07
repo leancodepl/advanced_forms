@@ -3,7 +3,7 @@
   "version": "0.0.17",
   "private": true,
   "scripts": {
-    "build": "npm run examples:build && next build",
+    "build": "npm run landing:build && npm run examples:build && next build",
     "dev": "next dev",
     "start": "next start",
     "types:check": "next typegen && tsc --noEmit",
@@ -17,7 +17,8 @@
     "examples:format": "node scripts/format-snippets.mjs",
     "examples:format:check": "node scripts/format-snippets.mjs --check",
     "examples:build": "node scripts/flutter-examples.mjs build",
-    "examples:serve": "cd flutter && flutter run -d web-server --web-port 5333"
+    "examples:serve": "cd flutter && flutter run -d web-server --web-port 5333",
+    "landing:build": "node scripts/landing.mjs"
   },
   "dependencies": {
     "cnfast": "^0.1.0",

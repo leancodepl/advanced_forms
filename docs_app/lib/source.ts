@@ -6,7 +6,7 @@
 import { loader } from "fumadocs-core/source"
 import { lucideIconsPlugin } from "fumadocs-core/source/lucide-icons"
 import { docsContentRoute, docsImageRoute, docsRoute } from "./shared"
-import { defineCollections, defineDocs } from "fumadocs-mdx/macro"
+import { defineDocs } from "fumadocs-mdx/macro"
 import { metaSchema, pageSchema } from "fumadocs-core/source/schema"
 
 const docs = defineDocs({
@@ -20,16 +20,6 @@ const docs = defineDocs({
   meta: {
     schema: metaSchema,
   },
-})
-
-/**
- * MDX blocks the landing page embeds — the live demos in the hero and the
- * sections below it. They go through the same pipeline as the docs, so a
- * `<AdvancedFormsExample>` there is compiled into the Flutter bundle too.
- */
-export const landing = defineCollections({
-  type: "doc",
-  dir: "content/landing",
 })
 
 // See https://fumadocs.dev/docs/headless/source-api for more info

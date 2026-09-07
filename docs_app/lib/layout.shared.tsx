@@ -8,10 +8,11 @@ import { Package } from "lucide-react"
 import { Logo } from "@/components/logo"
 import { docsRoute, urls } from "./shared"
 
-/** Header options shared by the landing page and the documentation. */
+/** Header options for the documentation layout. */
 export function baseOptions(): BaseLayoutProps {
   return {
     nav: {
+      // Rendered by `NavTitle` (see app/docs/layout.tsx); this is the fallback.
       title: <Logo />,
       url: "/",
     },

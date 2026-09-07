@@ -6,30 +6,34 @@ AI-Provenance:
 
 # advanced-forms-docs
 
-The documentation site for `advanced_forms`: a landing page at `/` and the docs under `/docs`, built with
-[Fumadocs](https://fumadocs.dev) on Next.js, styled after the LeanCode design system used on
-[ciach.leancode.co](https://ciach.leancode.co), and running its own code examples in Flutter, in the browser.
+The documentation site for `advanced_forms`, under `/docs`: built with [Fumadocs](https://fumadocs.dev) on Next.js,
+styled after the LeanCode design system used on [ciach.leancode.co](https://ciach.leancode.co), and running its own code
+examples in Flutter, in the browser. The landing page at `/` is a separate static site written in
+[Jaspr](https://jaspr.site), in the repo-root `landing/` folder; this app serves its build output from `public/`, so the
+two ship as one deployment on one domain.
 
 MDX for the docs lives in the repo-root `docs/` folder; the landing page's live demos live in `content/landing/`. From
 this directory:
 
 ```bash
-npm run dev
+npm run landing:build && npm run dev
 ```
 
-Open http://localhost:3000. Node 22 and the Flutter SDK are required.
+Open http://localhost:3000. Node 22, the Flutter SDK and the Dart SDK with the Jaspr CLI
+(`dart pub global activate jaspr_cli 0.23.4`) are required. `landing:build` only has to be repeated when `landing/`
+changes; `npm run dev` without it serves the docs and 404s on `/`.
 
 ## Layout
 
 | Path                                 | What lives there                                                                                                       |
 | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
 | `../docs/*.mdx`, `../docs/meta.json` | The documentation pages and their order. Section separators are `---Name---` entries in `meta.json`.                   |
-| `content/landing/*.mdx`              | The landing page's live demos: MDX blocks the page embeds, compiled like any docs example.                             |
-| `app/(home)/page.tsx`                | The landing page. Sections are in `components/landing/`.                                                               |
+| `content/landing/*.mdx`              | The landing page's live demos: the Dart the Jaspr site shows and compiles, written like any docs example.              |
+| `../landing/`                        | The landing page, a Jaspr static site. `scripts/landing.mjs` builds it and copies the result into `public/`.           |
 | `app/docs/`                          | The notebook layout and the page renderer for `/docs/*`.                                                               |
-| `app/global.css`                     | The design system: tokens (`--af-*`), the Fumadocs variables they map onto, the landing classes, the example frame.    |
-| `lib/shared.ts`                      | Routes, external URLs, site copy. `lib/version.ts` reads the package version from `../pubspec.yaml`.                   |
-| `lib/layout.shared.tsx`              | The header shared by both layouts: logo, links, GitHub.                                                                |
+| `app/global.css`                     | The design system: tokens (`--af-*`), the Fumadocs variables they map onto, the example frame.                         |
+| `lib/shared.ts`                      | Routes, external URLs, site copy.                                                                                      |
+| `lib/layout.shared.tsx`              | The header: logo (`components/nav-title.tsx`, a plain link to the landing page), links, GitHub.                        |
 | `components/mdx.tsx`                 | The components MDX can use: Fumadocs' set, plus `Tabs`, `Steps`, `Accordions`, `TypeTable` and `AdvancedFormsExample`. |
 | `app/og/`                            | Branded Open Graph images, one per docs page.                                                                          |
 
@@ -135,18 +139,18 @@ JetBrains Mono — and the `--color-fd-*` variables Fumadocs paints with are re-
 the default; light is a paper variant where the accent is a fill with dark ink on it, the way leancode.co does it.
 
 Code blocks and live examples share one window frame: a title bar with three dots (the first one lime), a mono title,
-and the content below. The landing page's classes (`.af-hero`, `.af-section`, `.af-card`, …) mirror ciach's stylesheet
-so the two sites read as one family.
+and the content below. The landing page in `../landing/web/landing.css` uses the same tokens and the same frame, so the
+homepage and the docs read as one site — change a colour in one place and mirror it in the other.
 
 ## Deployment
 
-One Next.js app, one Vercel project: the landing page, the docs, the search API, the Open Graph images, the Markdown
-endpoints and the Flutter bundle under `public/flutter-examples/` all ship in a single deployment, and Next handles the
-routing for every page.
+One Next.js app, one Vercel project: the Jaspr landing page (copied into `public/`, with `/` rewritten to `/index.html`
+in `next.config.mjs`), the docs, the search API, the Open Graph images, the Markdown endpoints and the Flutter bundle
+under `public/flutter-examples/` all ship in a single deployment, and Next handles the routing for every page.
 
-`npm run build` runs `flutter build web`, so **the Flutter SDK has to be present where the site is built**. Vercel's
-build container has no Flutter, so `vercel.json` turns Vercel's own Git deployments off and `.github/workflows/docs.yml`
-builds and deploys instead, with `vercel build` + `vercel deploy --prebuilt`:
+`npm run build` runs `jaspr build` and `flutter build web`, so **the Dart and Flutter SDKs have to be present where the
+site is built**. Vercel's build container has neither, so `vercel.json` turns Vercel's own Git deployments off and
+`.github/workflows/docs.yml` builds and deploys instead, with `vercel build` + `vercel deploy --prebuilt`:
 
 | Push to | Deploys                                                 |
 | ------- | ------------------------------------------------------- |
@@ -159,10 +163,10 @@ nothing and the build job still guards every pull request.
 
 ## Routes
 
-| Route                                                 | Description                                                        |
-| ----------------------------------------------------- | ------------------------------------------------------------------ |
-| `app/(home)`                                          | The landing page                                                   |
-| `app/docs/[[...slug]]`                                | Documentation pages                                                |
-| `app/api/search/route.ts`                             | Search                                                             |
-| `app/llms.txt` / `app/llms-full.txt` / `app/llms.mdx` | LLM markdown endpoints; `/docs/<page>.md` serves a page's Markdown |
-| `app/og`                                              | Open Graph images                                                  |
+| Route                                                 | Description                                                          |
+| ----------------------------------------------------- | -------------------------------------------------------------------- |
+| `/` → `public/index.html`                             | The landing page, built from `../landing` by `npm run landing:build` |
+| `app/docs/[[...slug]]`                                | Documentation pages                                                  |
+| `app/api/search/route.ts`                             | Search                                                               |
+| `app/llms.txt` / `app/llms-full.txt` / `app/llms.mdx` | LLM markdown endpoints; `/docs/<page>.md` serves a page's Markdown   |
+| `app/og`                                              | Open Graph images                                                    |

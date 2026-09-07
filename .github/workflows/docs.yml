@@ -6,6 +6,10 @@
 # docs/*.mdx is compiled into a web bundle at build time. That makes this
 # workflow the thing that stops the documentation from drifting away from the
 # API — a snippet that no longer compiles fails the build.
+#
+# The site is one deployment with two parts: the landing page at `/`, a static
+# Jaspr site in `landing/`, and the Fumadocs app under `/docs` in `docs_app/`,
+# which serves the landing page's build output from its `public/` folder.
 name: docs
 
 # Building the docs compiles a Flutter web bundle, which is far too slow to run
@@ -27,6 +31,7 @@ on:
     paths:
       - 'docs/**'
       - 'docs_app/**'
+      - 'landing/**'
       - 'lib/**'
       - 'pubspec.yaml'
       - '.github/workflows/docs.yml'
@@ -35,6 +40,7 @@ on:
     paths:
       - 'docs/**'
       - 'docs_app/**'
+      - 'landing/**'
       - '.github/workflows/docs.yml'
 
 env:
@@ -42,6 +48,12 @@ env:
   # young enough that the docs bundle pins its own version rather than following
   # the range the package supports.
   FLUTTER_VERSION: '3.41.4'
+  # The landing page is plain Dart, and its build tooling (Ciach's pins of
+  # build_web_compilers and leancode_lint) needs a newer SDK than the one this
+  # Flutter bundles. Installed after Flutter, so it is the `dart` on PATH;
+  # `flutter …` commands keep using their own.
+  DART_VERSION: '3.13.0'
+  JASPR_CLI_VERSION: '0.23.4'
 
 jobs:
   build:
@@ -60,6 +72,14 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ env.DART_VERSION }}
+
+      - name: Install the Jaspr CLI
+        run: dart pub global activate jaspr_cli "$JASPR_CLI_VERSION"
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -99,6 +119,18 @@ jobs:
         run: flutter test
         working-directory: docs_app/flutter
 
+      - name: Install the landing page's pub dependencies
+        run: dart pub get
+        working-directory: landing
+
+      - name: Analyze the landing page
+        run: dart analyze --fatal-infos
+        working-directory: landing
+
+      - name: Check the landing page's formatting
+        run: dart format --output=none --set-exit-if-changed .
+        working-directory: landing
+
       - name: Check types
         run: npm run types:check
 
@@ -108,8 +140,9 @@ jobs:
       - name: Check formatting
         run: npm run format
 
-      # `npm run build` is `examples:build && next build`: compile the snippets
-      # into public/flutter-examples, then the site around them.
+      # `npm run build` is `landing:build && examples:build && next build`:
+      # render the landing page into public/, compile the snippets into
+      # public/flutter-examples, then the docs around them.
       - name: Build
         run: npm run build
 
@@ -139,6 +172,16 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
+
+      - name: Setup Dart
+        if: env.VERCEL_TOKEN != ''
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ env.DART_VERSION }}
+
+      - name: Install the Jaspr CLI
+        if: env.VERCEL_TOKEN != ''
+        run: dart pub global activate jaspr_cli "$JASPR_CLI_VERSION"
 
       - name: Setup Node
         if: env.VERCEL_TOKEN != ''
@@ -174,8 +217,9 @@ jobs:
         if: env.VERCEL_TOKEN != ''
         run: npx vercel pull --yes --environment="$VERCEL_ENV" --token="$VERCEL_TOKEN"
 
-      # Runs the project's own build command, which needs the Flutter SDK — the
-      # reason the site is built here rather than in Vercel's build container.
+      # Runs the project's own build command, which needs the Flutter and Dart
+      # SDKs — the reason the site is built here rather than in Vercel's build
+      # container.
       - name: Build for Vercel
         if: env.VERCEL_TOKEN != ''
         run: npx vercel build $VERCEL_PROD_FLAG --token="$VERCEL_TOKEN"

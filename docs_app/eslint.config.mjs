@@ -23,6 +23,10 @@ const config = [
       "flutter/**",
       "public/flutter-examples/**",
       "lib/flutter-examples/manifest.generated.ts",
+      // The landing page, built by Jaspr in ../landing and copied here.
+      "public/index.html",
+      "public/landing.*",
+      "public/landing-icon.svg",
     ],
   },
   {
