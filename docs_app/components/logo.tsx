@@ -3,19 +3,23 @@
  *   model: Claude Fable 5.1
  *   harness: Claude Code
  */
+import logoDark from "@/public/logo-dark.svg"
+import logoLight from "@/public/logo-light.svg"
 import { appName } from "@/lib/shared"
 import { cn } from "@/lib/cn"
 
 /**
  * The word mark, as designed: `public/logo-light.svg` on the light theme and
  * `public/logo-dark.svg` on the dark one. Both are in the DOM and the theme
- * classes decide which one is visible, so a theme switch never flashes.
+ * classes decide which one is visible, so a theme switch never flashes. The
+ * files are imported rather than referenced by path, so their URL carries a
+ * content hash and a redesigned logo is never stuck behind a browser cache.
  */
 export function Logo({ large = false, className }: { large?: boolean; className?: string }) {
   return (
     <span className={cn("af-logo", large && "af-logo-large", className)}>
-      <img src="/logo-light.svg" alt={appName} className="theme-diagram-light" />
-      <img src="/logo-dark.svg" alt={appName} className="theme-diagram-dark" />
+      <img src={logoLight.src} alt={appName} className="theme-diagram-light" />
+      <img src={logoDark.src} alt={appName} className="theme-diagram-dark" />
     </span>
   )
 }
