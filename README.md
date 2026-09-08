@@ -8,19 +8,6 @@
 [![test](https://github.com/leancodepl/advanced_forms/actions/workflows/test.yml/badge.svg)](https://github.com/leancodepl/advanced_forms/actions/workflows/test.yml)
 [![License: Apache 2.0][license-badge]][license-badge-link]
 
-<div align="center">
-
-### [advanced-forms.leancode.co][site]
-
-**Interactive examples and the full documentation.** Every example on the site is a real Flutter form running in your
-browser — type into it, break it, watch it validate — next to the code that builds it.
-
-[![The advanced_forms website: the landing page with a live sign-up form][website-img]][site]
-
-[**Try the live examples →**][site] · [**Read the docs →**][site-docs]
-
-</div>
-
 Flutter form validation and state management without a framework on top. `advanced_forms` gives you typed field controllers, composable sync and async validation, and form-level state tracking, built on `ChangeNotifier` and `ValueListenable`.
 
 - **Typed field controllers** — text fields, checkboxes and switches, dropdowns and radio groups, and multi-select fields, each with its own value type *and* its own error type.
@@ -35,6 +22,20 @@ Flutter form validation and state management without a framework on top. `advanc
 
 > [!TIP]
 > **Using Claude Code (or another agent that supports Agent Skills)?** This repo ships an [Agent Skill](https://github.com/leancodepl/advanced_forms/blob/main/skills/advanced_forms/SKILL.md) that teaches your agent the full API, so it generates fields, validation, cross-field logic, and subforms idiomatically. To enable it, copy `skills/advanced_forms/` into your app's `.claude/skills/`, or into your global `~/.claude/skills/`.
+
+## Website: interactive examples and docs
+
+Every example on **[advanced-forms.leancode.co][site]** is a real Flutter form running in your browser — type into it,
+break it, watch it validate — next to the code that builds it. The documentation there goes well beyond this README:
+validation modes, async and cross-field validation, subforms, server errors, testing, and how it works under the hood.
+
+[![The advanced_forms website: the landing page with a live sign-up form][website-img]][site]
+
+<div align="center">
+
+[**Try the live examples →**][site] · [**Read the docs →**][site-docs]
+
+</div>
 
 ## General overview
 
