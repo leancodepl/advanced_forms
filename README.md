@@ -25,11 +25,11 @@ Flutter form validation and state management without a framework on top. `advanc
 
 ## Website: interactive examples and docs
 
+[![Try it live at advanced-forms.leancode.co — interactive Flutter examples and full documentation][website-img]][site]
+
 Every example on **[advanced-forms.leancode.co][site]** is a real Flutter form running in your browser — type into it,
 break it, watch it validate — next to the code that builds it. The documentation there goes well beyond this README:
 validation modes, async and cross-field validation, subforms, server errors, testing, and how it works under the hood.
-
-[![The advanced_forms website: the landing page with a live sign-up form][website-img]][site]
 
 <div align="center">
 
@@ -450,7 +450,7 @@ We are **top-tier experts** focused on Flutter Enterprise solutions.
 Licensed under the [Apache License 2.0](./LICENSE).
 
 [banner-img]: https://raw.githubusercontent.com/leancodepl/advanced_forms/refs/heads/main/doc/banner.png
-[website-img]: https://raw.githubusercontent.com/leancodepl/advanced_forms/refs/heads/main/doc/website.png
+[website-img]: https://raw.githubusercontent.com/leancodepl/advanced_forms/refs/heads/main/doc/website.svg
 [site]: https://advanced-forms.leancode.co/?utm_source=github.com&utm_medium=referral&utm_campaign=advanced-forms
 [site-docs]: https://advanced-forms.leancode.co/docs?utm_source=github.com&utm_medium=referral&utm_campaign=advanced-forms
 [license-badge]: https://img.shields.io/github/license/leancodepl/advanced_forms
