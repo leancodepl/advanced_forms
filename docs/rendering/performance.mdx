@@ -1,0 +1,50 @@
+---
+title: Rebuild performance
+description: Keep static subtrees out of the rebuild with the child passthrough, and let parents read while children subscribe.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+Rebuilds are already granular: one builder per field, one subtree per keystroke. Two habits keep them that way as a
+form grows.
+
+## The `child:` passthrough
+
+`builder`'s third parameter is the `child:` you can pass to `AdvancedFieldBuilder` — a subtree that does not depend on
+field state, built once and handed back on every rebuild. Reach for it when part of the subtree is genuinely expensive:
+a decorated header, an avatar, an image. Otherwise a plain builder is shorter and equally correct.
+
+```dart
+AdvancedFieldBuilder<String, MyError>(
+  field: email,
+  child: const _MarketingBanner(), // built once
+  builder: (context, state, banner) => Column(
+    children: [
+      banner!, // the same instance every rebuild
+      TextFormField(
+        controller: email.textController,
+        decoration: InputDecoration(errorText: translate(state.error)),
+      ),
+    ],
+  ),
+)
+```
+
+The example app's *Optimized Rendering* screen shows this across three layouts of increasing weight, with an
+async-validated field underneath so the rebuilds are frequent enough to notice.
+
+## Parents read, children subscribe
+
+A parent widget that lays fields out does not need to rebuild when they change. Grab the controller without
+subscribing — `context.read<SignupFormController>()` with `provider`, or a field on your `State` — and let each field
+widget subscribe to its own field. Subscribe the parent only to what the parent renders: a submit button bound to
+`ValueListenableBuilder<AdvancedFormState>`, an error summary, a step indicator.
+
+## No-op writes notify nobody
+
+`AdvancedFieldState` is value-equal, so a write that changes nothing — the same value, the same error — publishes no
+notification and triggers no rebuild. That is also why a mutual pair of `addRelation`s cannot loop.

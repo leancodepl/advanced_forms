@@ -63,6 +63,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # pana copies the whole repository and runs `dart format` over all of it,
+      # and the formatter takes a file's language version from the nearest
+      # .dart_tool/package_config.json. In a fresh checkout only the root
+      # package has one, so the nested Dart packages (landing, docs_app/flutter,
+      # example) get the root's 3.3: the landing does not parse and the others
+      # format differently, and the score drops. Each nested package gets a
+      # config stating its own SDK floor — what `pub get` would write, without
+      # the Flutter SDK two of them need.
+      - name: Give the nested packages their language versions
+        run: |
+          for dir in landing docs_app/flutter example; do
+            name=$(awk -F': *' '/^name:/{print $2; exit}' "$dir/pubspec.yaml")
+            floor=$(grep -E '^\s*sdk:' "$dir/pubspec.yaml" | head -1 | grep -oE '[0-9]+\.[0-9]+' | head -1)
+            mkdir -p "$dir/.dart_tool"
+            printf '{"configVersion":2,"packages":[{"name":"%s","rootUri":"../","packageUri":"lib/","languageVersion":"%s"}]}\n' \
+              "$name" "$floor" > "$dir/.dart_tool/package_config.json"
+            echo "$dir: $name @ $floor"
+          done
+
       - name: Score with pana
         continue-on-error: true
         uses: leancodepl/mobile-tools/.github/actions/pana-score@e9f138c252f8e2254c88273367958fcc6bb39cad # pana-score-v1.3

@@ -1,0 +1,143 @@
+---
+title: Custom validators
+description: Any function of the right shape is a validator — including one whose error is a list, so a field reports several violations at once.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+A factory that takes the error makes a rule reusable across forms with different error types, exactly like the
+built-ins. Write string rules over `String?` so they combine with `filled` and friends:
+
+```dart
+Validator<String?, E> isEmail<E extends Object>(E error) =>
+    (value) => value != null && value.contains('@') ? null : error;
+
+Validator<String?, E> matches<E extends Object>(RegExp pattern, E error) =>
+    (value) => value != null && pattern.hasMatch(value) ? null : error;
+
+Validator<DateTime?, E> notInThePast<E extends Object>(E error) =>
+    (value) => value != null && value.isBefore(DateTime.now()) ? error : null;
+
+validator: filled(MyError.required) & isEmail(MyError.invalidEmail),
+```
+
+A validator that needs another field's value reads it directly — `password.fieldValue` — and is re-run by
+[`subscribeToFields`](./cross-field.mdx) when that field changes.
+
+## One field, several errors
+
+`E` does not have to be a single code. Make it a list and the validator can report every broken rule at once, which is
+what a password strength checklist wants:
+
+<AdvancedFormsExample preview="PasswordRulesForm" title="password_rules.dart" code="collapsed">
+
+```dart title="password_field_controller.dart"
+enum PasswordRule { minLength, digit, upperCase, symbol }
+
+/// A text field whose error is the list of rules the value breaks.
+class PasswordFieldController
+    extends AdvancedTextFieldController<List<PasswordRule>> {
+  PasswordFieldController() : super(validator: check);
+
+  static List<PasswordRule>? check(String value) {
+    final broken = [
+      if (value.length < 8) PasswordRule.minLength,
+      if (!value.contains(RegExp('[0-9]'))) PasswordRule.digit,
+      if (!value.contains(RegExp('[A-Z]'))) PasswordRule.upperCase,
+      if (!value.contains(RegExp('[^A-Za-z0-9]'))) PasswordRule.symbol,
+    ];
+    return broken.isEmpty ? null : broken;
+  }
+}
+
+String describe(PasswordRule rule) => switch (rule) {
+  PasswordRule.minLength => 'At least 8 characters',
+  PasswordRule.digit => 'A digit',
+  PasswordRule.upperCase => 'An upper-case letter',
+  PasswordRule.symbol => 'A symbol',
+};
+```
+
+```dart title="password_rules_form.dart"
+class PasswordRulesController extends AdvancedFormController {
+  PasswordRulesController()
+    : super(validationMode: ValidationMode.onUserInteraction) {
+    registerFields([password]);
+  }
+
+  final password = PasswordFieldController();
+}
+
+class PasswordRulesForm extends StatefulWidget {
+  const PasswordRulesForm({super.key});
+
+  @override
+  State<PasswordRulesForm> createState() => _PasswordRulesFormState();
+}
+
+class _PasswordRulesFormState extends State<PasswordRulesForm> {
+  final _form = PasswordRulesController();
+
+  @override
+  void dispose() {
+    _form.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        DocsTextField(
+          field: _form.password,
+          label: 'Password',
+          obscureText: true,
+          // The error is a list; the field shows a count and the checklist
+          // below shows which rules.
+          translateError: (rules) =>
+              '${rules.length} rule${rules.length == 1 ? '' : 's'} unmet',
+        ),
+        AdvancedFieldBuilder<String, List<PasswordRule>>(
+          field: _form.password,
+          builder: (context, state, _) {
+            final broken = PasswordFieldController.check(state.value) ?? [];
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final rule in PasswordRule.values)
+                  Row(
+                    children: [
+                      Icon(
+                        broken.contains(rule)
+                            ? Icons.radio_button_unchecked
+                            : Icons.check_circle,
+                        size: 16,
+                        color: broken.contains(rule)
+                            ? scheme.onSurfaceVariant
+                            : scheme.tertiary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(describe(rule)),
+                    ],
+                  ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+```
+
+</AdvancedFormsExample>
+
+The checklist reads the *value* through the same `check` function rather than `state.error`, so it is right before the
+user has typed anything: an untouched field has no error, and the checklist should still say every rule is unmet.

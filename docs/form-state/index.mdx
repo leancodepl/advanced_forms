@@ -1,0 +1,175 @@
+---
+title: AdvancedFormState
+description: The form controller is a ValueListenable of AdvancedFormState — canSubmit, wasModified, validating and validationErrors, derived from the live tree.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+`AdvancedFormController` is itself a `ValueListenable<AdvancedFormState>`, so form-wide state renders the same way a
+field does:
+
+```dart
+ValueListenableBuilder<AdvancedFormState>(
+  valueListenable: form,
+  builder: (context, state, _) => FilledButton(
+    onPressed: state.wasModified && !state.validating ? form.submit : null,
+    child: const Text('Save'),
+  ),
+);
+```
+
+## What the state holds
+
+Four members are stored; four are derived from the fields on every read, so they can never report a field or
+subform that has since been removed.
+
+| Member | Meaning |
+| --- | --- |
+| `wasModified` | any field's value differs from its value at `registerFields` time, or an attached subform was modified |
+| `fields` / `subforms` / `allFields` | this form's own fields, its attached subforms, and both flattened — own fields in registration order, then each subform's, recursively |
+| `validationEnabled` | `false` once `setValidationEnabled(false)` was called on this form or an ancestor |
+| `validationMode` | the mode configured for this tree. Not reduced by `validationEnabled` |
+| `validating` *(derived)* | an async check is pending or in flight somewhere in the tree |
+| `canSubmit` *(derived)* | every field is `valid` **right now** — see the warning below |
+| `hasFailedValidation` *(derived)* | some field's async check could not run: it threw or timed out. Drives one form-level banner |
+| `validationErrors` *(derived)* | every current error in the tree, sync or async, keyed by field controller |
+
+Fields inside a subtree with validation switched off are excluded from the derived members, matching what
+`validate()` checks, so the two can never disagree.
+
+<Callout type="warn" title="canSubmit is a snapshot, not a guarantee">
+  `valid` means *no error recorded*, not *checked and passed*. So `canSubmit` is `true` on a quiet form nobody has
+  validated yet, `false` while any check is in flight, and `false` while a field sits in `failedValidation`. It is right
+  for greying out a button over **known** errors and wrong for **deciding** a submit — `await validate()` is the
+  guarantee. See [The submit button](./submit-button.mdx).
+</Callout>
+
+## Watch it change
+
+Type, clear a field, submit, press **Discard**. A body containing `offline` makes the async check fail.
+
+<AdvancedFormsExample preview="DraftForm" title="draft_form.dart" code="collapsed">
+
+```dart title="draft_form_controller.dart"
+enum DraftError { required, tooLong, slowNetwork }
+
+class DraftFormController extends AdvancedFormController {
+  DraftFormController() : super(validationMode: ValidationMode.onUnfocus) {
+    registerFields([title, body]);
+  }
+
+  // `name` labels the field in the error summary.
+  final title = AdvancedTextFieldController(
+    name: 'title',
+    validator:
+        filled(DraftError.required) & notLongerThan(40, DraftError.tooLong),
+  );
+
+  late final body = AdvancedTextFieldController(
+    name: 'body',
+    validator: filled(DraftError.required),
+    asyncValidation: AsyncValidation(
+      validator: _moderate,
+      failureToError: (error, stackTrace) => DraftError.slowNetwork,
+    ),
+  );
+
+  Future<DraftError?> _moderate(String value) async {
+    await Future<void>.delayed(const Duration(milliseconds: 900));
+    if (value.contains('offline')) {
+      throw Exception('moderation service unreachable');
+    }
+    return null;
+  }
+
+  Future<bool> save() => validate();
+}
+```
+
+```dart title="draft_form.dart"
+class DraftForm extends StatefulWidget {
+  const DraftForm({super.key});
+
+  @override
+  State<DraftForm> createState() => _DraftFormState();
+}
+
+class _DraftFormState extends State<DraftForm> {
+  final _form = DraftFormController();
+
+  @override
+  void dispose() {
+    _form.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final saved = await _form.save();
+    if (mounted) {
+      ExampleLog.of(context).add(saved ? 'Draft saved.' : 'Draft not saved.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const DocsHint(
+          'Leave a field to validate it. '
+          'A body containing "offline" makes the async check fail.',
+        ),
+        DocsFormStatus(form: _form),
+        DocsFailureBanner(form: _form),
+        DocsTextField(field: _form.title, label: 'Title'),
+        DocsTextField(field: _form.body, label: 'Body'),
+        // The whole-form pieces subscribe to the form, not to a field.
+        ValueListenableBuilder<AdvancedFormState>(
+          valueListenable: _form,
+          builder: (context, state, _) => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (final MapEntry(key: field, value: error)
+                  in state.validationErrors.entries)
+                Text(
+                  '${field.name}: ${error.toString().split('.').last}',
+                  style: TextStyle(color: scheme.error, fontSize: 12),
+                ),
+              DocsActions(
+                children: [
+                  DocsSubmitButton(
+                    form: _form,
+                    label: 'Save draft',
+                    onPressed: _save,
+                    // Disabled until something changed — never over canSubmit.
+                    enabled: state.wasModified,
+                  ),
+                  TextButton(
+                    onPressed: state.wasModified ? _form.resetAll : null,
+                    child: const Text('Discard'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+```
+
+</AdvancedFormsExample>
+
+## Listening outside widgets
+
+To react without a builder, `form.onValuesChanged` and `form.onStatusChanged` are `Listenable`s covering the whole
+tree, subforms included: the first fires when any leaf value changes or fields are registered, the second when any
+leaf's status or error changes. Pass a named callback so you can `removeListener` it later. With `provider`,
+`context.select<SignupFormController, bool>((c) => c.value.validating)` subscribes one widget to one slice.

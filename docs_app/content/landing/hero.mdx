@@ -1,0 +1,124 @@
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+<AdvancedFormsExample preview="HeroSignupForm" title="signup_form.dart — running in Flutter" code="hidden">
+
+```dart
+enum SignupError { required, invalidEmail, tooShort, taken, mustAccept }
+
+String describe(SignupError error) => switch (error) {
+  SignupError.required => 'Required',
+  SignupError.invalidEmail => 'That does not look like an email',
+  SignupError.tooShort => 'At least 8 characters',
+  SignupError.taken => 'This email is already registered',
+  SignupError.mustAccept => 'You have to accept the terms',
+};
+
+Validator<String?, E> isEmail<E extends Object>(E error) =>
+    (value) => value != null && value.contains('@') ? null : error;
+
+class HeroSignupController extends AdvancedFormController {
+  HeroSignupController() : super(validationMode: ValidationMode.onUnfocus) {
+    registerFields([email, password, terms]);
+  }
+
+  late final email = AdvancedTextFieldController(
+    validator: filled(SignupError.required) & isEmail(SignupError.invalidEmail),
+    asyncValidation: AsyncValidation(
+      validator: _isTaken,
+      debounce: const Duration(milliseconds: 400),
+    ),
+  );
+
+  final password = AdvancedTextFieldController(
+    validator:
+        filled(SignupError.required) & atLeastLength(8, SignupError.tooShort),
+  );
+
+  final terms = AdvancedBooleanFieldController<SignupError>(
+    validator: mustBeTrue(SignupError.mustAccept),
+  );
+
+  Future<SignupError?> _isTaken(String value) async {
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+    const taken = {'taken@example.com', 'jane@example.com'};
+    return taken.contains(value) ? SignupError.taken : null;
+  }
+}
+
+class HeroSignupForm extends StatefulWidget {
+  const HeroSignupForm({super.key});
+
+  @override
+  State<HeroSignupForm> createState() => _HeroSignupFormState();
+}
+
+class _HeroSignupFormState extends State<HeroSignupForm> {
+  final _form = HeroSignupController();
+
+  @override
+  void dispose() {
+    _form.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final ok = await _form.validate();
+    if (!mounted) {
+      return;
+    }
+    ExampleLog.of(context).add(
+      ok
+          ? 'Account created for ${_form.email.fieldValue}.'
+          : 'Not sent — fix the highlighted fields.',
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const DocsHint(
+          'Validates when a field loses focus. '
+          'taken@example.com is already registered.',
+        ),
+        DocsTextField(
+          field: _form.email,
+          label: 'Email',
+          hint: 'you@example.com',
+          icon: Icons.alternate_email,
+          translateError: describe,
+        ),
+        DocsTextField(
+          field: _form.password,
+          label: 'Password',
+          icon: Icons.lock_outline,
+          obscureText: true,
+          translateError: describe,
+        ),
+        DocsSwitchField(
+          field: _form.terms,
+          label: 'I accept the terms',
+          translateError: describe,
+        ),
+        DocsActions(
+          children: [
+            DocsSubmitButton(
+              form: _form,
+              label: 'Create account',
+              onPressed: _submit,
+            ),
+            TextButton(onPressed: _form.resetAll, child: const Text('Reset')),
+          ],
+        ),
+      ],
+    );
+  }
+}
+```
+
+</AdvancedFormsExample>

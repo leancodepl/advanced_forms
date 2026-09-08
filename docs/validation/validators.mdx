@@ -1,0 +1,75 @@
+---
+title: Built-in validators
+description: The validators the package ships, with their exact types, and how to combine them with & and |.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+A validator is a function. The `Validator<T, E extends Object>` typedef is `E? Function(T)`: value in, error out,
+`null` means valid. Every built-in takes the error to return as its last argument, so it works with any `E`.
+
+| Validator | `T` | Rejects |
+| --- | --- | --- |
+| `filled(e)` | `String?` | `null`, empty, and whitespace-only strings |
+| `notLongerThan(max, e)` | `String?` | `length > max`; `max` itself passes, `null` passes |
+| `atLeastLength(min, e)` | `String?` | `null`, and `length < min`; `min` itself passes |
+| `exactly(text, e)` | `String?` | anything not equal to `text` |
+| `nothing(e)` | `String?` | any non-empty string — "must be empty" |
+| `positiveInteger(e)` / `nonNegativeInteger(e)` | `String?` | `null`, non-numeric text, and `<= 0` / `< 0` after `int.tryParse` |
+| `positiveDecimal(e)` / `nonNegativeDecimal(e)` | `String?` | the same, with `double.tryParse` |
+| `boundedNonNegativeInteger(max, e)` | `String?` | anything but `0..max`, or the literal string `>max` |
+| `notNull(e)` | `T?` | `null` — the required-dropdown validator |
+| `mustBeTrue(e)` | `bool?` | `null` and `false` — the accept-the-terms validator |
+| `notEmpty(e)` | `List<T>?` | `null` and the empty list |
+
+Two helpers wrap another validator:
+
+- `conditionalValidator(validator, () => enabled)` runs `validator` only while the getter returns `true` — a rule that
+  applies when a switch is on.
+- `dynamicValidator(() => buildValidator())` rebuilds the validator on every run, for parameters that change at
+  runtime — a maximum that depends on the plan the user picked.
+
+```dart
+final vatId = AdvancedTextFieldController(
+  validator: conditionalValidator(
+    filled(MyError.required),
+    () => needsInvoice.fieldValue,
+  ),
+);
+```
+
+<Callout type="info" title="notEmpty is for lists">
+  There is no built-in `Set` validator, so a rule on a multi-select is a one-line closure:
+  `(chosen) => chosen.isEmpty ? MyError.pickOne : null`.
+</Callout>
+
+## Combining validators
+
+`&` requires both sides to pass; `|` requires one. Both short-circuit left to right, and the left-most error wins:
+
+```dart
+final email = AdvancedTextFieldController(
+  validator: filled(MyError.required) & atLeastLength(5, MyError.tooShort),
+);
+```
+
+`and([...])` and `or([...])` take a list, plus an optional shared error to return instead of the first failing
+validator's own:
+
+```dart
+validator: and(
+  [filled(MyError.required), atLeastLength(8, MyError.tooShort)],
+  MyError.invalidPassword, // one code for the whole chain
+),
+```
+
+<Callout type="warn" title="Both sides must have the same T">
+  The built-in string validators are typed `Validator<String?, E>` even though `AdvancedTextFieldController` holds a
+  non-nullable `String`. Assigning one alone is fine — a function of `String?` accepts a `String`. *Combining* is where
+  it bites: an unannotated closure `(value) => …` infers `String` and will not combine with `filled`. Write custom
+  string rules over `String?`, like the built-ins — see [Custom validators](./custom-validators.mdx).
+</Callout>

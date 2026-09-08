@@ -1,0 +1,5 @@
+{
+  "title": "Under the hood",
+  "icon": "Cog",
+  "pages": ["index", "rounds", "validate-and-failures", "decisions"]
+}

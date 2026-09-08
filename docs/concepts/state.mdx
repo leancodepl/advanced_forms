@@ -1,0 +1,206 @@
+---
+title: Field state and statuses
+description: Every read goes through one immutable snapshot, and valid means "no error recorded" — not "checked and passed".
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+Every read of a field goes through `AdvancedFieldState<T, E>`, the value of the `ValueListenable`. It is value-equal,
+so setting a field to the value it already holds notifies nobody.
+
+| Member | Meaning |
+| --- | --- |
+| `value` | the current value; `field.fieldValue` is the shortcut |
+| `validationError` | what the sync path recorded — the sync validator, or `setError` |
+| `asyncError` | what the async round recorded; only the async pipeline writes it |
+| `error` | `validationError ?? asyncError` — the one to show; `field.error` is the shortcut |
+| `status` | where validation stands, one of the five below |
+| `readOnly` | `setValue` is a no-op until `unmarkReadOnly()`, or `force: true` |
+| `validationMode` | the *effective* mode: `manual` while the form has validation switched off |
+
+Why two error slots? Because a rule about the value (sync) and a verdict from the server (async) can both be true at
+once, and the sync rule may be re-run by a sibling's edit while the server's answer still describes this field's
+unchanged value. `error` picks `validationError` first. [Rounds and error slots](../internals/rounds.mdx) has the
+sequence that made this necessary.
+
+## The five statuses
+
+```dart
+enum FieldStatus { valid, invalid, pending, validating, failedValidation }
+```
+
+| Status | Meaning | Shortcut |
+| --- | --- | --- |
+| `valid` | **no error is recorded**. Not the same as *checked and passed* — a field nobody has validated yet is `valid` | `isValid` |
+| `invalid` | an error is recorded, sync or async | `isInvalid` |
+| `pending` | the value changed and the async validator is waiting out its debounce | `isPending` |
+| `validating` | the async validator is running | `isValidating` |
+| `failedValidation` | the async validator threw or timed out: a technical fault, not a verdict on the value | `isFailedValidation` |
+
+`isInProgress` is `pending || validating`, the one check a spinner needs.
+
+<Callout type="warn" title="valid means &quot;no error recorded&quot;">
+  This is the most common misunderstanding about the package. A quiet form nobody has checked is `valid`, so
+  `canSubmit` is `true` on it. Use `canSubmit` to enable a button; use `await validate()` to decide a submit. And
+  `!isValid` is true for `pending` and `validating` too — write `isInvalid` when you mean "has an error".
+</Callout>
+
+## Watch it change
+
+Type `admin` and watch `status` walk `pending → validating → invalid` while `error` is blank in between. Push an error
+with `setError` and then type — the edit clears it. Toggle `readOnly` and try to type.
+
+<AdvancedFormsExample preview="StateInspector" title="state_inspector.dart" code="collapsed">
+
+```dart title="nickname_controller.dart"
+class NicknameController extends AdvancedFormController {
+  NicknameController()
+    : super(validationMode: ValidationMode.onUserInteraction) {
+    registerFields([nickname]);
+  }
+
+  late final nickname = AdvancedTextFieldController(
+    validator: filled('Required') & notLongerThan(12, 'At most 12 characters'),
+    asyncValidation: AsyncValidation(
+      validator: _isFree,
+      debounce: const Duration(milliseconds: 500),
+    ),
+  );
+
+  Future<String?> _isFree(String value) async {
+    await Future<void>.delayed(const Duration(milliseconds: 700));
+    return value.toLowerCase() == 'admin' ? 'Reserved on the server' : null;
+  }
+}
+```
+
+```dart title="state_inspector.dart"
+class StateInspector extends StatefulWidget {
+  const StateInspector({super.key});
+
+  @override
+  State<StateInspector> createState() => _StateInspectorState();
+}
+
+class _StateInspectorState extends State<StateInspector> {
+  final _form = NicknameController();
+
+  @override
+  void dispose() {
+    _form.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final field = _form.nickname;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        DocsTextField(field: field, label: 'Nickname', hint: 'try admin'),
+        AdvancedFieldBuilder<String, String>(
+          field: field,
+          builder: (context, state, _) => _StateTable(
+            rows: {
+              'value': "'${state.value}'",
+              'validationError': '${state.validationError}',
+              'asyncError': '${state.asyncError}',
+              'error': '${state.error}',
+              'status': state.status.name,
+              'readOnly': '${state.readOnly}',
+              'validationMode': state.validationMode.name,
+            },
+          ),
+        ),
+        DocsActions(
+          children: [
+            OutlinedButton(
+              onPressed: field.validate,
+              child: const Text('validate()'),
+            ),
+            OutlinedButton(
+              onPressed: () => field.setError('Pushed from outside'),
+              child: const Text('setError(…)'),
+            ),
+            OutlinedButton(
+              onPressed: field.clearErrors,
+              child: const Text('clearErrors()'),
+            ),
+            OutlinedButton(
+              onPressed: () => field.value.readOnly
+                  ? field.unmarkReadOnly()
+                  : field.markReadOnly(),
+              child: const Text('toggle readOnly'),
+            ),
+            TextButton(onPressed: field.reset, child: const Text('reset()')),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _StateTable extends StatelessWidget {
+  const _StateTable({required this.rows});
+
+  final Map<String, String> rows;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        children: [
+          for (final MapEntry(:key, :value) in rows.entries)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 130,
+                    child: Text(
+                      key,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      value,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+</AdvancedFormsExample>
+
+## Next
+
+<Cards>
+  <Card title="Forms, subforms and widgets" href="./form-tree.mdx" description="The tree a form controller owns." />
+  <Card title="Async validation" href="../validation/async.mdx" description="Where pending, validating and failedValidation come from." />
+</Cards>

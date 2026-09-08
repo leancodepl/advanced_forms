@@ -1,0 +1,109 @@
+---
+title: Prefilled forms
+description: wasModified is baselined at registerFields time, so a form filled after construction needs its baseline moved — or its data passed as initialValue.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+`wasModified` compares each field's value with its value at `registerFields` time. A controller that registers fields
+in its constructor and *then* loads server data reports `wasModified: true` forever, and a "Save" button gated on it is
+live from the start. Press both buttons below and watch the `wasModified` chip.
+
+<AdvancedFormsExample preview="PrefillDemo" title="prefill_demo.dart" code="collapsed">
+
+```dart title="edit_profile_controller.dart"
+class EditProfileController extends AdvancedFormController {
+  EditProfileController() {
+    registerFields([name, email]); // baseline: both empty
+  }
+
+  final name = AdvancedTextFieldController(validator: filled('Required'));
+  final email = AdvancedTextFieldController(validator: filled('Required'));
+
+  /// Writes the loaded values without arming validation — but they differ
+  /// from the empty baseline, so wasModified becomes true.
+  Future<void> loadWithPrefill() async {
+    final profile = await _fetchProfile();
+    name.prefill(profile.name);
+    email.prefill(profile.email);
+  }
+
+  /// The same, then registers the same fields again so the loaded values
+  /// become the new baseline: wasModified is false until the user edits.
+  Future<void> loadAndRebaseline() async {
+    await loadWithPrefill();
+    registerFields([name, email]);
+  }
+
+  Future<({String name, String email})> _fetchProfile() async {
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+    return (name: 'Ada Lovelace', email: 'ada@example.com');
+  }
+}
+```
+
+```dart title="prefill_demo.dart"
+class PrefillDemo extends StatefulWidget {
+  const PrefillDemo({super.key});
+
+  @override
+  State<PrefillDemo> createState() => _PrefillDemoState();
+}
+
+class _PrefillDemoState extends State<PrefillDemo> {
+  final _form = EditProfileController();
+
+  @override
+  void dispose() {
+    _form.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        DocsFormStatus(form: _form),
+        DocsTextField(field: _form.name, label: 'Name'),
+        DocsTextField(field: _form.email, label: 'Email'),
+        DocsActions(
+          children: [
+            OutlinedButton(
+              onPressed: _form.loadWithPrefill,
+              child: const Text('Load with prefill'),
+            ),
+            OutlinedButton(
+              onPressed: _form.loadAndRebaseline,
+              child: const Text('Load and re-baseline'),
+            ),
+            TextButton(onPressed: _form.resetAll, child: const Text('Reset')),
+          ],
+        ),
+      ],
+    );
+  }
+}
+```
+
+</AdvancedFormsExample>
+
+## Two ways to get the baseline right
+
+1. **Build the field controllers with the loaded data as `initialValue:`.** The form is constructed after the data
+   arrives, `wasModified` starts `false`, and `reset()` returns to the loaded values — which is what a *Discard* button
+   should do. Preferred whenever the form has one.
+2. **Re-call `registerFields(sameList)` once the data has arrived**, as above. Re-baselining does not move `reset()`:
+   that always returns to the constructor's `initialValue`, so after a re-baseline `resetAll()` lands *off* the
+   baseline and flips `wasModified` back to `true`.
+
+## `prefill` versus `setValue`
+
+Both write the value and clear both errors. `setValue` also marks the field as edited by the user, which is what lets a
+[validation mode](../validation/configuring.mdx#values-the-user-did-not-type) fire; `prefill` does not, so a bad value
+from the server shows no error until submit — where `validate()` still catches it. Both count towards `wasModified`,
+because both change the value.

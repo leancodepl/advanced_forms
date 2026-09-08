@@ -1,0 +1,50 @@
+---
+title: Forms, subforms and widgets
+description: A form controller is the root of a tree of fields and subforms; a widget subscribes to exactly one field.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+## A form controller owns fields and subforms
+
+`AdvancedFormController` is the root of a tree. Its direct leaves are the fields you `registerFields`, and its subtrees
+are other form controllers attached with `addSubform`. Almost everything it does is a broadcast over that tree:
+`validate`, `resetAll`, `clearErrors`, `markReadOnly`, `setValidationMode`, `setValidationEnabled`.
+
+It is also a `ValueListenable<AdvancedFormState>`, whose derived members — `canSubmit`, `validating`,
+`hasFailedValidation`, `validationErrors` — are computed from the live fields on every read, so they can never report
+a field that has since been removed. [Form-level state](../form-state/index.mdx) covers them.
+
+Ownership follows registration: the form disposes every field it was ever given and every subform it was ever
+attached, in its own `dispose()`. You dispose the form, and only the form. [Lifecycle and ownership](../lifecycle/index.mdx)
+has the full set of rules.
+
+## Widgets subscribe, one field each
+
+`AdvancedFieldBuilder<T, E>` is a thin wrapper over `ValueListenableBuilder` that hides the state type argument. It
+rebuilds its subtree when — and only when — its field notifies. A form with twenty fields rebuilds one input per
+keystroke.
+
+```dart
+AdvancedFieldBuilder<bool, SignupError>(
+  field: form.acceptTerms,
+  builder: (context, state, _) => Switch(
+    value: state.value,
+    onChanged: form.acceptTerms.getValueSetter(), // null while read-only
+  ),
+)
+```
+
+For anything the form as a whole knows — is it modified, is something validating — subscribe to the form controller
+the same way with `ValueListenableBuilder<AdvancedFormState>`.
+
+## Next
+
+<Cards>
+  <Card title="Rendering fields" href="../rendering/index.mdx" description="Bind text, boolean, select and scalar fields to widgets." />
+  <Card title="Subforms" href="../subforms/index.mdx" description="Dynamic lists and wizards, one controller per section." />
+</Cards>

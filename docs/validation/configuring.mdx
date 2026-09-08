@@ -1,0 +1,90 @@
+---
+title: Configuring the mode
+description: Set the mode on the form, let a field or a subform opt out, write values that do not count as edits, and switch a subtree off.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+## On the form
+
+Pass the mode to the constructor, or change it later with `setValidationMode`. Both reach the whole tree, and neither
+validates anything by itself — they only change what the *next* event does.
+
+```dart
+class CheckoutFormController extends AdvancedFormController {
+  CheckoutFormController()
+    : super(validationMode: ValidationMode.onUnfocus) {
+    registerFields([email, address]);
+  }
+}
+
+// Later, for the whole tree:
+form.setValidationMode(ValidationMode.onUserInteraction);
+```
+
+## One field, or one subform, with its own mode
+
+A field can opt out of its form's mode. Once it has its own, it stops following the form — for good:
+
+```dart
+final username = AdvancedTextFieldController(
+  validator: filled(MyError.required) & atLeastLength(5, MyError.tooShort),
+)..setValidationMode(ValidationMode.onUnfocus);
+```
+
+A subform behaves the same way: a `validationMode` given to its constructor, or set through its own
+`setValidationMode`, is its own, and a later change of the parent's mode reaches every *other* child. This is what
+makes a wizard step "live" after the user has tried to leave it while the steps ahead stay quiet — see
+[Wizards](../subforms/wizard.mdx).
+
+## `onUnfocus` needs a focus node
+
+The field only learns that focus left it through its `focusNode`. Bind it to the widget, or — for a picker that
+manages focus itself — call `field.handleUnfocus()` when the interaction ends:
+
+```dart
+TextFormField(
+  controller: field.textController,
+  focusNode: field.focusNode, // the field made this node and owns it
+)
+
+// A date picker has no text field to bind, so it says so itself:
+final picked = await showDatePicker(/* … */);
+field.setValue(picked);
+await field.handleUnfocus();
+```
+
+Every field controller has a `focusNode`, not only text fields. [Focus](../focus.mdx) has more.
+
+## Values the user did not type
+
+Rule 2 hinges on *editing*. `setValue` counts as the user editing the field; `prefill` does not:
+
+```dart
+// Loading a profile — no validation, the field stays untouched.
+final profile = await api.profile();
+name.prefill(profile.name);
+email.prefill(profile.email);
+
+// The user typing — validates in onUserInteraction, arms the field for onUnfocus.
+name.setValue('Ada');
+```
+
+Both write the value and clear both errors. Only `setValue` sets the flag that lets the mode fire. So a form filled
+from the server shows no errors until the user touches a field or presses submit — and `validate()` on submit still
+catches a bad prefilled value, because it ignores the flag.
+
+## Switching validation off
+
+`setValidationEnabled(false)` takes a whole subtree out of validation, above every mode: its fields validate nothing,
+their errors are cleared, its `validate()` returns `true` without running, and they are excluded from `canSubmit`,
+`validating`, `hasFailedValidation` and `validationErrors`. It composes with a parent's switch by AND. Switching back
+on re-runs the sync validators at once.
+
+Use it for a section that is visible but not applicable — the invoice details behind an unchecked "I need an invoice"
+switch — rather than detaching the subform, so `resetAll`, `markReadOnly` and `dispose` still reach it. See
+[Subform patterns](../subforms/patterns.mdx).

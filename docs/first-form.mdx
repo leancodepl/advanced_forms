@@ -1,0 +1,168 @@
+---
+title: Your first form
+description: A controller holds the fields and registers them; a widget binds to each field. Two rules prevent most bugs.
+icon: Rocket
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+A form is two classes. A **controller** declares the fields, registers them, and decides what "submit" means. A
+**widget** binds one field to one input and asks the controller to submit. The form below is the code on this page,
+compiled and running — submit it empty, then fill it in.
+
+<AdvancedFormsExample preview="SignupForm" title="signup_form.dart">
+
+```dart title="signup_form_controller.dart"
+class SignupFormController extends AdvancedFormController {
+  SignupFormController() {
+    registerFields([firstName, lastName]);
+  }
+
+  final firstName = AdvancedTextFieldController(
+    validator: filled('First name is required'),
+  );
+  final lastName = AdvancedTextFieldController(
+    validator: filled('Last name is required'),
+  );
+
+  Future<bool> submit() async {
+    if (await validate()) {
+      // The values were checked — send them.
+      return true;
+    }
+    return false;
+  }
+}
+```
+
+```dart title="signup_form.dart"
+class SignupForm extends StatefulWidget {
+  const SignupForm({super.key});
+
+  @override
+  State<SignupForm> createState() => _SignupFormState();
+}
+
+class _SignupFormState extends State<SignupForm> {
+  final _form = SignupFormController();
+
+  @override
+  void dispose() {
+    _form.dispose(); // disposes the registered fields too
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final sent = await _form.submit();
+    if (mounted) {
+      ExampleLog.of(context).add(
+        sent
+            ? 'Welcome, ${_form.firstName.fieldValue}!'
+            : 'Fix the errors above.',
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _SignupTextField(field: _form.firstName, label: 'First name'),
+        _SignupTextField(field: _form.lastName, label: 'Last name'),
+        const SizedBox(height: 12),
+        FilledButton(onPressed: _submit, child: const Text('Submit')),
+      ],
+    );
+  }
+}
+```
+
+```dart title="signup_text_field.dart"
+class _SignupTextField extends StatelessWidget {
+  const _SignupTextField({required this.field, required this.label});
+
+  final AdvancedTextFieldController<String> field; // <String> is the error type
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return AdvancedFieldBuilder<String, String>(
+      field: field,
+      builder: (context, state, _) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: TextFormField(
+          controller: field.textController,
+          focusNode: field.focusNode,
+          decoration: InputDecoration(labelText: label, errorText: state.error),
+        ),
+      ),
+    );
+  }
+}
+```
+
+</AdvancedFormsExample>
+
+<Callout title="ExampleLog is a docs-only helper">
+  `ExampleLog.of(context).add(...)` prints to the **Output** panel under the running form. In an app that line would be
+  a `debugPrint`, a snackbar, or a navigation. Everything else in the snippet is code you can paste as it is.
+</Callout>
+
+## Reading the example
+
+**The controller** extends `AdvancedFormController`. Its fields are plain `final` members, each with a validator: a
+function from the value to an error, where `null` means valid. `filled` is a [built-in](./validation/validators.mdx);
+the error type is whatever you pass it, a `String` here. The constructor calls `registerFields` once with every field.
+
+**`submit` awaits `validate()`.** It runs every field's validators, the async ones included, and returns `true` only if
+the whole form ended up valid. The `await` is not optional — it is the one thing that says the values were checked.
+
+**The widget** owns the controller and disposes it. That one `dispose()` disposes the registered fields too, so a field
+is never disposed by hand.
+
+**The field widget** wraps a `TextFormField` in `AdvancedFieldBuilder`, which rebuilds it whenever the field notifies.
+No `TextEditingController` allocation, no `onChanged`, no `initialValue`: the field owns its `textController` and its
+`focusNode`, and the widget binds to both.
+
+## Two rules to remember
+
+<Steps>
+<Step>
+
+### Call `registerFields()` once, with every field
+
+The form then owns their lifecycle — it disposes them, tracks whether anything was modified, and includes them in
+`validate()`, `resetAll()` and every other form-wide operation. A second call *replaces* the list. The parameter is a
+`List<AdvancedFieldController<dynamic, dynamic>>`, so fields of different value types go in one list.
+
+</Step>
+<Step>
+
+### Bind widgets to `field.textController`, never to a controller of your own
+
+The field keeps its `TextEditingController` in sync with its state in both directions: user input flows into the
+field, and programmatic changes — `setValue`, `reset`, `prefill`, a relation — flow back into the visible text. A
+controller you allocate yourself sees none of that.
+
+</Step>
+</Steps>
+
+## What happens when you type
+
+In the default mode, nothing — until the first `validate()`. Then an edit clears the error that described the old
+value. For live feedback from the first keystroke, or a check when a field loses focus, set a
+[validation mode](./validation/modes.mdx) on the form.
+
+## Next
+
+<Cards>
+  <Card title="Core concepts" href="./concepts/index.mdx" description="What a field's state holds and what the statuses mean." />
+  <Card title="Rendering fields" href="./rendering/index.mdx" description="Checkboxes, dropdowns, chips and sliders, bound the same way." />
+  <Card title="Validation modes" href="./validation/modes.mdx" description="Validate on submit, on every keystroke, or on unfocus." />
+  <Card title="Lifecycle" href="./lifecycle/index.mdx" description="Who owns the controller, and who disposes what." />
+</Cards>

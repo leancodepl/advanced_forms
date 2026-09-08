@@ -1,0 +1,5 @@
+{
+  "title": "Subforms",
+  "icon": "Layers",
+  "pages": ["index", "wizard", "patterns"]
+}

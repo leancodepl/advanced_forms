@@ -1,0 +1,5 @@
+{
+  "title": "Rendering fields",
+  "icon": "LayoutTemplate",
+  "pages": ["index", "text", "boolean", "select", "scalar", "performance"]
+}

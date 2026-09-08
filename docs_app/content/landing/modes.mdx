@@ -1,0 +1,105 @@
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+<AdvancedFormsExample preview="ValidationModesDemo" title="validation_modes.dart" layout="split">
+
+```dart title="profile_form_controller.dart"
+class ProfileFormController extends AdvancedFormController {
+  ProfileFormController() {
+    registerFields([username, website]);
+  }
+
+  final username = AdvancedTextFieldController(
+    validator:
+        filled('Username is required') &
+        atLeastLength(3, 'At least 3 characters'),
+  );
+
+  final website = AdvancedTextFieldController(
+    validator: (value) => value.isEmpty || value.startsWith('https://')
+        ? null
+        : 'Must start with https://',
+  );
+}
+```
+
+```dart title="validation_modes_demo.dart"
+class ValidationModesDemo extends StatefulWidget {
+  const ValidationModesDemo({super.key});
+
+  @override
+  State<ValidationModesDemo> createState() => _ValidationModesDemoState();
+}
+
+class _ValidationModesDemoState extends State<ValidationModesDemo> {
+  final _form = ProfileFormController();
+  var _mode = ValidationMode.manual;
+
+  @override
+  void dispose() {
+    _form.dispose();
+    super.dispose();
+  }
+
+  void _setMode(ValidationMode mode) {
+    setState(() => _mode = mode);
+    // One call reaches every field and subform in the tree.
+    _form.setValidationMode(mode);
+  }
+
+  Future<void> _submit() async {
+    final ok = await _form.validate();
+    if (mounted) {
+      ExampleLog.of(context).add(ok ? 'Saved.' : 'Not saved: invalid.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hint = switch (_mode) {
+      ValidationMode.manual =>
+        'Nothing validates until you press Save. An edit still clears '
+            'the error that described the old value.',
+      ValidationMode.onUserInteraction =>
+        'Every keystroke validates the field being edited.',
+      ValidationMode.onUnfocus =>
+        'Leaving a field you edited validates it. Tabbing through an '
+            'untouched field costs nothing.',
+    };
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SegmentedButton<ValidationMode>(
+          showSelectedIcon: false,
+          segments: [
+            for (final mode in ValidationMode.values)
+              ButtonSegment(value: mode, label: Text(mode.name)),
+          ],
+          selected: {_mode},
+          onSelectionChanged: (selection) => _setMode(selection.first),
+        ),
+        const SizedBox(height: 8),
+        DocsHint(hint),
+        DocsTextField(field: _form.username, label: 'Username'),
+        DocsTextField(
+          field: _form.website,
+          label: 'Website',
+          hint: 'https://…',
+        ),
+        DocsActions(
+          children: [
+            DocsSubmitButton(form: _form, label: 'Save', onPressed: _submit),
+            TextButton(onPressed: _form.resetAll, child: const Text('Reset')),
+          ],
+        ),
+      ],
+    );
+  }
+}
+```
+
+</AdvancedFormsExample>

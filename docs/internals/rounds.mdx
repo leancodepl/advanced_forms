@@ -1,0 +1,74 @@
+---
+title: Rounds and error slots
+description: An async round belongs to one value and may write state only while it is current. Which operations abort it, which slot each writer owns, and why there are two error slots.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+The root cause of most historical defects was an in-flight async run that belonged to nobody: it wrote the value and
+the error long after the field had moved on. The fix is ownership.
+
+## Round ownership
+
+- A round captures its identity when it starts and may write state **only** while it is still the field's current
+  round. Otherwise it is dead: no state write, no notification, no failure report.
+- **Cancellation is a completion.** Every round settles its future exactly once, so nothing can await a future that
+  never finishes.
+- The validator is invoked through `Future.sync` inside a `try`, so a **synchronous** throw takes the same path as a
+  rejected future instead of escaping as an uncaught zone error and wedging the field on `validating`.
+- Every exit writes a terminal state. No path can rest in `pending` or `validating` with nothing outstanding.
+- The round's debounce timer is installed **before** the `pending` state is published, so a listener that re-enters
+  during that notification cannot orphan a timer.
+
+## Abort points
+
+Every one of these cancels the debounce, cancels the in-flight future, revokes the round's write permission and
+settles its future as superseded:
+
+`setValue` · `validate()` when its sync step fails · `setError` · `clearErrors` · `reset` · `markReadOnly` ·
+`setValidationEnabled(false)` · `dispose`
+
+Aborting and dropping the **verdict** are different things:
+
+| Operation | aborts | drops the verdict | because |
+| --- | --- | --- | --- |
+| `setValue`, `reset` | yes | yes | the value changed |
+| `clearErrors`, `setValidationEnabled(false)` | yes | yes | the code is being erased, so it cannot be reused |
+| `setError` | yes | **no** | the value did not change, so a current verdict stays reusable |
+| `markReadOnly` | yes | **no** | the value did not change |
+| `validate()`, sync step failed | yes | **no** | sync first, async only if sync passed |
+
+This distinction is why `setError` can push a server error without destroying a still-valid async answer.
+
+## Who writes which slot
+
+|  | `value` | `validationError` | `asyncError` | `status` |
+| --- | --- | --- | --- | --- |
+| `setValue` | write | write, or `null` | clear | derive |
+| `validate()` sync step | — | write | — | derive |
+| `setError` | — | write (`null` clears) | — | derive |
+| async round | — | — | write | derive |
+
+A round **never** writes `value` — `setValue` already did, synchronously — which alone kills the "rejected edit
+resurrected moments later" class of bug. And `status` is derived at one private write path; no caller ever picks a
+status, which is what makes "`invalid` with nothing to show" and "`pending` still showing the previous error"
+unconstructible.
+
+## Why the two error slots stay
+
+Merging `validationError` and `asyncError` into one `error` field was investigated, judged a good idea, and then
+refuted by a sequence reachable through public API:
+
+1. `confirm.setValue('a@x.com')` — sync passes, an async round runs.
+2. The server answers *taken* — `asyncError = taken`. The round is settled; nothing is in flight.
+3. `email.setValue('a@x.corn')` — with `validateAll: true`, a cross-field validator makes `confirm`'s sync validator
+   fail — `validationError = mismatch`.
+
+Both codes are needed at once: *mismatch* must show, and *taken* must survive because `confirm`'s value never changed,
+so its verdict is still current and must be reusable at submit. Abort points kill *pending* writes; they cannot
+retract a *settled* verdict. `error` is `validationError ?? asyncError`, and the precedence is deliberate: a rule about
+the value outranks a verdict that may predate the app state the rule reads.

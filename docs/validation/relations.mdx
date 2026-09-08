@@ -1,0 +1,126 @@
+---
+title: Relations between fields
+description: addRelation derives one field's value from another — a running total, a mirrored field, a selection cleared when its parent changes.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+For "when B changes, set A" — recompute a total, mirror one field into another, clear a dependent selection — use the
+form's `addRelation`. Type a quantity below; the total is a read-only field the relation writes.
+
+<AdvancedFormsExample preview="OrderTotalForm" title="order_total.dart">
+
+```dart title="order_total_controller.dart"
+class OrderTotalController extends AdvancedFormController {
+  OrderTotalController() {
+    registerFields([quantity, total]);
+    // `select` picks the part of the source to watch; `onChange` fires only
+    // when that part changes. Nothing to clean up: the form removes the
+    // listener in its own dispose().
+    addRelation(
+      quantity,
+      (value) => int.tryParse(value) ?? 0,
+      (count) => total.setValue(count * unitPrice, force: true),
+    );
+  }
+
+  static const unitPrice = 12.5;
+
+  final quantity = AdvancedTextFieldController(
+    initialValue: '1',
+    validator: positiveInteger('Enter a whole number above zero'),
+  );
+
+  // A display field: read-only, so only the relation writes it.
+  final total = AdvancedFieldController<double, String>(
+    initialValue: unitPrice,
+    name: 'total',
+  )..markReadOnly();
+}
+```
+
+```dart title="order_total_form.dart"
+class OrderTotalForm extends StatefulWidget {
+  const OrderTotalForm({super.key});
+
+  @override
+  State<OrderTotalForm> createState() => _OrderTotalFormState();
+}
+
+class _OrderTotalFormState extends State<OrderTotalForm> {
+  final _form = OrderTotalController()
+    ..setValidationMode(ValidationMode.onUserInteraction);
+
+  @override
+  void dispose() {
+    _form.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        DocsTextField(
+          field: _form.quantity,
+          label: 'Quantity',
+          helper: 'at ${OrderTotalController.unitPrice} each',
+          keyboardType: TextInputType.number,
+        ),
+        AdvancedFieldBuilder<double, String>(
+          field: _form.total,
+          builder: (context, state, _) => Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Total', style: theme.textTheme.titleMedium),
+                Text(
+                  state.value.toStringAsFixed(2),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+```
+
+</AdvancedFormsExample>
+
+`addRelation(source, select, onChange)` calls `onChange` whenever the part of `source`'s value picked by `select`
+changes, compared with `==`. Status-only changes never fire it, so unlike a raw `addListener` pair a mutual relation
+cannot loop. Three details matter in practice:
+
+- **It fires on change, not at registration.** Seed the target with the derived value as its `initialValue`, as
+  `total` does above, or call `onChange` once by hand right after `addRelation`.
+- **A derived field is usually read-only**, and `setValue` on a read-only field is a no-op — so the relation passes
+  `force: true`.
+- **Destructive relations are safe.** `addRelation(country, (c) => c, (_) => city.reset())` clears the city when the
+  country changes and nothing else can wipe the user's choice; the [wizard](../subforms/wizard.mdx) does exactly that.
+
+Attaching and detaching subforms, or calling `setValidationEnabled`, from `onChange` is supported too — that is how a
+switch on one page adds or drops another page of a wizard.
+
+## Which one do I want?
+
+| I need to… | Use |
+| --- | --- |
+| re-check B's rule when A changes | `B.subscribeToFields([A])` |
+| re-check every rule when anything changes | `validateAll: true` |
+| re-check every rule because something *outside* the form changed | `form.revalidateSync()` |
+| set B's value when A changes | `addRelation(A, select, (a) => B.setValue(…))` |
+| forget B's async verdict when A changes | `addRelation(A, select, (_) => B.clearErrors())` |
+| react to A outside the form (analytics, a service) | `A.addListener(…)`, comparing values yourself |

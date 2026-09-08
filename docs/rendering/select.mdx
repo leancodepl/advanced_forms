@@ -1,0 +1,162 @@
+---
+title: Select and multi-select
+description: A dropdown over a single-select controller, and a chip group over a multi-select one, both with a label and an error slot.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+Both controllers carry their `options`, so the widget only asks the field what to list and what is selected. An
+`InputDecorator` gives either widget a label and an `errorText`, and — unlike a form-field dropdown seeded with an
+initial value — always reflects the field's current value, including after `reset()`.
+
+<AdvancedFormsExample preview="SelectInputDemo" title="select_input.dart">
+
+```dart title="dropdown_input.dart"
+class _DropdownInput<V> extends StatelessWidget {
+  const _DropdownInput({required this.field, required this.label});
+
+  final AdvancedSingleSelectFieldController<V, String> field;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return AdvancedFieldBuilder<V?, String>(
+      field: field,
+      builder: (context, state, _) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: InputDecorator(
+          decoration: InputDecoration(labelText: label, errorText: state.error),
+          isEmpty: state.value == null,
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<V>(
+              value: state.value,
+              isExpanded: true,
+              isDense: true,
+              focusNode: field.focusNode,
+              items: [
+                for (final option in field.options)
+                  DropdownMenuItem(value: option, child: Text('$option')),
+              ],
+              onChanged: state.readOnly ? null : field.select,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+```
+
+```dart title="chips_input.dart"
+class _ChipsInput<V> extends StatelessWidget {
+  const _ChipsInput({required this.field, required this.label});
+
+  final AdvancedMultiSelectFieldController<V, String> field;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return AdvancedFieldBuilder<Set<V>, String>(
+      field: field,
+      builder: (context, state, _) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: InputDecorator(
+          decoration: InputDecoration(labelText: label, errorText: state.error),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              for (final option in field.options)
+                FilterChip(
+                  label: Text('$option'),
+                  selected: state.value.contains(option),
+                  onSelected: state.readOnly
+                      ? null
+                      : (_) => field.toggleElement(option),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+```
+
+```dart title="select_input_demo.dart"
+enum Plan { free, pro, team }
+
+enum Interest { flutter, design, backend, testing }
+
+class SelectInputDemo extends StatefulWidget {
+  const SelectInputDemo({super.key});
+
+  @override
+  State<SelectInputDemo> createState() => _SelectInputDemoState();
+}
+
+class _SelectInputDemoState extends State<SelectInputDemo> {
+  final _form = AdvancedFormController();
+  final _plan = AdvancedSingleSelectFieldController<Plan, String>(
+    initialValue: null,
+    options: Plan.values,
+    validator: notNull('Pick a plan'),
+  );
+  final _interests = AdvancedMultiSelectFieldController<Interest, String>(
+    initialValue: const {},
+    options: Interest.values,
+    validator: (chosen) => chosen.isEmpty ? 'Pick at least one' : null,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _form.registerFields([_plan, _interests]);
+  }
+
+  @override
+  void dispose() {
+    _form.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final ok = await _form.validate();
+    if (mounted) {
+      ExampleLog.of(context).add(ok ? 'Saved.' : 'Something is missing.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _DropdownInput(field: _plan, label: 'Plan'),
+        _ChipsInput(field: _interests, label: 'Interests'),
+        DocsActions(
+          children: [
+            FilledButton(onPressed: _submit, child: const Text('Save')),
+            TextButton(onPressed: _form.resetAll, child: const Text('Reset')),
+          ],
+        ),
+      ],
+    );
+  }
+}
+```
+
+</AdvancedFormsExample>
+
+`field.select(option)` and `field.toggleElement(option)` are the setters; both are no-ops while read-only, which is why
+the widgets null their callbacks on `state.readOnly` rather than calling `getValueSetter()`. `select` asserts in debug
+builds that the option is one of `options`; `select(null)` clears and is always allowed.
+
+<Callout type="info" title="DropdownButtonFormField and Flutter versions">
+  Its selected-value parameter is `value:` up to Flutter 3.33 and `initialValue:` from 3.35 on. `DropdownButton` inside
+  an `InputDecorator`, as above, compiles on every version.
+</Callout>

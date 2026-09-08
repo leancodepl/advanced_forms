@@ -1,0 +1,121 @@
+---
+title: Boolean fields
+description: Switch takes the setter as it is; Checkbox needs it adapted from bool? — and both disable themselves when it is null.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+`field.getValueSetter()` is a `ValueSetter<bool>?`: the field's `setValue` while the field is writable, `null` while it
+is read-only. `Switch.onChanged` has exactly that type, so it goes straight in. `Checkbox.onChanged` takes a `bool?`,
+so adapt it.
+
+<AdvancedFormsExample preview="BooleanInputDemo" title="boolean_input.dart">
+
+```dart title="checkbox_input.dart"
+class _CheckboxInput extends StatelessWidget {
+  const _CheckboxInput({required this.field, required this.label});
+
+  final AdvancedBooleanFieldController<String> field;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return AdvancedFieldBuilder<bool, String>(
+      field: field,
+      builder: (context, state, _) {
+        final setter = field.getValueSetter(); // null while read-only
+        return CheckboxListTile(
+          value: state.value,
+          onChanged: setter == null ? null : (v) => setter(v ?? false),
+          title: Text(label),
+          // A boolean has no errorText slot: show the error yourself.
+          subtitle: state.error == null ? null : Text(state.error!),
+          controlAffinity: ListTileControlAffinity.leading,
+        );
+      },
+    );
+  }
+}
+```
+
+```dart title="switch_input.dart"
+class _SwitchInput extends StatelessWidget {
+  const _SwitchInput({required this.field, required this.label});
+
+  final AdvancedBooleanFieldController<String> field;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return AdvancedFieldBuilder<bool, String>(
+      field: field,
+      builder: (context, state, _) => SwitchListTile(
+        value: state.value,
+        onChanged: field.getValueSetter(), // exactly ValueSetter<bool>?
+        title: Text(label),
+      ),
+    );
+  }
+}
+```
+
+```dart title="boolean_input_demo.dart"
+class BooleanInputDemo extends StatefulWidget {
+  const BooleanInputDemo({super.key});
+
+  @override
+  State<BooleanInputDemo> createState() => _BooleanInputDemoState();
+}
+
+class _BooleanInputDemoState extends State<BooleanInputDemo> {
+  final _form = AdvancedFormController();
+  final _terms = AdvancedBooleanFieldController<String>(
+    validator: mustBeTrue('You have to accept the terms'),
+  );
+  final _newsletter = AdvancedBooleanFieldController<String>();
+
+  @override
+  void initState() {
+    super.initState();
+    _form.registerFields([_terms, _newsletter]);
+  }
+
+  @override
+  void dispose() {
+    _form.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final ok = await _form.validate();
+    if (mounted) {
+      ExampleLog.of(context).add(ok ? 'Accepted.' : 'Accept the terms first.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _CheckboxInput(field: _terms, label: 'I accept the terms'),
+        _SwitchInput(field: _newsletter, label: 'Send me the newsletter'),
+        DocsActions(
+          children: [
+            FilledButton(onPressed: _submit, child: const Text('Continue')),
+          ],
+        ),
+      ],
+    );
+  }
+}
+```
+
+</AdvancedFormsExample>
+
+A boolean has no `errorText` slot, so its error is rendered next to it — as the tile's `subtitle` above, or in an
+`InputDecorator` around the control. The rule itself is the built-in `mustBeTrue`.

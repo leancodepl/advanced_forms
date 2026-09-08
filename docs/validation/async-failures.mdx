@@ -1,0 +1,73 @@
+---
+title: Async failures and patterns
+description: A validator that throws is a failure, not an error. What the field does with it, and the patterns async checks tend to need.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+A validator that *returns* an error code has reached a verdict about the value. A validator that *throws*, or a round
+that times out, has not — it is a technical fault, and the package keeps the two apart:
+
+```
+validator returns E  →  asyncError  →  field.error  →  message for the user
+validator throws     →  status: failedValidation
+                        ├→ onFailure(error, stackTrace), or FlutterError.reportError
+                        ├→ field.lastFailure  (error, stackTrace, timedOut)
+                        └→ failureToError(error, stackTrace)?  →  asyncError  →  message (opt-in)
+```
+
+- The field lands on `FieldStatus.failedValidation` instead of hanging on `validating`. `isValid` is false,
+  `validate()` returns `false`, and `canSubmit` is false.
+- `form.value.hasFailedValidation` drives **one banner** for the whole form. No per-field message appears unless you
+  opt in with `failureToError`, which exists so no app is forced to add a "could not verify" member to its error enum.
+- **Failure is not sticky.** A failed round records no verdict, so the next `await validate()` retries it. Submit *is*
+  the retry button.
+- `field.lastFailure` is the diagnostic detail — the exception, its stack trace, and whether it timed out — non-null
+  only while the field is on `failedValidation`. It lives on the controller, not in the state, so a stack trace never
+  takes part in state equality.
+
+Type `boom` in the [example](./async.mdx) to see all of it: the status chip turns `failedValidation`, the banner
+appears, the field shows the code `failureToError` mapped, and pressing **Claim** runs the check again.
+
+## Patterns
+
+### Live before the first submit
+
+The gate is closed in `manual` mode, so `setValue` runs no check until the first `validate()`. When the task asks for a
+live availability check, give the form — or just that field — `ValidationMode.onUserInteraction`:
+
+```dart
+late final username = AdvancedTextFieldController(
+  validator: filled(MyError.required),
+  asyncValidation: AsyncValidation(validator: api.isUsernameFree),
+)..setValidationMode(ValidationMode.onUserInteraction);
+```
+
+### An optional async check
+
+`conditionalValidator` is sync-only and `AsyncValidation` has no skip flag, so guard inside the async validator itself.
+The round still starts — the field shows `validating` for a tick — but makes no network call:
+
+```dart
+validator: (value) async =>
+    value.trim().isEmpty ? null : await api.isTaken(value) ? MyError.taken : null,
+```
+
+### A check that depends on more than the value
+
+The async validator is treated as a function of the value, which is what makes verdict reuse safe. When the answer also
+depends on something else — the selected organisation, today's date — call `field.clearErrors()` whenever that
+something changes, so the next `validate()` asks again:
+
+```dart
+addRelation(organisation, (org) => org?.id, (_) => username.clearErrors());
+```
+
+### A submit that returns its own verdict
+
+A 422 from your save call is not async validation — the check ran on submit, not on the field. Push it in with
+`setError` *after* the `await`; see [Server errors](../server-errors/index.mdx).

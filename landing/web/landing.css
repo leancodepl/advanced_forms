@@ -1,0 +1,1298 @@
+/*
+ * AI-Provenance:
+ *   model: Claude Fable 5.1
+ *   harness: Claude Code
+ *
+ * The advanced_forms homepage — the LeanCode design system as used on
+ * ciach.leancode.co: near-black surfaces, one lime accent, Space Grotesk and
+ * JetBrains Mono. Dark is the design; light is a paper variant where the
+ * accent is a fill with dark ink on it. The docs app under /docs uses the same
+ * tokens, so the two read as one site.
+ */
+
+/* ---------- Tokens ---------- */
+
+:root {
+  --af-bg: #f6f6f2;
+  --af-bg-2: #ffffff;
+  --af-surface: #ffffff;
+  --af-surface-2: #efefe9;
+  --af-border: #e2e2dc;
+  --af-border-2: #cfcfc7;
+  --af-text: #0b0b0d;
+  --af-text-2: #4b4b52;
+  --af-muted: #7d7d84;
+  --af-accent: #edff2f;
+  --af-accent-2: #c9dc00;
+  --af-accent-ink: #0b0c00;
+  --af-accent-text: #5f6e00;
+  --af-accent-soft: rgba(237, 255, 47, 0.45);
+  --af-danger: #d93636;
+  --af-ok: #1f9d55;
+  --af-shadow: 0 24px 60px -32px rgba(0, 0, 0, 0.25);
+  --af-radius: 14px;
+  --af-header-h: 3.5rem;
+  --af-container: 1160px;
+
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Code tokens: GitHub Light. */
+  --tk-keyword: #cf222e;
+  --tk-type: #953800;
+  --tk-string: #0a3069;
+  --tk-number: #0550ae;
+  --tk-comment: #6e7781;
+  --tk-annotation: #8250df;
+  --tk-function: #8250df;
+  --tk-operator: #0550ae;
+
+  color-scheme: light;
+}
+
+.dark {
+  --af-bg: #050505;
+  --af-bg-2: #0b0b0d;
+  --af-surface: #101013;
+  --af-surface-2: #16161b;
+  --af-border: #23232b;
+  --af-border-2: #33333e;
+  --af-text: #f4f4f1;
+  --af-text-2: #b7b7b3;
+  --af-muted: #7d7d84;
+  --af-accent-text: #edff2f;
+  --af-accent-soft: rgba(237, 255, 47, 0.12);
+  --af-danger: #ff5d5d;
+  --af-ok: #58e08a;
+  --af-shadow: 0 24px 60px -32px rgba(0, 0, 0, 0.9);
+
+  /* Code tokens: Material Palenight, the palette ciach uses. */
+  --tk-keyword: #c792ea;
+  --tk-type: #ffcb6b;
+  --tk-string: #c3e88d;
+  --tk-number: #f78c6c;
+  --tk-comment: #676e95;
+  --tk-annotation: #ffcb6b;
+  --tk-function: #82aaff;
+  --tk-operator: #89ddff;
+
+  color-scheme: dark;
+}
+
+/* ---------- Base ---------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--af-header-h) + 16px);
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+}
+
+body {
+  margin: 0;
+  background: var(--af-bg);
+  color: var(--af-text);
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+svg {
+  display: inline-block;
+  vertical-align: middle;
+  flex: none;
+}
+
+code,
+pre,
+kbd {
+  font-family: var(--font-mono);
+  font-feature-settings: "liga" 0;
+}
+
+p code,
+li code,
+h3 code {
+  padding: 0.1em 0.4em;
+  border: 1px solid var(--af-border);
+  border-radius: 6px;
+  background: var(--af-surface-2);
+  font-size: 0.85em;
+  color: var(--af-text);
+  white-space: nowrap;
+}
+
+:focus-visible {
+  outline: 2px solid var(--af-accent-text);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+::selection {
+  background: var(--af-accent);
+  color: var(--af-accent-ink);
+}
+
+/* Theme-specific children: the logo has one file per theme. */
+.af-theme-dark {
+  display: none;
+}
+
+.dark .af-theme-light {
+  display: none;
+}
+
+.dark .af-theme-dark {
+  display: inline;
+}
+
+.af-container {
+  width: min(100% - 2.5rem, var(--af-container));
+  margin-inline: auto;
+}
+
+.af-landing > *,
+.af-hero-grid > *,
+.af-feature-grid > *,
+.af-example-body > * {
+  min-width: 0;
+}
+
+.af-skip-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 100;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  background: var(--af-accent);
+  color: var(--af-accent-ink);
+  font-weight: 600;
+  transform: translateY(-200%);
+  transition: transform 0.2s ease;
+}
+
+.af-skip-link:focus {
+  transform: translateY(0);
+}
+
+.af-accent {
+  color: var(--af-accent-text);
+}
+
+/* ---------- Header ---------- */
+
+.af-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: var(--af-header-h);
+  border-bottom: 1px solid var(--af-border);
+  background: color-mix(in srgb, var(--af-bg) 80%, transparent);
+  backdrop-filter: saturate(140%) blur(14px);
+  -webkit-backdrop-filter: saturate(140%) blur(14px);
+}
+
+.af-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  height: 100%;
+}
+
+.af-brand {
+  display: inline-flex;
+  align-items: center;
+}
+
+.af-logo {
+  display: inline-flex;
+  align-items: center;
+}
+
+.af-logo img {
+  height: 34px;
+  width: auto;
+  vertical-align: middle;
+}
+
+.af-footer-brand .af-logo img {
+  height: 44px;
+}
+
+.af-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.af-nav-links a,
+.af-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--af-text-2);
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.af-nav-links a:hover,
+.af-theme-toggle:hover {
+  background: var(--af-surface-2);
+  color: var(--af-text);
+}
+
+.af-theme-toggle {
+  padding: 0.5rem;
+}
+
+.af-theme-moon {
+  display: none;
+}
+
+.dark .af-theme-sun {
+  display: none;
+}
+
+.dark .af-theme-moon {
+  display: inline-flex;
+}
+
+/* ---------- Shared vocabulary ---------- */
+
+.af-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--af-accent-text);
+}
+
+.af-eyebrow::before {
+  content: "";
+  width: 1.5rem;
+  height: 2px;
+  background: var(--af-accent);
+}
+
+.af-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--af-border-2);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--af-text-2);
+  background: rgba(127, 127, 127, 0.04);
+  white-space: nowrap;
+}
+
+.af-pill-accent {
+  border-color: color-mix(in srgb, var(--af-accent) 45%, var(--af-border-2));
+  background: var(--af-accent-soft);
+  color: var(--af-accent-text);
+}
+
+a.af-pill-accent:hover {
+  border-color: var(--af-accent-2);
+}
+
+.af-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.2rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.af-button:hover {
+  transform: translateY(-1px);
+}
+
+.af-button-primary {
+  background: var(--af-accent);
+  color: var(--af-accent-ink);
+}
+
+.af-button-primary:hover {
+  background: #f6ff6b;
+}
+
+.af-button-secondary {
+  border-color: var(--af-border-2);
+  background: var(--af-surface);
+  color: var(--af-text);
+}
+
+.af-button-secondary:hover {
+  border-color: var(--af-accent-2);
+}
+
+.af-card {
+  padding: 1.5rem;
+  border: 1px solid var(--af-border);
+  border-radius: var(--af-radius);
+  background: var(--af-surface);
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.af-card h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.af-card p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--af-text-2);
+}
+
+/* ---------- Hero ---------- */
+
+.af-hero {
+  position: relative;
+  padding: clamp(3rem, 8vw, 6rem) 0 clamp(3rem, 6vw, 4.5rem);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.af-hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(55% 45% at 72% 18%, rgba(237, 255, 47, 0.55), transparent 65%),
+    radial-gradient(40% 40% at 10% 90%, rgba(237, 255, 47, 0.25), transparent 60%),
+    repeating-linear-gradient(-58deg, transparent 0 148px, rgba(11, 11, 13, 0.06) 148px 149px);
+  mask-image: linear-gradient(to bottom, #000 30%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 30%, transparent 100%);
+}
+
+.dark .af-hero-bg {
+  background:
+    radial-gradient(55% 45% at 72% 18%, rgba(237, 255, 47, 0.16), transparent 65%),
+    radial-gradient(40% 40% at 10% 90%, rgba(237, 255, 47, 0.07), transparent 60%),
+    repeating-linear-gradient(-58deg, transparent 0 148px, rgba(237, 255, 47, 0.09) 148px 149px);
+}
+
+.af-hero-grid {
+  display: grid;
+  gap: 3rem;
+  align-items: center;
+}
+
+.af-hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.af-hero h1 {
+  font-size: clamp(2.4rem, 5.2vw, 4rem);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
+
+:root:not(.dark) .af-hero h1 .af-accent {
+  color: var(--af-text);
+  background: linear-gradient(transparent 55%, var(--af-accent) 55%);
+  padding: 0 0.1em;
+  margin: 0 -0.1em;
+}
+
+.af-hero-lead {
+  max-width: 38rem;
+  margin-top: 1.5rem;
+  font-size: clamp(1.1rem, 1.6vw, 1.3rem);
+  color: var(--af-text-2);
+}
+
+.af-install {
+  margin-top: 2rem;
+}
+
+.af-install-command {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 34rem;
+  padding: 0.5rem 0.5rem 0.5rem 1rem;
+  border: 1px solid var(--af-border-2);
+  border-radius: var(--af-radius);
+  background: var(--af-surface);
+  box-shadow: var(--af-shadow);
+}
+
+.af-install-command code {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.95rem;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.af-prompt {
+  color: var(--af-accent-text);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  user-select: none;
+}
+
+.af-install-alt {
+  margin-top: 0.6rem;
+  font-size: 0.85rem;
+  color: var(--af-muted);
+}
+
+.af-install-alt a {
+  color: var(--af-text-2);
+  text-decoration: underline;
+  text-decoration-color: var(--af-border-2);
+  text-underline-offset: 3px;
+}
+
+.af-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+}
+
+.af-hero-actions.af-center {
+  justify-content: center;
+}
+
+.af-demo-label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--af-accent-text);
+}
+
+.af-demo-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--af-ok);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--af-ok) 25%, transparent);
+  animation: af-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes af-pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* Copy buttons (install command, source files). */
+.af-copy-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--af-border-2);
+  border-radius: 8px;
+  background: var(--af-surface);
+  color: var(--af-text-2);
+  font: 600 0.78rem/1 var(--font-sans);
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.af-copy-button:hover {
+  color: var(--af-text);
+  border-color: var(--af-accent-2);
+}
+
+.af-copy-done {
+  display: none;
+  color: var(--af-ok);
+}
+
+[data-copied="true"] {
+  border-color: var(--af-ok) !important;
+  color: var(--af-ok) !important;
+}
+
+[data-copied="true"] .af-copy-idle {
+  display: none;
+}
+
+[data-copied="true"] .af-copy-done {
+  display: inline-flex;
+}
+
+/* ---------- Sections ---------- */
+
+.af-section {
+  padding: clamp(3.5rem, 7vw, 6rem) 0;
+  border-top: 1px solid var(--af-border);
+}
+
+.af-section-head {
+  max-width: 44rem;
+  margin-bottom: 2.5rem;
+}
+
+.af-section h2 {
+  font-size: clamp(1.9rem, 3.6vw, 2.75rem);
+}
+
+.af-lead {
+  margin-top: 1rem;
+  font-size: 1.125rem;
+  color: var(--af-text-2);
+}
+
+.af-section-more {
+  margin-top: 1.5rem;
+  font-weight: 500;
+}
+
+.af-section-more a {
+  color: var(--af-accent-text);
+}
+
+.af-section-more a:hover {
+  text-decoration: underline;
+}
+
+.af-section-demo {
+  margin-top: 2.5rem;
+}
+
+.af-checklist {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 52rem;
+  margin-top: 2rem;
+}
+
+.af-checklist li {
+  position: relative;
+  padding-left: 1.6rem;
+  color: var(--af-text-2);
+}
+
+.af-checklist li strong {
+  color: var(--af-text);
+  font-weight: 600;
+}
+
+.af-checklist li::before {
+  content: "";
+  position: absolute;
+  top: 0.7em;
+  left: 0;
+  width: 0.9rem;
+  height: 2px;
+  background: var(--af-accent);
+}
+
+.af-feature-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+}
+
+.af-feature {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.af-feature:hover,
+.af-mode:hover {
+  border-color: var(--af-border-2);
+  transform: translateY(-2px);
+}
+
+.af-feature-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--af-accent) 35%, var(--af-border));
+  border-radius: 12px;
+  background: var(--af-accent-soft);
+  color: var(--af-accent-text);
+}
+
+.af-feature p {
+  flex: 1;
+}
+
+.af-rules {
+  display: grid;
+  gap: 1rem;
+  counter-reset: rule;
+}
+
+.af-rule {
+  position: relative;
+  padding-left: 3.25rem;
+}
+
+.af-rule::before {
+  counter-increment: rule;
+  content: counter(rule, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 0.15rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--af-accent-text);
+}
+
+.af-rule h3 {
+  font-size: 1.1rem;
+  margin-bottom: 0.35rem;
+}
+
+.af-rule p {
+  color: var(--af-text-2);
+  font-size: 0.98rem;
+}
+
+.af-modes {
+  margin-top: 2.5rem;
+}
+
+.af-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.af-mode-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.af-mode h3 {
+  margin: 0.25rem 0 0;
+}
+
+.af-mode h3 code {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.af-mode-when {
+  color: var(--af-text) !important;
+  font-weight: 600;
+}
+
+.af-band {
+  display: grid;
+  gap: 2rem;
+  align-items: center;
+  padding: 2rem;
+  border: 1px solid var(--af-border);
+  border-radius: var(--af-radius);
+  background:
+    radial-gradient(60% 80% at 100% 0%, var(--af-accent-soft), transparent 70%),
+    var(--af-surface);
+}
+
+.af-band > * {
+  min-width: 0;
+}
+
+.af-band h2 {
+  font-size: clamp(1.5rem, 2.6vw, 2rem);
+}
+
+.af-band .af-hero-actions {
+  margin-top: 0;
+}
+
+/* ---------- Footer ---------- */
+
+.af-footer {
+  border-top: 1px solid var(--af-border);
+  background: var(--af-bg-2);
+  font-size: 1rem;
+}
+
+.af-cta {
+  padding: clamp(3.5rem, 7vw, 5.5rem) 0;
+  border-bottom: 1px solid var(--af-border);
+  background:
+    radial-gradient(50% 60% at 50% 100%, var(--af-accent-soft), transparent 70%),
+    var(--af-bg-2);
+}
+
+.af-cta-inner {
+  max-width: 40rem;
+  text-align: center;
+}
+
+.af-cta h2 {
+  font-size: clamp(1.9rem, 3.6vw, 2.75rem);
+}
+
+.af-cta p {
+  margin-top: 1rem;
+  color: var(--af-text-2);
+  font-size: 1.1rem;
+}
+
+.af-footer-grid {
+  display: grid;
+  gap: 2.5rem;
+  padding: 3.5rem 0;
+}
+
+.af-footer-grid h3 {
+  margin: 0 0 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--af-muted);
+}
+
+.af-footer-grid ul {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.af-footer-grid li a {
+  color: var(--af-text-2);
+}
+
+.af-footer-grid li a:hover {
+  color: var(--af-accent-text);
+}
+
+.af-footer-brand p {
+  max-width: 24rem;
+  margin-top: 1rem;
+  color: var(--af-text-2);
+  font-size: 0.95rem;
+}
+
+.af-footer-brand p a {
+  color: var(--af-text);
+}
+
+.af-footer-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1.5rem 0 2rem;
+  border-top: 1px solid var(--af-border);
+  font-size: 0.85rem;
+  color: var(--af-muted);
+}
+
+.af-footer-bottom a {
+  color: var(--af-text-2);
+}
+
+/* ---------- Live examples ---------- */
+
+.af-example {
+  margin: 0;
+  border: 1px solid var(--af-border);
+  border-radius: var(--af-radius);
+  background: var(--af-surface);
+  box-shadow: var(--af-shadow);
+  overflow: hidden;
+}
+
+.af-example-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 2.6rem;
+  padding: 0.4rem 0.75rem 0.4rem 0.9rem;
+  border-bottom: 1px solid var(--af-border);
+  background: var(--af-surface-2);
+}
+
+.af-dots {
+  display: inline-flex;
+  gap: 0.4rem;
+  flex: none;
+}
+
+.af-dots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--af-border-2);
+}
+
+.af-dots span:first-child {
+  background: var(--af-accent);
+}
+
+.af-example-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--af-muted);
+}
+
+.af-example-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--af-muted);
+}
+
+.af-example-status::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--af-muted);
+}
+
+.af-example-status[data-status="ready"] {
+  color: var(--af-ok);
+}
+
+.af-example-status[data-status="ready"]::before {
+  background: var(--af-ok);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--af-ok) 25%, transparent);
+}
+
+.af-example-status[data-status="attaching"]::before {
+  background: var(--af-accent);
+  animation: af-pulse 1s ease-in-out infinite;
+}
+
+.af-example-status[data-status="failed"]::before,
+.af-example-status[data-status="evicted"]::before {
+  background: var(--af-danger);
+}
+
+.af-example-stage {
+  position: relative;
+  background: var(--af-surface);
+}
+
+.af-example-stage[data-settled="false"] {
+  min-height: 8rem;
+}
+
+.af-example-notice {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--af-muted);
+}
+
+.af-example-notice button {
+  display: block;
+  margin: 0.6rem auto 0;
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  background: var(--af-accent);
+  color: var(--af-accent-ink);
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.af-example-gate {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--af-surface) 55%, transparent);
+  backdrop-filter: blur(1px);
+}
+
+.af-example-gate span {
+  padding: 0.45rem 1.1rem;
+  border-radius: 999px;
+  background: var(--af-accent);
+  color: var(--af-accent-ink);
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.af-example-gate-done {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 6px;
+  background: var(--af-surface-2);
+  color: var(--af-text-2);
+  font-size: 0.75rem;
+}
+
+.af-example-caption {
+  padding: 0.75rem 0.9rem;
+  border-top: 1px solid var(--af-border);
+  font-size: 0.85rem;
+  color: var(--af-muted);
+}
+
+.af-example-caption a {
+  color: var(--af-text-2);
+  text-decoration: underline;
+  text-decoration-color: var(--af-border-2);
+  text-underline-offset: 3px;
+}
+
+/* Source, one file at a time. Radio inputs and CSS switch the panels. */
+.af-example-code {
+  padding: 0 0.75rem 0.75rem;
+}
+
+.af-tab-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  opacity: 0;
+}
+
+.af-example-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.35rem 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.af-example-tab {
+  flex: none;
+  padding: 0.45rem 0.8rem;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: 8px 8px 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--af-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.af-example-tab:hover {
+  color: var(--af-text);
+}
+
+.af-example-copy {
+  /* Stays in view when the tab strip scrolls sideways on a narrow screen. */
+  position: sticky;
+  right: 0;
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-left: auto;
+  border-radius: 6px;
+  color: var(--af-muted);
+  background: var(--af-surface);
+}
+
+.af-example-copy:hover {
+  color: var(--af-text);
+  background: var(--af-surface-2);
+}
+
+.af-example-copy .af-copy-idle,
+.af-example-copy .af-copy-done {
+  display: none;
+}
+
+.af-example-copy .af-copy-idle {
+  display: inline-flex;
+}
+
+.af-example-copy[data-copied="true"] .af-copy-idle {
+  display: none;
+}
+
+.af-example-copy[data-copied="true"] .af-copy-done {
+  display: inline-flex;
+}
+
+.af-code-panel {
+  display: none;
+  margin-top: -1px;
+  border: 1px solid var(--af-border);
+  border-radius: 0 var(--af-radius) var(--af-radius) var(--af-radius);
+  background: var(--af-bg-2);
+  overflow: hidden;
+}
+
+.af-code-panel pre {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  max-height: 420px;
+  overflow: auto;
+  font-size: 0.8125rem;
+  line-height: 1.65;
+  tab-size: 2;
+  scrollbar-width: thin;
+  scrollbar-color: var(--af-border-2) transparent;
+}
+
+.af-code-panel code {
+  display: block;
+  min-width: max-content;
+}
+
+/* The checked radio picks its tab and its panel, for up to eight files. */
+.af-example-code:has(> .af-tab-input:nth-of-type(1):checked) .af-example-tab:nth-of-type(1),
+.af-example-code:has(> .af-tab-input:nth-of-type(2):checked) .af-example-tab:nth-of-type(2),
+.af-example-code:has(> .af-tab-input:nth-of-type(3):checked) .af-example-tab:nth-of-type(3),
+.af-example-code:has(> .af-tab-input:nth-of-type(4):checked) .af-example-tab:nth-of-type(4),
+.af-example-code:has(> .af-tab-input:nth-of-type(5):checked) .af-example-tab:nth-of-type(5),
+.af-example-code:has(> .af-tab-input:nth-of-type(6):checked) .af-example-tab:nth-of-type(6),
+.af-example-code:has(> .af-tab-input:nth-of-type(7):checked) .af-example-tab:nth-of-type(7),
+.af-example-code:has(> .af-tab-input:nth-of-type(8):checked) .af-example-tab:nth-of-type(8) {
+  color: var(--af-text);
+  background: var(--af-bg-2);
+  border-color: var(--af-border);
+  box-shadow: inset 0 2px 0 var(--af-accent);
+}
+
+.af-example-code:has(> .af-tab-input:nth-of-type(1):checked) .af-code-panel:nth-child(1),
+.af-example-code:has(> .af-tab-input:nth-of-type(2):checked) .af-code-panel:nth-child(2),
+.af-example-code:has(> .af-tab-input:nth-of-type(3):checked) .af-code-panel:nth-child(3),
+.af-example-code:has(> .af-tab-input:nth-of-type(4):checked) .af-code-panel:nth-child(4),
+.af-example-code:has(> .af-tab-input:nth-of-type(5):checked) .af-code-panel:nth-child(5),
+.af-example-code:has(> .af-tab-input:nth-of-type(6):checked) .af-code-panel:nth-child(6),
+.af-example-code:has(> .af-tab-input:nth-of-type(7):checked) .af-code-panel:nth-child(7),
+.af-example-code:has(> .af-tab-input:nth-of-type(8):checked) .af-code-panel:nth-child(8) {
+  display: block;
+}
+
+.af-tab-input:focus-visible ~ .af-example-tabs .af-example-tab {
+  outline: none;
+}
+
+/* Code tokens. */
+.tk-keyword { color: var(--tk-keyword); }
+.tk-type { color: var(--tk-type); }
+.tk-string { color: var(--tk-string); }
+.tk-number { color: var(--tk-number); }
+.tk-comment { color: var(--tk-comment); }
+.tk-doc { color: var(--tk-comment); font-style: italic; }
+.tk-annotation { color: var(--tk-annotation); }
+.tk-function { color: var(--tk-function); }
+.tk-operator { color: var(--tk-operator); }
+
+/* ---------- Responsive ---------- */
+
+@media (min-width: 760px) {
+  .af-footer-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .af-band {
+    grid-template-columns: 1.3fr 1fr;
+    padding: 2.5rem;
+  }
+}
+
+@media (min-width: 960px) {
+  .af-rules {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+
+  .af-example[data-layout="split"] .af-example-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .af-example[data-layout="split"] .af-example-stage {
+    order: 2;
+    position: sticky;
+    top: calc(var(--af-header-h) + 1.5rem);
+    border-left: 1px solid var(--af-border);
+  }
+
+  .af-example[data-layout="split"] .af-example-code {
+    order: 1;
+    padding: 0.75rem;
+  }
+}
+
+@media (min-width: 1000px) {
+  .af-hero-grid {
+    grid-template-columns: 1.05fr 1fr;
+  }
+
+  .af-footer-grid {
+    grid-template-columns: 1.6fr 1fr 1fr 1.4fr;
+  }
+}
+
+@media (max-width: 540px) {
+  .af-nav-links a,
+  .af-theme-toggle {
+    padding: 0.5rem 0.55rem;
+    font-size: 0.9rem;
+  }
+
+  .af-nav-links {
+    gap: 0;
+  }
+
+  /* Examples is reachable from the docs; the row has to fit next to the logo. */
+  .af-nav-secondary {
+    display: none;
+  }
+
+  .af-logo img {
+    height: 28px;
+  }
+
+  /* One row still: the prompt goes, the button shrinks to its icon, and the
+     command scrolls sideways if a screen is narrower than it. */
+  .af-install-command {
+    gap: 0.5rem;
+    padding: 0.4rem 0.4rem 0.4rem 0.85rem;
+  }
+
+  .af-install-command code {
+    font-size: 0.875rem;
+  }
+
+  .af-install-command .af-prompt {
+    display: none;
+  }
+
+  .af-install-command .af-copy-label {
+    display: none;
+  }
+
+  .af-install-command .af-copy-button {
+    padding: 0.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

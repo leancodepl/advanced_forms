@@ -1,0 +1,113 @@
+---
+title: Scalars and everything else
+description: The base class is concrete, so a slider, a stepper or a date holds its value in a plain AdvancedFieldController.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+`AdvancedFieldController<T, E>` is not abstract. Construct it directly for any value with no dedicated controller and
+bind it like any other field. `Slider` works in doubles and the field in ints, so the widget adapts both ways.
+
+<AdvancedFormsExample preview="SliderInputDemo" title="slider_input.dart">
+
+```dart title="slider_input.dart"
+class _SliderInput extends StatelessWidget {
+  const _SliderInput({
+    required this.field,
+    required this.label,
+    required this.max,
+  });
+
+  final AdvancedFieldController<int, String> field;
+  final String label;
+  final int max;
+
+  @override
+  Widget build(BuildContext context) {
+    return AdvancedFieldBuilder<int, String>(
+      field: field,
+      builder: (context, state, _) {
+        final setter = field.getValueSetter();
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: InputDecorator(
+            decoration: InputDecoration(
+              labelText: '$label: ${state.value}',
+              errorText: state.error,
+              contentPadding: EdgeInsets.zero,
+            ),
+            child: Slider(
+              value: state.value.toDouble(),
+              max: max.toDouble(),
+              divisions: max,
+              onChanged: setter == null ? null : (v) => setter(v.round()),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+```
+
+```dart title="slider_input_demo.dart"
+class SliderInputDemo extends StatefulWidget {
+  const SliderInputDemo({super.key});
+
+  @override
+  State<SliderInputDemo> createState() => _SliderInputDemoState();
+}
+
+class _SliderInputDemoState extends State<SliderInputDemo> {
+  final _form = AdvancedFormController(
+    validationMode: ValidationMode.onUserInteraction,
+  );
+
+  // No dedicated controller for an int: the base class is concrete.
+  final _volume = AdvancedFieldController<int, String>(
+    initialValue: 3,
+    validator: (level) => level > 8 ? 'That is too loud' : null,
+    name: 'volume',
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _form.registerFields([_volume]);
+  }
+
+  @override
+  void dispose() {
+    _form.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _SliderInput(field: _volume, label: 'Volume', max: 10),
+        DocsActions(
+          children: [
+            TextButton(onPressed: _volume.reset, child: const Text('Reset')),
+          ],
+        ),
+      ],
+    );
+  }
+}
+```
+
+</AdvancedFormsExample>
+
+The same shape serves a stepper, a rating bar, a date picker or a colour swatch: hold the value in
+`AdvancedFieldController<T, E>`, write it with `setValue`, and give it a validator like any other field. Ordinary user
+writes need no `force:` — that is only for writing to a field you have marked read-only.
+
+A widget that opens a picker instead of editing inline should also tell the field when the interaction ends, so
+`ValidationMode.onUnfocus` can react — see [Focus](../focus.mdx#widgets-that-manage-focus-themselves).

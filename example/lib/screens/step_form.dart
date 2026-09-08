@@ -132,7 +132,9 @@ class _WizardProgress extends StatelessWidget {
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
-          LinearProgressIndicator(value: (form.currentIndex + 1) / steps.length),
+          LinearProgressIndicator(
+            value: (form.currentIndex + 1) / steps.length,
+          ),
         ],
       ),
     );
@@ -484,8 +486,8 @@ class AccountStepController extends WizardStepController {
   String get title => 'Account';
 
   final email = AdvancedTextFieldController(
-    validator: filled(ValidationError.empty) &
-        isEmail(ValidationError.invalidEmail),
+    validator:
+        filled(ValidationError.empty) & isEmail(ValidationError.invalidEmail),
     asyncValidation: const AsyncValidation(validator: _checkEmailTaken),
   );
 

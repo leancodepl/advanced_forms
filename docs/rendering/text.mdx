@@ -1,0 +1,122 @@
+---
+title: Text fields
+description: Bind TextFormField to the controllers the field owns, and make read-only look read-only.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+A text widget binds two things the field owns: `field.textController` and `field.focusNode`. Toggle **Lock** below to
+see the difference `enabled` makes.
+
+<AdvancedFormsExample preview="TextInputDemo" title="text_input.dart">
+
+```dart title="text_input.dart"
+class _TextInput extends StatelessWidget {
+  const _TextInput({required this.field, required this.label});
+
+  final AdvancedTextFieldController<String> field;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return AdvancedFieldBuilder<String, String>(
+      field: field,
+      builder: (context, state, _) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: TextFormField(
+          controller: field.textController, // owned by the field
+          focusNode: field.focusNode, // so onUnfocus and focus() work
+          readOnly: state.readOnly, // blocks typing…
+          enabled: !state.readOnly, // …and this makes it *look* frozen
+          decoration: InputDecoration(labelText: label, errorText: state.error),
+        ),
+      ),
+    );
+  }
+}
+```
+
+```dart title="text_input_demo.dart"
+class TextInputDemo extends StatefulWidget {
+  const TextInputDemo({super.key});
+
+  @override
+  State<TextInputDemo> createState() => _TextInputDemoState();
+}
+
+class _TextInputDemoState extends State<TextInputDemo> {
+  final _form = AdvancedFormController(
+    validationMode: ValidationMode.onUserInteraction,
+  );
+  final _name = AdvancedTextFieldController(
+    initialValue: 'Ada',
+    validator: filled('Required'),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _form.registerFields([_name]);
+  }
+
+  @override
+  void dispose() {
+    _form.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _TextInput(field: _name, label: 'Name'),
+        AdvancedFieldBuilder<String, String>(
+          field: _name,
+          builder: (context, state, _) => DocsActions(
+            children: [
+              OutlinedButton.icon(
+                onPressed: state.readOnly
+                    ? _name.unmarkReadOnly
+                    : _name.markReadOnly,
+                icon: Icon(
+                  state.readOnly ? Icons.lock_open : Icons.lock_outline,
+                  size: 18,
+                ),
+                label: Text(state.readOnly ? 'Unlock' : 'Lock'),
+              ),
+              TextButton(onPressed: _name.reset, child: const Text('Reset')),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+```
+
+</AdvancedFormsExample>
+
+## What the field does for you
+
+- **Two-way sync.** User input flows into the field; `setValue`, `reset`, `prefill` and relations flow back into the
+  visible text, with the caret kept on the same characters where possible.
+- **Read-only is enforced, not just styled.** Text typed into a read-only field is reverted in the same turn — with
+  `readOnly: state.readOnly` the keyboard never gets that far.
+- **Focus is tracked.** Binding `field.focusNode` is what makes `ValidationMode.onUnfocus` fire and what lets
+  `field.focus()` jump to this input. See [Focus](../focus.mdx).
+
+## Read-only, visibly
+
+`TextField.readOnly` blocks typing but keeps the enabled styling, so pass `enabled: !state.readOnly` too when a frozen
+field should look frozen. Widgets with a nullable callback — switches, checkboxes, dropdowns, sliders — grey out on
+their own once the callback is `null`.
+
+<Callout type="warn" title="Never allocate your own TextEditingController">
+  A controller you create in `initState` and seed with `field.fieldValue` sees none of the programmatic writes. Bind
+  `field.textController`; the field disposes it.
+</Callout>

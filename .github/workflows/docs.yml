@@ -1,0 +1,246 @@
+# AI-Provenance:
+#   model: Claude Opus 5
+#   harness: Cursor
+#
+# The docs contain live Flutter examples: every `<AdvancedFormsExample>` in
+# docs/*.mdx is compiled into a web bundle at build time. That makes this
+# workflow the thing that stops the documentation from drifting away from the
+# API — a snippet that no longer compiles fails the build.
+#
+# The site is one deployment with two parts: the landing page at `/`, a static
+# Jaspr site in `landing/`, and the Fumadocs app under `/docs` in `docs_app/`,
+# which serves the landing page's build output from its `public/` folder.
+name: docs
+
+# Building the docs compiles a Flutter web bundle, which is far too slow to run
+# on every change to the package. The two events filter differently on purpose:
+#
+# - A pull request only builds when the docs themselves change, so work on the
+#   library is never held up by them.
+# - A push to main also builds when `lib/` changes, because the bundle contains
+#   the package's own compiled source. Once per merge is cheap, and it is what
+#   catches a snippet the API has outgrown — and what keeps the live examples on
+#   the site running the current library rather than the one from the last docs
+#   change.
+on:
+  push:
+    # `main` deploys to production; `docs` deploys a preview of the same Vercel
+    # project, so the site can be reviewed before the documentation PR merges.
+    branches: [main, docs]
+    tags-ignore: ['v*']
+    paths:
+      - 'docs/**'
+      - 'docs_app/**'
+      - 'landing/**'
+      - 'lib/**'
+      - 'pubspec.yaml'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'docs_app/**'
+      - 'landing/**'
+      - '.github/workflows/docs.yml'
+
+env:
+  # The version the islands are validated against. Multi-view web embedding is
+  # young enough that the docs bundle pins its own version rather than following
+  # the range the package supports.
+  FLUTTER_VERSION: '3.41.4'
+  # The landing page is plain Dart, and its build tooling (Ciach's pins of
+  # build_web_compilers and leancode_lint) needs a newer SDK than the one this
+  # Flutter bundles. Installed after Flutter, so it is the `dart` on PATH;
+  # `flutter …` commands keep using their own.
+  DART_VERSION: '3.13.0'
+  JASPR_CLI_VERSION: '0.23.4'
+
+jobs:
+  build:
+    name: Build docs
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: docs_app
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ env.DART_VERSION }}
+
+      - name: Install the Jaspr CLI
+        run: dart pub global activate jaspr_cli "$JASPR_CLI_VERSION"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: docs_app/package-lock.json
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Install pub dependencies
+        run: flutter pub get
+        working-directory: docs_app/flutter
+
+      # Fails when the committed manifest no longer matches the MDX, which is
+      # what lets `next build` detect a stale bundle without the Flutter SDK.
+      - name: Check the example manifest
+        run: npm run examples:check
+
+      - name: Generate the example sources
+        run: npm run examples:generate
+
+      # Snippets are written inside MDX, where nothing formats them. This is
+      # what keeps the code the docs display canonically formatted; `npm run
+      # examples:format` rewrites the MDX when it fails.
+      - name: Check snippet formatting
+        run: dart format --output=none --set-exit-if-changed lib/generated lib/support
+        working-directory: docs_app/flutter
+
+      - name: Analyze the example bundle
+        run: flutter analyze
+        working-directory: docs_app/flutter
+
+      # Puts every example through the constraints a real island imposes.
+      - name: Test the examples
+        run: flutter test
+        working-directory: docs_app/flutter
+
+      - name: Install the landing page's pub dependencies
+        run: dart pub get
+        working-directory: landing
+
+      - name: Analyze the landing page
+        run: dart analyze --fatal-infos
+        working-directory: landing
+
+      - name: Check the landing page's formatting
+        run: dart format --output=none --set-exit-if-changed .
+        working-directory: landing
+
+      - name: Check types
+        run: npm run types:check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Check formatting
+        run: npm run format
+
+      # `npm run build` is `examples:build && landing:build && next build`:
+      # compile the snippets into public/flutter-examples, render the landing
+      # page (which reads the example registry) into public/, then the docs
+      # around them.
+      - name: Build
+        run: npm run build
+
+  deploy:
+    name: Deploy to Vercel
+    needs: build
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: docs_app
+
+    # The token is a secret; the two ids are not sensitive and live in the
+    # repository's Actions *variables*, where they can be read back.
+    env:
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+    steps:
+      - name: Checkout
+        # Nothing to deploy to until the secrets exist; see docs_app/README.md.
+        if: env.VERCEL_TOKEN != ''
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        if: env.VERCEL_TOKEN != ''
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Setup Dart
+        if: env.VERCEL_TOKEN != ''
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ env.DART_VERSION }}
+
+      - name: Install the Jaspr CLI
+        if: env.VERCEL_TOKEN != ''
+        run: dart pub global activate jaspr_cli "$JASPR_CLI_VERSION"
+
+      - name: Setup Node
+        if: env.VERCEL_TOKEN != ''
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: docs_app/package-lock.json
+
+      - name: Install npm dependencies
+        if: env.VERCEL_TOKEN != ''
+        run: npm ci
+
+      - name: Install pub dependencies
+        if: env.VERCEL_TOKEN != ''
+        run: flutter pub get
+        working-directory: docs_app/flutter
+
+      # Only `main` is production. Any other deploying branch gets a preview
+      # deployment of the same project, with its own URL printed in the log.
+      - name: Pick the Vercel environment
+        if: env.VERCEL_TOKEN != ''
+        run: |
+          if [ "$GITHUB_REF_NAME" = "main" ]; then
+            echo "VERCEL_ENV=production" >> "$GITHUB_ENV"
+            echo "VERCEL_PROD_FLAG=--prod" >> "$GITHUB_ENV"
+          else
+            echo "VERCEL_ENV=preview" >> "$GITHUB_ENV"
+            echo "VERCEL_PROD_FLAG=" >> "$GITHUB_ENV"
+          fi
+
+      # The Vercel project's Root Directory is `docs_app`, and the CLI resolves
+      # it against the current directory — so these three run from the
+      # repository root, with the CLI that `npm ci` installed in docs_app.
+      - name: Pull Vercel environment
+        if: env.VERCEL_TOKEN != ''
+        working-directory: ${{ github.workspace }}
+        run: docs_app/node_modules/.bin/vercel pull --yes --environment="$VERCEL_ENV" --token="$VERCEL_TOKEN"
+
+      # Runs the project's own build command, which needs the Flutter and Dart
+      # SDKs — the reason the site is built here rather than in Vercel's build
+      # container.
+      - name: Build for Vercel
+        if: env.VERCEL_TOKEN != ''
+        working-directory: ${{ github.workspace }}
+        run: docs_app/node_modules/.bin/vercel build $VERCEL_PROD_FLAG --token="$VERCEL_TOKEN"
+
+      - name: Deploy
+        if: env.VERCEL_TOKEN != ''
+        working-directory: ${{ github.workspace }}
+        run: |
+          docs_app/node_modules/.bin/vercel deploy --prebuilt $VERCEL_PROD_FLAG --token="$VERCEL_TOKEN" \
+            | tee deployment-url.txt
+
+      - name: Summarize
+        if: env.VERCEL_TOKEN != ''
+        working-directory: ${{ github.workspace }}
+        run: |
+          echo "Deployed ($VERCEL_ENV): $(tail -n 1 deployment-url.txt)" >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,5 @@
+{
+  "title": "Server errors and read-only",
+  "icon": "Lock",
+  "pages": ["index", "read-only"]
+}

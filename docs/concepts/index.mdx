@@ -1,0 +1,67 @@
+---
+title: Fields and the error type
+description: A field controller holds one typed value and reports errors of a type you choose.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+Four ideas carry the whole package: a field holds one typed value, its errors are your type, its state is one
+snapshot, and a form is a tree of fields. This page covers the first two.
+
+## A field controller holds one typed value
+
+`AdvancedFieldController<T, E>` holds a value of type `T`, runs validators that return errors of type `E`, and
+notifies its listeners when anything about it changes. It is a `ChangeNotifier` and a
+`ValueListenable<AdvancedFieldState<T, E>>`, nothing more exotic.
+
+Four specialisations cover the usual inputs, and the base class is concrete, so a slider or a stepper can hold an
+`int` with no subclass at all:
+
+| Controller | `T` | For |
+| --- | --- | --- |
+| `AdvancedTextFieldController<E>` | `String` | text fields; owns a `TextEditingController` |
+| `AdvancedBooleanFieldController<E>` | `bool` | checkboxes, switches |
+| `AdvancedSingleSelectFieldController<V, E>` | `V?` | dropdowns, radio groups |
+| `AdvancedMultiSelectFieldController<V, E>` | `Set<V>` | chips, checkbox lists |
+| `AdvancedFieldController<T, E>` | anything | sliders, steppers, dates, derived totals |
+
+[Field controllers](../fields/index.mdx) has each one's constructor and methods.
+
+## `E` is your error type
+
+The second type argument is the type of the errors a field reports. It is bounded by `Object`, never nullable, because
+`null` already means "no error". Beyond that the package does not care:
+
+```dart
+// A String is fine on day one.
+final name = AdvancedTextFieldController(validator: filled('Name is required'));
+
+// An enum scales to translations…
+enum SignupError { required, tooShort, taken }
+final email = AdvancedTextFieldController(validator: filled(SignupError.required));
+
+// …and a sealed class can carry data.
+sealed class QuantityError {}
+class TooMany extends QuantityError { TooMany(this.max); final int max; }
+```
+
+The package never formats a message. Widgets translate `E` to text where the wording belongs — often through an
+`ErrorTranslator<E>`, which is just `String Function(E)`. One field can even report several violations at once by
+choosing `E = List<PasswordRule>`; [Custom validators](../validation/custom-validators.mdx) shows that.
+
+<Callout type="warn" title="Spell out E when there is no validator">
+  `AdvancedTextFieldController()` with no `validator` infers `E` as its bound, `Object`. That compiles and then breaks
+  every `switch` on your error enum two files away. Write `AdvancedTextFieldController<SignupError>()` when the
+  constructor has nothing to infer from.
+</Callout>
+
+## Next
+
+<Cards>
+  <Card title="Field state and statuses" href="./state.mdx" description="The snapshot every widget reads, and the five statuses." />
+  <Card title="Forms, subforms and widgets" href="./form-tree.mdx" description="The tree a form controller owns, and how widgets subscribe." />
+</Cards>

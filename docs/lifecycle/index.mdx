@@ -1,0 +1,74 @@
+---
+title: Who owns what
+description: The form owns what it was given, and you own the form. What registerFields replaces, and which calls throw on a disposed controller.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+There is one rule and everything else follows from it: **the form owns what it was given, and you own the form.**
+
+## Who disposes what
+
+- `AdvancedFormController.dispose()` disposes every field ever passed to `registerFields` and every subform ever
+  passed to `addSubform` — including fields dropped by a later `registerFields` call and subforms detached with
+  `removeSubform`. Nobody else disposes those.
+- `AdvancedTextFieldController.dispose()` disposes its `textController`, and every field disposes the `focusNode` it
+  created. A `focusNode:` you passed in is left alone.
+- You dispose the form controller, once, wherever you own it.
+
+```dart
+class _CheckoutState extends State<Checkout> {
+  final _form = CheckoutFormController(); // owns fields and subforms
+
+  @override
+  void dispose() {
+    _form.dispose(); // the only dispose call in this file
+    super.dispose();
+  }
+}
+```
+
+Disposing a controller a second time throws in debug mode, like any `ChangeNotifier`. If a subform was disposed by
+hand before the parent, the parent skips it rather than disposing it twice — but give every controller one owner and
+you never need that leniency. Disposal is also where async work stops: a pending debounce timer and an in-flight async
+validator are cancelled.
+
+## Owning the controller
+
+The `StatefulWidget` above is the smallest owner. Because `AdvancedFormController` is a `ChangeNotifier`, any DI
+package works as well: `ChangeNotifierProvider(create: (_) => CheckoutFormController())` from `provider` creates,
+provides and disposes in one widget; `context.read<T>()` hands the controller to child widgets without subscribing
+them. The example app is written this way. `riverpod`, `get_it` or a plain `StatefulWidget` work equally well — the
+package has no opinion.
+
+State the controller holds *outside* `AdvancedFormState` — the current wizard step, a list of dynamic rows — needs an
+explicit `notifyListeners()`, which subclasses may call.
+
+## `registerFields` replaces
+
+Call it once, in the constructor, with every field. A second call *replaces* the field list: the earlier fields stop
+validating and notifying and leave `canSubmit`, but they are still disposed with the form. Registering the same field
+twice is safe — ownership is a `Set`. The one legitimate reason to call it again is re-baselining `wasModified`; see
+[Prefilled forms](./prefilled-forms.mdx).
+
+## What throws on a disposed controller
+
+Misuse after teardown fails at the call site with a descriptive `StateError`, rather than somewhere inside the wiring
+later:
+
+| On a disposed controller… | Result |
+| --- | --- |
+| `registerFields`, `addSubform`, `removeSubform`, `setValidationEnabled`, `subscribeToFields`, `addRelation` | throws `StateError` |
+| `registerFields` or `subscribeToFields` handed a *disposed field* | throws `StateError` |
+| `setValue` | throws `StateError` |
+| `focusNode` | throws `StateError` |
+| `validate()` | completes `false` — a submit after teardown fails quietly |
+| `focus()` | no-op |
+| `dispose()` again | debug-mode assertion, like any `ChangeNotifier` |
+
+A disposed controller cannot be reused. A section that appears and disappears needs a fresh controller per appearance
+— or, better, stays attached with [`setValidationEnabled(false)`](../subforms/patterns.mdx).
