@@ -188,6 +188,14 @@ kbd {
   border-top: 1px solid var(--af-border);
 }
 
+/* A page that opens with a section heading: the description above already
+   separates it, so no rule and no extra air before the first one. */
+.prose > :where(h2):first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
 .prose :where(h3) {
   font-size: 1.2rem;
 }
