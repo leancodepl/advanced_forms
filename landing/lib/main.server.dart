@@ -1,6 +1,8 @@
 /// Server entrypoint: runs once during `jaspr build` to pre-render the page.
 library;
 
+import 'dart:convert';
+
 import 'package:advanced_forms_landing/app.dart';
 import 'package:advanced_forms_landing/highlight.dart';
 import 'package:advanced_forms_landing/site.dart';
@@ -13,11 +15,14 @@ Future<void> main() async {
   await initHighlighting();
 
   final version = packageVersion();
+  const socialTitle = '$siteName — $tagline';
+  // Rendered by the docs app, on the same domain (app/og/landing.png).
+  final ogImage = '${canonicalUrl}og/landing.png';
 
   runApp(
     Document(
       lang: 'en',
-      title: '$siteName — $tagline',
+      title: seoTitle,
       meta: const {
         'description': description,
         'author': 'LeanCode',
@@ -26,7 +31,7 @@ Future<void> main() async {
         'application-name': siteName,
         'generator': 'Jaspr',
         'twitter:card': 'summary_large_image',
-        'twitter:title': '$siteName — $tagline',
+        'twitter:title': socialTitle,
         'twitter:description': description,
       },
       head: [
@@ -65,17 +70,82 @@ Future<void> main() async {
               'catch(e){}})();',
         ),
         const script(src: '/landing.js', attributes: {'defer': ''}),
+        meta(attributes: {'name': 'twitter:image', 'content': ogImage}),
         for (final MapEntry(key: property, value: content) in {
           'og:type': 'website',
           'og:site_name': siteName,
           'og:locale': 'en_US',
           'og:url': canonicalUrl,
-          'og:title': '$siteName — $tagline',
+          'og:title': socialTitle,
           'og:description': description,
+          'og:image': ogImage,
+          'og:image:width': '1200',
+          'og:image:height': '630',
+          'og:image:alt': socialTitle,
         }.entries)
           meta(attributes: {'property': property, 'content': content}),
+        // Structured data: the package, its publisher and the site, so search
+        // engines can show the repository, the licence and the version.
+        script(
+          attributes: const {'type': 'application/ld+json'},
+          content: jsonEncode(_structuredData(version)),
+        ),
       ],
       body: App(version: version),
     ),
   );
+}
+
+Map<String, Object> _structuredData(String version) {
+  const publisher = {
+    '@type': 'Organization',
+    '@id': 'https://leancode.co/#organization',
+    'name': 'LeanCode',
+    'url': 'https://leancode.co/',
+  };
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebSite',
+        '@id': '$canonicalUrl#website',
+        'url': canonicalUrl,
+        'name': siteName,
+        'description': description,
+        'inLanguage': 'en',
+        'publisher': publisher,
+      },
+      {
+        '@type': 'SoftwareSourceCode',
+        '@id': '$canonicalUrl#package',
+        'name': siteName,
+        'alternateName': 'Advanced Forms',
+        'description': description,
+        'url': canonicalUrl,
+        'codeRepository': repoUrl,
+        'installUrl': pubUrl,
+        'programmingLanguage': 'Dart',
+        'runtimePlatform': 'Flutter',
+        'version': version,
+        'license': 'https://www.apache.org/licenses/LICENSE-2.0',
+        'keywords': keywords.join(', '),
+        'author': publisher,
+        'publisher': publisher,
+        'softwareHelp': {
+          '@type': 'CreativeWork',
+          'url': '$canonicalUrl${docsPath.substring(1)}',
+        },
+      },
+      {
+        '@type': 'WebPage',
+        '@id': canonicalUrl,
+        'url': canonicalUrl,
+        'name': seoTitle,
+        'description': description,
+        'isPartOf': {'@id': '$canonicalUrl#website'},
+        'about': {'@id': '$canonicalUrl#package'},
+        'primaryImageOfPage': '${canonicalUrl}og/landing.png',
+      },
+    ],
+  };
 }

@@ -7,7 +7,7 @@ import { RootProvider } from "fumadocs-ui/provider/next"
 import "./global.css"
 import { JetBrains_Mono, Space_Grotesk } from "next/font/google"
 import type { Metadata } from "next"
-import { appName, description, tagline } from "@/lib/shared"
+import { appName, description, siteUrl, tagline } from "@/lib/shared"
 
 const sans = Space_Grotesk({
   subsets: ["latin"],
@@ -22,16 +22,27 @@ const mono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.VERCEL_PROJECT_PRODUCTION_URL
-      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-      : "http://localhost:3000",
-  ),
+  metadataBase: new URL(siteUrl),
   title: {
     template: `%s — ${appName}`,
     default: `${appName} — ${tagline}`,
   },
   description,
+  applicationName: appName,
+  authors: [{ name: "LeanCode", url: "https://leancode.co/" }],
+  openGraph: {
+    type: "website",
+    siteName: appName,
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    "max-image-preview": "large",
+  },
 }
 
 export default function Layout({ children }: LayoutProps<"/">) {

@@ -5,9 +5,21 @@
  */
 export const appName = "advanced_forms"
 export const tagline = "Complicated forms. Simple code."
+/** Under 155 characters, so search results show all of it. Mirrored in landing/lib/site.dart. */
 export const description =
-  "Typed field controllers, composable sync and async validation, and form-level state for Flutter — built on " +
-  "ChangeNotifier and ValueListenable, so it fits any state-management stack."
+  "Form validation and state management for Flutter: typed field controllers, composable sync and async validators, " +
+  "three validation modes, subforms."
+
+/**
+ * The public origin, for canonical URLs, the sitemap and social images.
+ * Vercel provides the production host; previews and local runs use it too, so
+ * their canonical links point at the real site rather than at themselves.
+ */
+export const siteUrl = process.env.SITE_URL
+  ? process.env.SITE_URL.replace(/\/$/, "")
+  : process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "https://advanced-forms.leancode.co"
 
 /** Where the documentation pages live. The landing page owns `/`. */
 export const docsRoute = "/docs"

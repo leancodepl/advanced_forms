@@ -165,10 +165,11 @@ from the repository root and lets the CLI step into it.
 
 ## Routes
 
-| Route                                                 | Description                                                          |
-| ----------------------------------------------------- | -------------------------------------------------------------------- |
-| `/` → `public/index.html`                             | The landing page, built from `../landing` by `npm run landing:build` |
-| `app/docs/[[...slug]]`                                | Documentation pages                                                  |
-| `app/api/search/route.ts`                             | Search                                                               |
-| `app/llms.txt` / `app/llms-full.txt` / `app/llms.mdx` | LLM markdown endpoints; `/docs/<page>.md` serves a page's Markdown   |
-| `app/og`                                              | Open Graph images                                                    |
+| Route                                                 | Description                                                            |
+| ----------------------------------------------------- | ---------------------------------------------------------------------- |
+| `/` → `public/index.html`                             | The landing page, built from `../landing` by `npm run landing:build`   |
+| `app/docs/[[...slug]]`                                | Documentation pages                                                    |
+| `app/api/search/route.ts`                             | Search                                                                 |
+| `app/llms.txt` / `app/llms-full.txt` / `app/llms.mdx` | LLM markdown endpoints; `/docs/<page>.md` serves a page's Markdown     |
+| `app/og`                                              | Open Graph images: one per docs page, `og/landing.png` for the landing |
+| `app/robots.ts` / `app/sitemap.ts`                    | `robots.txt` and a sitemap of the landing page and every docs page     |

@@ -5,10 +5,27 @@ import 'dart:io';
 
 const siteName = 'advanced_forms';
 const tagline = 'Complicated forms. Simple code.';
+
+/// The `<title>`: what the page is, in the words people search for. The
+/// tagline stays in the h1 and the social cards.
+const seoTitle = '$siteName — Form validation and state for Flutter';
+
+/// Under 155 characters, so search results show all of it.
 const description =
-    'Typed field controllers, composable sync and async validation, and '
-    'form-level state for Flutter — built on ChangeNotifier and '
-    'ValueListenable, so it fits any state-management stack.';
+    'Form validation and state management for Flutter: typed field '
+    'controllers, composable sync and async validators, three validation '
+    'modes, subforms.';
+
+/// What the site is about, for structured data.
+const keywords = [
+  'Flutter forms',
+  'Flutter form validation',
+  'Flutter form state management',
+  'async validation Flutter',
+  'Dart form library',
+  'ChangeNotifier',
+  'ValueListenable',
+];
 
 /// Public URL of the deployed site. Previews override it with
 /// `--dart-define=SITE_URL=https://…` at build time.
