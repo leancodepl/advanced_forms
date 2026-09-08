@@ -27,7 +27,8 @@ class NavBar extends StatelessComponent {
             const li([
               a(href: docsPath, [.text('Docs')]),
             ]),
-            const li([
+            // Secondary: dropped on narrow screens, where the row would not fit.
+            const li(classes: 'af-nav-secondary', [
               a(href: '$docsPath/example-app', [.text('Examples')]),
             ]),
             li([

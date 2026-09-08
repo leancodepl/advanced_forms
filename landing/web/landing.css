@@ -1088,6 +1088,9 @@ a.af-pill-accent:hover {
 }
 
 .af-example-copy {
+  /* Stays in view when the tab strip scrolls sideways on a narrow screen. */
+  position: sticky;
+  right: 0;
   flex: none;
   display: inline-grid;
   place-items: center;
@@ -1096,6 +1099,7 @@ a.af-pill-accent:hover {
   margin-left: auto;
   border-radius: 6px;
   color: var(--af-muted);
+  background: var(--af-surface);
 }
 
 .af-example-copy:hover {
@@ -1238,21 +1242,44 @@ a.af-pill-accent:hover {
 @media (max-width: 540px) {
   .af-nav-links a,
   .af-theme-toggle {
-    padding: 0.5rem 0.6rem;
+    padding: 0.5rem 0.55rem;
     font-size: 0.9rem;
   }
 
+  .af-nav-links {
+    gap: 0;
+  }
+
+  /* Examples is reachable from the docs; the row has to fit next to the logo. */
+  .af-nav-secondary {
+    display: none;
+  }
+
+  .af-logo img {
+    height: 28px;
+  }
+
+  /* One row still: the prompt goes, the button shrinks to its icon, and the
+     command scrolls sideways if a screen is narrower than it. */
   .af-install-command {
-    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.4rem 0.4rem 0.4rem 0.85rem;
   }
 
   .af-install-command code {
-    flex-basis: 100%;
-    order: -1;
+    font-size: 0.875rem;
   }
 
   .af-install-command .af-prompt {
     display: none;
+  }
+
+  .af-install-command .af-copy-label {
+    display: none;
+  }
+
+  .af-install-command .af-copy-button {
+    padding: 0.5rem;
   }
 }
 
