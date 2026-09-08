@@ -30,7 +30,6 @@ class Hero extends StatelessComponent {
               externalLink(pubUrl, classes: 'af-pill af-pill-accent', [
                 .text('v$version'),
               ]),
-              const span(classes: 'af-pill', [.text('Flutter 3.19+')]),
               const span(classes: 'af-pill', [.text('Apache-2.0')]),
               const span(classes: 'af-pill', [.text('Easy to use')]),
               const span(classes: 'af-pill', [.text('Time-saving')]),
