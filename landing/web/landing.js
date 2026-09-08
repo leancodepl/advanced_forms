@@ -17,8 +17,8 @@
 
   const bundleBase = "/flutter-examples/";
 
-  // Each view is a rendering surface; browsers stop handing WebGL contexts out
-  // somewhere around 16, and the shared rasterizer needs one per page anyway.
+  // Views alive at once, two WebGL contexts each; browsers cap live contexts
+  // at about 16.
   const maxAttachedViews = 4;
 
   // ---------- Theme ----------
@@ -105,46 +105,82 @@
     return engine;
   }
 
-  /** Attached views, oldest first: { viewId, stage, isVisible, detached }. */
-  const attached = [];
+  /**
+   * A small pool of views, never removed: every view owns two WebGL contexts
+   * (see flutter/web/flutter_bootstrap.js in docs_app), the engine does not
+   * give them back on removeView, and browsers revoke the oldest live context
+   * once about sixteen exist. An island that stops being used parks its view
+   * off screen; the next island that needs one takes a parked view and points
+   * it at its own example (`__advancedFormsIslandsSetExample`, main.dart).
+   * Entries: { viewId, host, exampleId, request, parkedAt }.
+   */
+  const pool = [];
   let queue = Promise.resolve();
   const nextFrame = () => new Promise(resolve => requestAnimationFrame(() => resolve()));
 
-  function detach(entry, evicted) {
-    if (entry.detached) return;
-    entry.detached = true;
-    const index = attached.indexOf(entry);
-    if (index !== -1) attached.splice(index, 1);
-    loadEngine().then(app => app.removeView(entry.viewId));
-    if (evicted) entry.onEvicted();
-  }
+  let parkingLot;
 
-  function makeRoom() {
-    while (attached.length >= maxAttachedViews) {
-      detach(attached.find(entry => !entry.isVisible()) ?? attached[0], true);
+  function park(view) {
+    if (!parkingLot) {
+      parkingLot = document.createElement("div");
+      parkingLot.setAttribute("aria-hidden", "true");
+      parkingLot.style.cssText =
+        "position:fixed;top:0;left:-200vw;width:640px;height:0;overflow:visible;visibility:hidden;pointer-events:none";
+      document.body.append(parkingLot);
     }
+    view.request = undefined;
+    view.parkedAt = performance.now();
+    parkingLot.append(view.host);
   }
 
-  /** Adds one view, serialized: views laid out in one frame can share a size. */
+  function detach(view, evicted) {
+    if (!view.request) return;
+    const { onEvicted } = view.request;
+    park(view);
+    if (evicted) onEvicted();
+  }
+
+  /** The view to re-aim when the pool is full: parked and least recently used, else the least visible. */
+  function reclaim() {
+    const parked = pool.filter(view => !view.request).sort((a, b) => a.parkedAt - b.parkedAt);
+    if (parked.length > 0) return parked[0];
+    const victim = pool.find(view => !view.request.isVisible()) ?? pool[0];
+    if (victim) detach(victim, true);
+    return victim;
+  }
+
+  /** Gives one island a view, serialized: views laid out in one frame can share a size. */
   function attachView(request) {
     const attach = async () => {
       const app = await loadEngine();
-      makeRoom();
-      const entry = {
-        viewId: app.addView({
-          hostElement: request.host,
-          initialData: { exampleId: request.exampleId },
-          // Auto-height: the engine sizes the host to its content.
-          viewConstraints: { minHeight: 0, maxHeight: Infinity },
-        }),
-        isVisible: request.isVisible,
-        onEvicted: request.onEvicted,
-        detached: false,
-      };
-      attached.push(entry);
+      let view = pool.find(candidate => !candidate.request && candidate.exampleId === request.exampleId);
+      if (!view && pool.length < maxAttachedViews) {
+        const host = document.createElement("div");
+        host.style.cssText = "display:block;width:100%;height:100%";
+        request.container.append(host);
+        view = {
+          viewId: app.addView({
+            hostElement: host,
+            initialData: { exampleId: request.exampleId },
+            // Auto-height: the engine sizes the host to its content.
+            viewConstraints: { minHeight: 0, maxHeight: Infinity },
+          }),
+          host,
+          exampleId: request.exampleId,
+          parkedAt: 0,
+        };
+        pool.push(view);
+      }
+      if (!view) {
+        view = reclaim();
+        view.exampleId = request.exampleId;
+        window.__advancedFormsIslandsSetExample?.(view.viewId, request.exampleId);
+      }
+      view.request = request;
+      request.container.append(view.host);
       await nextFrame();
       await nextFrame();
-      return entry;
+      return view;
     };
     const result = queue.then(attach, attach);
     queue = result.catch(() => undefined);
@@ -210,7 +246,7 @@
       clearOverlay();
       setStatus("attaching");
       attachView({
-        host,
+        container: host,
         exampleId: stage.dataset.exampleId,
         isVisible: () => visible,
         onEvicted: () => {

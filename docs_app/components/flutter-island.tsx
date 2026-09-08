@@ -25,8 +25,8 @@ interface FlutterIslandProps {
  *
  * Attaches when it comes near the viewport and stays attached afterwards, so
  * scrolling past an example and back does not wipe what the reader typed. The
- * shared runtime evicts the least useful view if a page has more islands than
- * the browser will give rendering surfaces for.
+ * shared runtime hands out views from a small pool and evicts the least useful
+ * one if a page has more islands than the pool holds.
  */
 export function FlutterIsland({ exampleId, preview, height, onStatusChange }: FlutterIslandProps) {
   const hostRef = useRef<HTMLDivElement>(null)
@@ -82,7 +82,7 @@ export function FlutterIsland({ exampleId, preview, height, onStatusChange }: Fl
     setStatus("attaching")
 
     attachIsland({
-      host,
+      container: host,
       exampleId,
       viewConstraints: height === undefined ? autoHeightConstraints : undefined,
       isVisible: () => visibleRef.current,

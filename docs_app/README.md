@@ -129,6 +129,7 @@ debug asset server sends no CORS headers, unlike the release one.
 | `flutter/`                                   | The Flutter package the snippets are compiled into                        |
 | `components/advanced-forms-example.tsx`      | The MDX component; `components/example-frame.tsx` is the window around it |
 | `components/flutter-island.tsx`              | Attaches and detaches one view                                            |
+| `flutter/web/flutter_bootstrap.js`           | Engine config: multi-view, one surface per view (see the comment there)   |
 | `public/flutter-examples/`                   | Build output, gitignored                                                  |
 
 ## Design
