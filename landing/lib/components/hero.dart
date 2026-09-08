@@ -32,7 +32,9 @@ class Hero extends StatelessComponent {
               ]),
               const span(classes: 'af-pill', [.text('Flutter 3.19+')]),
               const span(classes: 'af-pill', [.text('Apache-2.0')]),
-              const span(classes: 'af-pill', [.text('No codegen')]),
+              const span(classes: 'af-pill', [.text('Easy to use')]),
+              const span(classes: 'af-pill', [.text('Time-saving')]),
+              const span(classes: 'af-pill', [.text('Out of the box')]),
             ]),
             const h1(id: 'hero-heading', [
               .text('Complicated forms. '),
