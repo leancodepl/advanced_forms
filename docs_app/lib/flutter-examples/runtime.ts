@@ -57,10 +57,33 @@ declare global {
   }
 }
 
+/**
+ * Every island is a MaterialApp, and MaterialApp renders a Title widget with an
+ * empty title; the engine forwards that to `document.title`, so the tab shows
+ * the address instead of the page title the moment a demo starts. Writes of an
+ * empty title are ignored; the titles Next sets still go through.
+ */
+function keepPageTitle() {
+  const title = Object.getOwnPropertyDescriptor(Document.prototype, "title")
+  if (!title?.get || !title.set || Object.getOwnPropertyDescriptor(document, "title")) return
+  const { get, set } = title
+  Object.defineProperty(document, "title", {
+    configurable: true,
+    get() {
+      return get.call(this)
+    },
+    set(value: string) {
+      if (String(value).trim() !== "") set.call(this, value)
+    },
+  })
+}
+
 let engine: Promise<FlutterApp> | undefined
 
 function loadEngine(): Promise<FlutterApp> {
   engine ??= new Promise<FlutterApp>((resolve, reject) => {
+    keepPageTitle()
+
     // The loader resolves asset URLs against `document.baseURI`, and a Next.js
     // page has no <base> tag, so the bundle location has to be spelled out.
     window.__advancedFormsIslandsConfig = { assetBase: bundleBase }
