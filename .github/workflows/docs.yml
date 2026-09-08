@@ -215,22 +215,31 @@ jobs:
             echo "VERCEL_PROD_FLAG=" >> "$GITHUB_ENV"
           fi
 
+      # The Vercel project's Root Directory is `docs_app`, and the CLI resolves
+      # it against the current directory — so these three run from the
+      # repository root, with the CLI that `npm ci` installed in docs_app.
       - name: Pull Vercel environment
         if: env.VERCEL_TOKEN != ''
-        run: npx vercel pull --yes --environment="$VERCEL_ENV" --token="$VERCEL_TOKEN"
+        working-directory: ${{ github.workspace }}
+        run: docs_app/node_modules/.bin/vercel pull --yes --environment="$VERCEL_ENV" --token="$VERCEL_TOKEN"
 
       # Runs the project's own build command, which needs the Flutter and Dart
       # SDKs — the reason the site is built here rather than in Vercel's build
       # container.
       - name: Build for Vercel
         if: env.VERCEL_TOKEN != ''
-        run: npx vercel build $VERCEL_PROD_FLAG --token="$VERCEL_TOKEN"
+        working-directory: ${{ github.workspace }}
+        run: docs_app/node_modules/.bin/vercel build $VERCEL_PROD_FLAG --token="$VERCEL_TOKEN"
 
       - name: Deploy
         if: env.VERCEL_TOKEN != ''
-        run: npx vercel deploy --prebuilt $VERCEL_PROD_FLAG --token="$VERCEL_TOKEN" | tee deployment-url.txt
+        working-directory: ${{ github.workspace }}
+        run: |
+          docs_app/node_modules/.bin/vercel deploy --prebuilt $VERCEL_PROD_FLAG --token="$VERCEL_TOKEN" \
+            | tee deployment-url.txt
 
       - name: Summarize
         if: env.VERCEL_TOKEN != ''
+        working-directory: ${{ github.workspace }}
         run: |
           echo "Deployed ($VERCEL_ENV): $(tail -n 1 deployment-url.txt)" >> "$GITHUB_STEP_SUMMARY"
