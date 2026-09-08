@@ -1,6 +1,6 @@
 ---
 title: Migrating from 0.1.x
-description: leancode_forms 0.1.x to advanced_forms 0.2.0 — the renames, the behaviour changes that compile but behave differently, and the widget clean-up, in the order to do them.
+description: leancode_forms 0.1.x to advanced_forms 0.2 — the renames, the behaviour changes that compile but behave differently, and the widget clean-up, in the order to do them.
 icon: ArrowRightLeft
 ---
 
@@ -10,7 +10,7 @@ AI-Provenance:
   harness: Claude Code
 */}
 
-0.2.0 keeps the form-building model of 0.1.x — fields, form groups, validators, subforms — and replaces the
+0.2 keeps the form-building model of 0.1.x — fields, form groups, validators, subforms — and replaces the
 state-management machinery underneath it. This page is the map; the
 [full migration guide](https://github.com/leancodepl/advanced_forms/blob/main/MIGRATION.md) in the repository has
 every detail and every before/after snippet.
@@ -64,7 +64,7 @@ favour of `controller: field.textController`.
 
 ## Rename reference
 
-| 0.1.x | 0.2.0 |
+| 0.1.x | 0.2 |
 | --- | --- |
 | `FieldCubit<T, E>` | `AdvancedFieldController<T, E>` |
 | `TextFieldCubit<E>` | `AdvancedTextFieldController<E>` |

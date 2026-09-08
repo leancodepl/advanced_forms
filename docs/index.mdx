@@ -45,18 +45,11 @@ A **form controller** owns **field controllers**. Each field holds one typed val
 its listeners. The form aggregates: it broadcasts `validate`, `reset` and `markReadOnly` to every field and every
 attached subform, and derives `canSubmit`, `validating` and `validationErrors` from them on every read.
 
-<picture className="theme-diagram-light">
-  <img
-    alt="Relationships between advanced_forms controllers and field builders"
-    src="https://raw.githubusercontent.com/leancodepl/advanced_forms/refs/heads/main/doc/overview_light.svg"
-  />
-</picture>
-<picture className="theme-diagram-dark">
-  <img
-    alt="Relationships between advanced_forms controllers and field builders"
-    src="https://raw.githubusercontent.com/leancodepl/advanced_forms/refs/heads/main/doc/overview_dark.svg"
-  />
-</picture>
+{/* One diagram for both themes: it carries its own dark background. */}
+<img
+  alt="Relationships between advanced_forms controllers and field builders"
+  src="https://raw.githubusercontent.com/leancodepl/advanced_forms/refs/heads/main/doc/overview.svg"
+/>
 
 On the widget side, `AdvancedFieldBuilder` subscribes one subtree to one field. That is the whole binding story: no
 `onChanged`, no `initialValue`, no controller allocation in `initState`.

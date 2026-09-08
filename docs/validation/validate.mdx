@@ -40,7 +40,7 @@ run counts as `false`. [Async validation](./async.mdx) has the details.
 
 ## What it does not do
 
-- It does not turn validation on. 0.1.x's `validate()` switched autovalidate on for every field; 0.2.0 leaves the mode
+- It does not turn validation on. 0.1.x's `validate()` switched autovalidate on for every field; 0.2 leaves the mode
   alone. For "quiet until the first submit, live afterwards", set `ValidationMode.onUserInteraction` after a failed
   submit — the [wizard](../subforms/wizard.mdx) does this per step.
 - It does not skip untouched fields. Rule 2 applies to fields validating *themselves*; a submit checks everything,
