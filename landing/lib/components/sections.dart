@@ -99,7 +99,7 @@ class _Mode {
 
 const _modes = [
   _Mode(
-    Icon.send,
+    Icon.hand,
     'manual',
     'default',
     'Validates on submit.',
@@ -115,7 +115,7 @@ const _modes = [
         'debounce, so typing runs one request, not ten.',
   ),
   _Mode(
-    Icon.logOut,
+    Icon.squareDashed,
     'onUnfocus',
     'on leave',
     'Validates when a field loses focus.',

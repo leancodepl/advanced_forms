@@ -96,7 +96,6 @@ enum Icon {
     'M7 11V7a5 5 0 0 1 10 0v4',
   ]),
   gauge(['m12 14 4-4', 'M3.34 19a10 10 0 1 1 17.32 0']),
-  send(['M14.5 3.5 3 10.5l8 2 2 8z', 'm14.5 3.5-3.5 9']),
   keyboard([
     'M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z',
     'M6 8h.01',
@@ -108,10 +107,30 @@ enum Icon {
     'M16 12h.01',
     'M7 16h10',
   ]),
-  logOut([
-    'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4',
-    'm16 17 5-5-5-5',
-    'M21 12H9',
+
+  /// An open hand: nothing happens until the user acts (manual mode).
+  hand([
+    'M18 11V6a2 2 0 0 0-4 0v1',
+    'M14 10V4a2 2 0 0 0-4 0v2',
+    'M10 10.5V6a2 2 0 0 0-4 0v8',
+    // One SVG path, kept whole.
+    'M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15',
+  ]),
+
+  /// A dashed focus ring: the field that just lost focus (onUnfocus mode).
+  squareDashed([
+    'M5 3a2 2 0 0 0-2 2',
+    'M19 3a2 2 0 0 1 2 2',
+    'M21 19a2 2 0 0 1-2 2',
+    'M5 21a2 2 0 0 1-2-2',
+    'M9 3h1',
+    'M9 21h1',
+    'M14 3h1',
+    'M14 21h1',
+    'M3 9v1',
+    'M21 9v1',
+    'M3 14v1',
+    'M21 14v1',
   ]);
 
   const Icon(this.paths);
