@@ -1,5 +1,7 @@
+import 'package:advanced_forms_landing/components/button.dart';
 import 'package:advanced_forms_landing/components/example_frame.dart';
 import 'package:advanced_forms_landing/components/icons.dart';
+import 'package:advanced_forms_landing/components/pill.dart';
 import 'package:advanced_forms_landing/components/section.dart';
 import 'package:advanced_forms_landing/examples.dart';
 import 'package:advanced_forms_landing/site.dart';
@@ -27,13 +29,11 @@ class Hero extends StatelessComponent {
         div(classes: 'af-container af-hero-grid', [
           div([
             p(classes: 'af-hero-badges', [
-              externalLink(pubUrl, classes: 'af-pill af-pill-accent', [
-                .text('v$version'),
-              ]),
-              const span(classes: 'af-pill', [.text('Apache-2.0')]),
-              const span(classes: 'af-pill', [.text('Easy to use')]),
-              const span(classes: 'af-pill', [.text('Time-saving')]),
-              const span(classes: 'af-pill', [.text('Out of the box')]),
+              Pill('v$version', href: pubUrl, accent: true),
+              const Pill('Apache-2.0'),
+              const Pill('Easy to use'),
+              const Pill('Time-saving'),
+              const Pill('Out of the box'),
             ]),
             const h1(id: 'hero-heading', [
               .text('Complicated forms. '),
@@ -83,19 +83,26 @@ class Hero extends StatelessComponent {
                 const .text('.'),
               ]),
             ]),
-            div(classes: 'af-hero-actions', [
-              a(
+            const div(classes: 'af-hero-actions', [
+              Button(
+                'Build your first form',
                 href: '$docsPath/first-form',
-                classes: 'af-button af-button-primary',
-                [
-                  const .text('Build your first form'),
-                  Icon.arrowRight.build(size: 18),
-                ],
+                trailing: .arrowRight,
               ),
-              externalLink(repoUrl, classes: 'af-button af-button-secondary', [
-                Icon.github.build(size: 18),
-                const .text('GitHub'),
-              ]),
+              Button(
+                'pub.dev',
+                href: pubUrl,
+                variant: .secondary,
+                external: true,
+                leading: .package,
+              ),
+              Button(
+                'GitHub',
+                href: repoUrl,
+                variant: .secondary,
+                external: true,
+                leading: .github,
+              ),
             ]),
           ]),
           div(classes: 'af-hero-demo', [

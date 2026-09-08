@@ -23,6 +23,14 @@ Flutter form validation and state management without a framework on top. `advanc
 > [!TIP]
 > **Using Claude Code (or another agent that supports Agent Skills)?** This repo ships an [Agent Skill](https://github.com/leancodepl/advanced_forms/blob/main/skills/advanced_forms/SKILL.md) that teaches your agent the full API, so it generates fields, validation, cross-field logic, and subforms idiomatically. To enable it, copy `skills/advanced_forms/` into your app's `.claude/skills/`, or into your global `~/.claude/skills/`.
 
+## Website: interactive examples and docs
+
+[![Try it live at advanced-forms.leancode.co — interactive Flutter examples and full documentation][website-img]][site]
+
+Every example on **[advanced-forms.leancode.co][site]** is a real Flutter form running in your browser — type into it,
+break it, watch it validate — next to the code that builds it. The documentation there goes well beyond this README:
+validation modes, async and cross-field validation, subforms, server errors, testing, and how it works under the hood.
+
 ## General overview
 
 ![Overview](https://raw.githubusercontent.com/leancodepl/advanced_forms/refs/heads/main/doc/overview.svg)
@@ -436,6 +444,8 @@ We are **top-tier experts** focused on Flutter Enterprise solutions.
 Licensed under the [Apache License 2.0](./LICENSE).
 
 [banner-img]: https://raw.githubusercontent.com/leancodepl/advanced_forms/refs/heads/main/doc/banner.png
+[website-img]: https://raw.githubusercontent.com/leancodepl/advanced_forms/refs/heads/main/doc/website.svg
+[site]: https://advanced-forms.leancode.co/?utm_source=github.com&utm_medium=referral&utm_campaign=advanced-forms
 [license-badge]: https://img.shields.io/github/license/leancodepl/advanced_forms
 [license-badge-link]: https://github.com/leancodepl/advanced_forms/blob/main/LICENSE
 [leancode-landing]: https://leancode.co/?utm_source=github.com&utm_medium=referral&utm_campaign=advanced-forms
