@@ -33,8 +33,6 @@ validation modes, async and cross-field validation, subforms, server errors, tes
 
 <div align="center">
 
-[**Try the live examples →**][site] · [**Read the docs →**][site-docs]
-
 </div>
 
 ## General overview
