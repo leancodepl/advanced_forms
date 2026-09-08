@@ -6,4 +6,14 @@ analyzer:
     # own options; analyzing it from here would hold the docs snippets to the
     # published-package rules and would fail on its generated sources.
     - docs_app/**
+    # The landing page (landing/) is a separate Dart package on Jaspr, with its
+    # own dependencies and options; from here its imports do not resolve.
+    - landing/**
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
 
