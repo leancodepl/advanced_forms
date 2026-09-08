@@ -55,11 +55,8 @@ class _IslandFrameState extends State<IslandFrame> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      // Explicitly null, not the default '': with a title, MaterialApp mounts a
-      // Title widget and the web engine writes that title — here an empty
-      // string — into document.title, and the browser tab shows the address
-      // instead of the page's title. With null, WidgetsApp skips Title on the
-      // web because the host page owns the title (flutter/flutter#152003).
+      // null (not the default ''), or the engine overwrites the page's
+      // document.title with it. See flutter/flutter#152003.
       title: null,
       debugShowCheckedModeBanner: false,
       theme: islandTheme(widget.brightness),
