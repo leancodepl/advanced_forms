@@ -92,6 +92,10 @@ class Hero extends StatelessComponent {
                   Icon.arrowRight.build(size: 18),
                 ],
               ),
+              externalLink(pubUrl, classes: 'af-button af-button-secondary', [
+                Icon.package.build(size: 18),
+                const .text('pub.dev'),
+              ]),
               externalLink(repoUrl, classes: 'af-button af-button-secondary', [
                 Icon.github.build(size: 18),
                 const .text('GitHub'),
