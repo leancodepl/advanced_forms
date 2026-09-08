@@ -14,12 +14,19 @@ import 'package:flutter/material.dart';
 /// in published snippets; everything else in a snippet is code a reader could
 /// paste into their own app unchanged.
 class ExampleLog extends ChangeNotifier {
+  /// How many lines stay visible. A transcript, not a history: readers click
+  /// a demo's button many times, and the island must not grow with each click.
+  static const maxLines = 3;
+
   final _lines = <String>[];
 
   List<String> get lines => List.unmodifiable(_lines);
 
   void add(String line) {
     _lines.add(line);
+    if (_lines.length > maxLines) {
+      _lines.removeRange(0, _lines.length - maxLines);
+    }
     notifyListeners();
   }
 
