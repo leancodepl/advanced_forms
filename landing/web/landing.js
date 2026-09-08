@@ -75,27 +75,6 @@
     });
   }
 
-  // ---------- Page title ----------
-
-  // Every island is a MaterialApp, and MaterialApp renders a Title widget with
-  // an empty title; the engine forwards that to `document.title`, so the tab
-  // shows the address instead of the page title the moment a demo starts.
-  // Writes of an empty title are ignored; real titles still go through.
-  {
-    const title = Object.getOwnPropertyDescriptor(Document.prototype, "title");
-    if (title?.get && title?.set) {
-      Object.defineProperty(document, "title", {
-        configurable: true,
-        get() {
-          return title.get.call(this);
-        },
-        set(value) {
-          if (String(value).trim() !== "") title.set.call(this, value);
-        },
-      });
-    }
-  }
-
   // ---------- Flutter engine ----------
 
   let engine;
