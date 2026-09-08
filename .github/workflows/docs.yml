@@ -232,4 +232,5 @@ jobs:
 
       - name: Summarize
         if: env.VERCEL_TOKEN != ''
-        run: echo "Deployed ($VERCEL_ENV): $(tail -n 1 deployment-url.txt)" >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          echo "Deployed ($VERCEL_ENV): $(tail -n 1 deployment-url.txt)" >> "$GITHUB_STEP_SUMMARY"
