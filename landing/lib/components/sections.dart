@@ -1,5 +1,7 @@
+import 'package:advanced_forms_landing/components/button.dart';
 import 'package:advanced_forms_landing/components/example_frame.dart';
 import 'package:advanced_forms_landing/components/icons.dart';
+import 'package:advanced_forms_landing/components/pill.dart';
 import 'package:advanced_forms_landing/components/section.dart';
 import 'package:advanced_forms_landing/examples.dart';
 import 'package:advanced_forms_landing/site.dart';
@@ -156,7 +158,7 @@ class ValidationSection extends StatelessComponent {
             li(classes: 'af-card af-mode', [
               div(classes: 'af-mode-head', [
                 span(classes: 'af-feature-icon', [mode.icon.build(size: 22)]),
-                span(classes: 'af-pill af-pill-accent', [.text(mode.tag)]),
+                Pill(mode.tag, accent: true),
               ]),
               h3([
                 code([.text(mode.name)]),
@@ -366,16 +368,19 @@ class SkillBand extends StatelessComponent {
                 ),
               ),
             ]),
-            div(classes: 'af-hero-actions', [
-              a(
+            const div(classes: 'af-hero-actions', [
+              Button(
+                'Install the skill',
                 href: '$docsPath/agent-skill',
-                classes: 'af-button af-button-primary',
-                [Icon.bot.build(size: 18), const .text('Install the skill')],
+                leading: .bot,
               ),
-              externalLink(skillUrl, classes: 'af-button af-button-secondary', [
-                const .text('Read SKILL.md'),
-                Icon.arrowRight.build(size: 18),
-              ]),
+              Button(
+                'Read SKILL.md',
+                href: skillUrl,
+                variant: .secondary,
+                external: true,
+                trailing: .arrowRight,
+              ),
             ]),
           ]),
         ]),

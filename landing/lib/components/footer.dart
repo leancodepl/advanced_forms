@@ -1,4 +1,4 @@
-import 'package:advanced_forms_landing/components/icons.dart';
+import 'package:advanced_forms_landing/components/button.dart';
 import 'package:advanced_forms_landing/components/nav_bar.dart';
 import 'package:advanced_forms_landing/components/section.dart';
 import 'package:advanced_forms_landing/site.dart';
@@ -13,29 +13,30 @@ class SiteFooter extends StatelessComponent {
   @override
   Component build(BuildContext context) {
     return footer(classes: 'af-footer', [
-      section(
+      const section(
         classes: 'af-cta',
-        attributes: const {'aria-labelledby': 'cta-heading'},
+        attributes: {'aria-labelledby': 'cta-heading'},
         [
           div(classes: 'af-container af-cta-inner', [
-            const h2(id: 'cta-heading', [
-              .text('Ready to type your first field?'),
-            ]),
-            const p([
+            h2(id: 'cta-heading', [.text('Ready to type your first field?')]),
+            p([
               .text(
                 'One dependency, one import, and a form that tells you when it '
                 'can be submitted.',
               ),
             ]),
             div(classes: 'af-hero-actions af-center', [
-              externalLink(pubUrl, classes: 'af-button af-button-primary', [
-                const .text('Get it on pub.dev'),
-                Icon.externalLink.build(size: 18),
-              ]),
-              a(
+              Button(
+                'Get it on pub.dev',
+                href: pubUrl,
+                external: true,
+                trailing: .externalLink,
+              ),
+              Button(
+                'Read the docs',
                 href: '$docsPath/first-form',
-                classes: 'af-button af-button-secondary',
-                [Icon.bookOpen.build(size: 18), const .text('Read the docs')],
+                variant: .secondary,
+                leading: .bookOpen,
               ),
             ]),
           ]),
