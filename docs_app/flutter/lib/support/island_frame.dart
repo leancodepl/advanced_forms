@@ -55,6 +55,9 @@ class _IslandFrameState extends State<IslandFrame> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      // null (not the default ''), or the engine overwrites the page's
+      // document.title with it. See flutter/flutter#152003.
+      title: null,
       debugShowCheckedModeBanner: false,
       theme: islandTheme(widget.brightness),
       home: Material(
