@@ -11,7 +11,8 @@
  *   node scripts/landing.mjs           build and copy
  *   node scripts/landing.mjs --check   only verify that the copy is present
  *
- * Needs the Dart SDK (see ../landing/pubspec.yaml for the version) with the
+ * Runs `examples:generate` first: the page needs the example registry it
+ * writes. Needs the Dart SDK (see ../landing/pubspec.yaml for the version) with the
  * Jaspr CLI activated: `dart pub global activate jaspr_cli 0.23.4`. It is run
  * through `dart pub global run`, so the `dart` on PATH is the one that builds.
  * `SITE_URL` overrides the canonical URL baked into the page, for previews.
@@ -46,6 +47,11 @@ function check() {
 }
 
 function build() {
+  // The page maps its demos onto the compiled bundle through
+  // flutter/web/examples.json, which `examples:generate` writes and git does
+  // not track — a fresh checkout has none, so make sure it is there.
+  run("node", [path.join(docsApp, "scripts", "flutter-examples.mjs"), "generate"], { cwd: docsApp })
+
   run("dart", ["pub", "get"])
 
   const args = ["pub", "global", "run", "jaspr_cli:jaspr", "build"]

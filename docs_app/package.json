@@ -3,7 +3,7 @@
   "version": "0.0.17",
   "private": true,
   "scripts": {
-    "build": "npm run landing:build && npm run examples:build && next build",
+    "build": "npm run examples:build && npm run landing:build && next build",
     "dev": "next dev",
     "start": "next start",
     "types:check": "next typegen && tsc --noEmit",

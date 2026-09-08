@@ -140,9 +140,10 @@ jobs:
       - name: Check formatting
         run: npm run format
 
-      # `npm run build` is `landing:build && examples:build && next build`:
-      # render the landing page into public/, compile the snippets into
-      # public/flutter-examples, then the docs around them.
+      # `npm run build` is `examples:build && landing:build && next build`:
+      # compile the snippets into public/flutter-examples, render the landing
+      # page (which reads the example registry) into public/, then the docs
+      # around them.
       - name: Build
         run: npm run build
 
