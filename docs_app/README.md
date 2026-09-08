@@ -157,9 +157,10 @@ site is built**. Vercel's build container has neither, so `vercel.json` turns Ve
 | `main`  | production                                              |
 | `docs`  | a preview of the same project, URL in the run's summary |
 
-Pull requests only run the build job, as a guard. The deploy job needs three repository secrets: `VERCEL_TOKEN`,
-`VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` (from `vercel link` on the existing project). Without them the deploy job does
-nothing and the build job still guards every pull request.
+Pull requests only run the build job, as a guard. The deploy job needs the `VERCEL_TOKEN` repository secret and the
+`VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` repository variables (Settings → Secrets and variables → Actions; the ids come
+from `vercel link` on the existing project). Without the token the deploy job does nothing and the build job still
+guards every pull request.
 
 ## Routes
 
