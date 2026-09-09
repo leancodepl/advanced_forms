@@ -5,7 +5,10 @@
     "ctaYellow": { "hex": "#f0ff00", "note": "Call to action and emphasis only. Text on it is always black." },
     "bodyGray": { "hex": "#d8d8d4", "note": "Body copy on dark surfaces." },
     "mutedGray": { "hex": "#a3a3a0", "note": "Secondary text, captions, metadata on dark." },
-    "mutedOnLight": { "hex": "#757575", "note": "Secondary text, captions, metadata on light." },
+    "mutedOnLight": {
+      "hex": "#6f6f6f",
+      "note": "Secondary text, captions, metadata on light: the design system's #757575, a step darker so it also reads AA on paper."
+    },
     "surface": { "hex": "#151513", "note": "Cards and panels on black, warm-tinted." },
     "surface2": { "hex": "#1d1d1a", "note": "A second surface step on black." },
     "lineOnLight": { "hex": "#e5e5e5", "note": "The 1px hairline on white." },

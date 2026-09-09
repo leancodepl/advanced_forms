@@ -37,9 +37,10 @@
     // runtimes (runtime.ts, landing.js) keep a small pool of views and never
     // remove one.
     canvasKitForceMultiSurfaceRasterizer: true,
-    // One CanvasKit for every browser. `auto` would try the Chromium-only
-    // build first, which the bundle no longer ships, costing a 404 per load.
-    canvasKitVariant: "full",
+    // Chromium browsers get the CanvasKit built for them, about a third
+    // smaller over the wire than the full one every other browser gets; the
+    // release bundle ships both (scripts/flutter-examples.mjs, pruneBundle).
+    canvasKitVariant: "auto",
     ...overrides,
     assetBase,
     entrypointBaseUrl: overrides.entrypointBaseUrl || assetBase,

@@ -28,7 +28,6 @@ const config = [
       "public/index.html",
       "public/landing.*",
       "public/landing-icon.svg",
-      "public/af-tokens.css",
     ],
   },
   {

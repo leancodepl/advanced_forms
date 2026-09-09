@@ -12,8 +12,8 @@ export const swatches = {
   bodyGray: "#d8d8d4",
   /** Secondary text, captions, metadata on dark. */
   mutedGray: "#a3a3a0",
-  /** Secondary text, captions, metadata on light. */
-  mutedOnLight: "#757575",
+  /** Secondary text, captions, metadata on light: the design system's #757575, a step darker so it also reads AA on paper. */
+  mutedOnLight: "#6f6f6f",
   /** Cards and panels on black, warm-tinted. */
   surface: "#151513",
   /** A second surface step on black. */
@@ -64,7 +64,7 @@ export const themes = {
     /** Body copy. */
     text2: "#3f3f3c",
     /** Captions and metadata. */
-    muted: "#757575",
+    muted: "#6f6f6f",
     /** The CTA yellow, as a fill. */
     accent: "#f0ff00",
     /** Text on the accent. */

@@ -97,7 +97,7 @@ const afLight = AfPalette(
   border2: Color(0xFFCFCFCB),
   text: Color(0xFF000000),
   text2: Color(0xFF3F3F3C),
-  muted: Color(0xFF757575),
+  muted: Color(0xFF6F6F6F),
   accent: Color(0xFFF0FF00),
   accentInk: Color(0xFF000000),
   accentText: Color(0xFF606A00),

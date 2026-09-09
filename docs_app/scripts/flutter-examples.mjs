@@ -255,21 +255,37 @@ const run = (command, args, cwd) =>
 
 /**
  * Deletes what this build can never request. `flutter build web` populates
- * `canvaskit/` with every renderer and variant it knows about — the Chromium-
- * only CanvasKit, the Wasm renderer, symbol files for a crash reporter — which
- * is ~24 MB of the output. This build is dart2js + CanvasKit and the bootstrap
- * pins `canvasKitVariant: "full"`, so exactly two of those files are reachable.
+ * `canvaskit/` with every renderer and variant it knows about — the Wasm
+ * renderer, symbol files for a crash reporter — which is ~24 MB of the output.
+ * This build is dart2js + CanvasKit with `canvasKitVariant: "auto"` in the
+ * bootstrap: Chromium browsers fetch the smaller build under `chromium/`, every
+ * other browser the full one, so exactly four of those files are reachable.
  *
  * Written as an allowlist so a future SDK adding more variants does not quietly
  * start deploying them. The service worker goes too: nothing registers one.
+ *
+ * `flutter_bootstrap.js` inlines flutter.js, whose last line points at a
+ * `flutter.js.map` the build does not write; the line goes, so no browser or
+ * audit asks for a file that is not there.
  */
 async function pruneBundle() {
-  const keep = new Set(["canvaskit.js", "canvaskit.wasm"])
+  const keep = new Set(["canvaskit.js", "canvaskit.wasm", "chromium"])
   for (const entry of await readdir(join(bundleDir, "canvaskit"), { withFileTypes: true })) {
     if (keep.has(entry.name)) continue
     await rm(join(bundleDir, "canvaskit", entry.name), { recursive: true, force: true })
   }
+  const chromium = join(bundleDir, "canvaskit", "chromium")
+  if (existsSync(chromium)) {
+    for (const entry of await readdir(chromium, { withFileTypes: true })) {
+      if (keep.has(entry.name)) continue
+      await rm(join(chromium, entry.name), { recursive: true, force: true })
+    }
+  }
   await rm(join(bundleDir, "flutter_service_worker.js"), { force: true })
+
+  const bootstrap = join(bundleDir, "flutter_bootstrap.js")
+  const source = await readFile(bootstrap, "utf8")
+  await writeFile(bootstrap, source.replaceAll(/^\/\/# sourceMappingURL=flutter\.js\.map\s*$/gm, ""))
 }
 
 async function build() {

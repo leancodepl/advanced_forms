@@ -2,6 +2,7 @@
 library;
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:advanced_forms_landing/app.dart';
 import 'package:advanced_forms_landing/highlight.dart';
@@ -46,22 +47,18 @@ Future<void> main() async {
           type: 'image/svg+xml',
         ),
         link(rel: 'canonical', href: canonicalUrl),
-        const link(rel: 'preconnect', href: 'https://fonts.googleapis.com'),
-        const link(
-          rel: 'preconnect',
-          href: 'https://fonts.gstatic.com',
-          attributes: {'crossorigin': ''},
-        ),
-        const link(
-          rel: 'stylesheet',
-          href:
-              'https://fonts.googleapis.com/css2'
-              '?family=Space+Grotesk:wght@400;500;600;700'
-              '&family=JetBrains+Mono:wght@400;600&display=swap',
-        ),
-        // The colors, generated from docs_app/palette.json; then the rest.
-        const link(rel: 'stylesheet', href: '/af-tokens.css'),
-        const link(rel: 'stylesheet', href: '/landing.css'),
+        // The fonts are self-hosted (web/fonts). The Latin subsets carry every
+        // glyph above the fold, so they are fetched before the parser reaches
+        // the text that needs them.
+        for (final font in ['space-grotesk-latin', 'jetbrains-mono-latin'])
+          link(
+            rel: 'preload',
+            href: '/fonts/$font.woff2',
+            as: 'font',
+            type: 'font/woff2',
+            attributes: const {'crossorigin': ''},
+          ),
+        const _Stylesheet(),
         // Applied before paint so a light-theme visitor never sees a dark flash.
         const script(
           content:
@@ -97,6 +94,35 @@ Future<void> main() async {
       body: App(version: version),
     ),
   );
+}
+
+/// The stylesheet, inlined: `web/af-tokens.css` (the colors, generated from
+/// `docs_app/palette.json`) and then `web/landing.css`. The page is one HTML
+/// document with nothing render-blocking left but its stylesheet, and that
+/// stylesheet is 6 KB over the wire: fetching it separately would cost a round
+/// trip before the first paint and save nothing, since there is no second page
+/// to reuse it on. Read on every render so `jaspr serve` picks up an edit on
+/// reload.
+class _Stylesheet extends StatelessComponent {
+  const _Stylesheet();
+
+  @override
+  Component build(BuildContext context) {
+    final css = [
+      'web/af-tokens.css',
+      'web/landing.css',
+    ].map((file) => File(file).readAsStringSync()).join('\n');
+    return RawText('<style>${_minify(css)}</style>');
+  }
+
+  /// Drops comments and the whitespace the grammar does not need. Strings in
+  /// the sheet are font names and URLs, which a single space cannot harm.
+  static String _minify(String css) => css
+      .replaceAll(RegExp(r'/\*[\s\S]*?\*/'), '')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .replaceAllMapped(RegExp(r'\s*([{};,>])\s*'), (match) => match[1]!)
+      .replaceAll(RegExp(r':\s+'), ':')
+      .trim();
 }
 
 Map<String, Object> _structuredData(String version) {

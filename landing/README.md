@@ -15,24 +15,35 @@ one domain.
 dart pub global activate jaspr_cli 0.23.4
 dart pub get
 jaspr serve        # http://localhost:8080, rebuilds on change
-jaspr build        # build/jaspr/{index.html,landing.css,landing.js,landing-icon.svg}
+jaspr build        # build/jaspr/{index.html,landing.js,landing-icon.svg,fonts/}
 ```
 
-From `../docs_app`, `npm run landing:build` runs the build and copies those four files into `public/`.
+From `../docs_app`, `npm run landing:build` runs the build and copies those four into `public/`. The stylesheet is
+inlined into `index.html`, so it is not copied on its own.
 
 ## Layout
 
-| Path                    | What lives there                                                                                 |
-| ----------------------- | ------------------------------------------------------------------------------------------------ |
-| `lib/main.server.dart`  | The entrypoint: the `<head>` (fonts, theme bootstrap, Open Graph) and the `App`.                 |
-| `lib/app.dart`          | The page: header, hero, three sections with a live demo each, features, agent skill band, footer. |
-| `lib/components/`       | One file per section; `example_frame.dart` is the window around a live demo.                     |
-| `lib/examples.dart`     | Reads the demos from `../docs_app/content/landing/*.mdx` and maps them to the compiled bundle.    |
-| `lib/highlight.dart`    | Build-time Dart syntax highlighting (`syntax_highlight_lite`) into `tk-*` spans.                 |
-| `lib/site.dart`         | URLs, copy, the package version from `../pubspec.yaml`. `SITE_URL` (a `--dart-define`) for previews. |
-| `web/af-tokens.css`     | The `--af-*` color tokens, generated from `../docs_app/palette.json` by `npm run palette:generate` there; the docs use the same file. |
-| `web/landing.css`       | The stylesheet: everything but the colors, dark by default.                                      |
-| `web/landing.js`        | The client: Flutter islands, copy buttons, theme toggle. No framework, no build step.            |
+| Path                   | What lives there                                                                                                 |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `lib/main.server.dart` | The entrypoint: the `<head>` (font preloads, the inlined stylesheet, theme bootstrap, Open Graph) and the `App`. |
+| `lib/app.dart`         | The page: header, hero, three sections with a live demo each, features, agent skill band, footer.                |
+| `lib/components/`      | One file per section; `example_frame.dart` is the window around a live demo.                                     |
+| `lib/examples.dart`    | Reads the demos from `../docs_app/content/landing/*.mdx` and maps them to the compiled bundle.                   |
+| `lib/highlight.dart`   | Build-time Dart syntax highlighting (`syntax_highlight_lite`) into `tk-*` spans.                                 |
+| `lib/site.dart`        | URLs, copy, the package version from `../pubspec.yaml`. `SITE_URL` (a `--dart-define`) for previews.             |
+| `web/af-tokens.css`    | The `--af-*` colors, generated from `../docs_app/palette.json` by `npm run palette:generate` there. Inlined.      |
+| `web/landing.css`      | The stylesheet: everything but the colors, dark by default. Inlined at build, after the tokens.                  |
+| `web/fonts/`           | Space Grotesk and JetBrains Mono, self-hosted (see its README), so no third-party request blocks paint.          |
+| `web/landing.js`       | The client: Flutter islands, copy buttons, theme toggle. No framework, no build step.                            |
+
+## Fonts
+
+`web/fonts/` holds Space Grotesk and JetBrains Mono as variable fonts in their Latin and Latin Extended subsets, the
+same files [ciach.leancode.co](https://github.com/leancodepl/ciach/tree/main/website/web/fonts) ships, under the SIL
+Open Font License (the `OFL-*.txt` files alongside). Self-hosting them means no third-party stylesheet blocks the first
+paint; `landing.css` opens with the `@font-face` rules and `main.server.dart` preloads the two Latin files, which carry
+every glyph above the fold. To update a font, fetch the Google Fonts CSS with a modern Chrome user agent and copy the
+`woff2` files it points at.
 
 ## Live demos
 

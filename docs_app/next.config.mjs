@@ -39,6 +39,19 @@ const config = {
 
     return { beforeFiles }
   },
+  /**
+   * The landing page's fonts (public/fonts, copied from ../landing/web/fonts)
+   * have no content hash in their names, so a day of caching with revalidation
+   * in the background: a repeat visitor renders in the right face at once.
+   */
+  async headers() {
+    return [
+      {
+        source: "/fonts/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }],
+      },
+    ]
+  },
 }
 
 export default withMDX(config)

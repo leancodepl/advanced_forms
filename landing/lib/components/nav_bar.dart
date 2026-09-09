@@ -65,8 +65,22 @@ class NavBar extends StatelessComponent {
 
 /// The designed word mark: `logo-light.svg` on the light theme and
 /// `logo-dark.svg` on the dark one. Both files are served by the docs app from
-/// its `public/` folder, so the two sites share one pair of assets.
+/// its `public/` folder, so the two sites share one pair of assets. The
+/// intrinsic size is the SVG's viewBox; the stylesheet sets the height and the
+/// browser keeps the ratio, so the space is reserved before the file arrives.
 Component logo() => const span(classes: 'af-logo', [
-  img(src: '/logo-light.svg', alt: siteName, classes: 'af-theme-light'),
-  img(src: '/logo-dark.svg', alt: siteName, classes: 'af-theme-dark'),
+  img(
+    src: '/logo-light.svg',
+    alt: siteName,
+    width: 1480,
+    height: 388,
+    classes: 'af-theme-light',
+  ),
+  img(
+    src: '/logo-dark.svg',
+    alt: siteName,
+    width: 1480,
+    height: 388,
+    classes: 'af-theme-dark',
+  ),
 ]);

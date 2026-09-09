@@ -159,16 +159,16 @@ under `public/flutter-examples/` all ship in a single deployment, and Next handl
 site is built**. Vercel's build container has neither, so `vercel.json` turns Vercel's own Git deployments off and
 `.github/workflows/docs.yml` builds and deploys instead, with `vercel build` + `vercel deploy --prebuilt`:
 
-| Push to | Deploys                                                 |
-| ------- | ------------------------------------------------------- |
-| `main`  | production                                              |
-| `docs`  | a preview of the same project, URL in the run's summary |
+| Event                          | Deploys                                                                 |
+| ------------------------------ | ----------------------------------------------------------------------- |
+| push to `main`                 | production                                                              |
+| pull request touching the docs | a preview of the same project; the URL is commented on the pull request |
 
-Pull requests only run the build job, as a guard. The deploy job needs the `VERCEL_TOKEN` repository secret and the
-`VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` repository variables (Settings → Secrets and variables → Actions; the ids come
-from `vercel link` on the existing project). Without the token the deploy job does nothing and the build job still
-guards every pull request. The Vercel project's **Root Directory** is `docs_app`, so the workflow runs the Vercel CLI
-from the repository root and lets the CLI step into it.
+A pull request from a fork runs the build job only, since it has no access to the secrets. The deploy job needs the
+`VERCEL_TOKEN` repository secret and the `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` repository variables (Settings →
+Secrets and variables → Actions; the ids come from `vercel link` on the existing project). Without the token the deploy
+job does nothing and the build job still guards every pull request. The Vercel project's **Root Directory** is
+`docs_app`, so the workflow runs the Vercel CLI from the repository root and lets the CLI step into it.
 
 ## Routes
 
