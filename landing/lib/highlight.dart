@@ -24,21 +24,21 @@ final _theme = sh.HighlighterTheme.fromConfiguration(
 
 final _highlighter = sh.Highlighter(language: 'dart', theme: _theme);
 
-/// One colour per token class. The `--tk-*` variables are defined with the
-/// other tokens in `styles.dart`.
+/// One colour per token class, `.tk-<token>` from `--tk-<token>`. The
+/// variables are defined with the other tokens in `styles.dart`.
 @css
 List<StyleRule> get tokenStyles => [
-  for (final MapEntry(key: token, value: variable) in {
-    'keyword': '--tk-keyword',
-    'type': '--tk-type',
-    'string': '--tk-string',
-    'number': '--tk-number',
-    'comment': '--tk-comment',
-    'annotation': '--tk-annotation',
-    'function': '--tk-function',
-    'operator': '--tk-operator',
-  }.entries)
-    css('.tk-$token').styles(color: Color.variable(variable)),
+  for (final token in const [
+    'keyword',
+    'type',
+    'string',
+    'number',
+    'comment',
+    'annotation',
+    'function',
+    'operator',
+  ])
+    css('.tk-$token').styles(color: Color.variable('--tk-$token')),
   css(
     '.tk-doc',
   ).styles(color: const .variable('--tk-comment'), fontStyle: .italic),
