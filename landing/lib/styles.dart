@@ -161,7 +161,7 @@ List<StyleRule> get _tokens => [
     raw: {
       ..._colors(afDark),
       '--af-shadow': '0 24px 60px -32px rgba(0, 0, 0, 0.9)',
-      // Code tokens: Material Palenight, the palette ciach uses.
+      // Code tokens: Material Palenight.
       '--tk-keyword': '#c792ea',
       '--tk-type': '#ffcb6b',
       '--tk-string': '#c3e88d',

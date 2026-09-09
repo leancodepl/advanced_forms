@@ -7,10 +7,9 @@ AI-Provenance:
 # advanced-forms-docs
 
 The documentation site for `advanced_forms`, under `/docs`: built with [Fumadocs](https://fumadocs.dev) on Next.js,
-styled after the LeanCode design system used on [ciach.leancode.co](https://ciach.leancode.co), and running its own code
-examples in Flutter, in the browser. The landing page at `/` is a separate static site written in
-[Jaspr](https://jaspr.site), in the repo-root `landing/` folder; this app serves its build output from `public/`, so the
-two ship as one deployment on one domain.
+styled after the LeanCode design system, and running its own code examples in Flutter, in the browser. The landing page
+at `/` is a separate static site written in [Jaspr](https://jaspr.site), in the repo-root `landing/` folder; this app
+serves its build output from `public/`, so the two ship as one deployment on one domain.
 
 MDX for the docs lives in the repo-root `docs/` folder; the landing page's live demos live in `content/landing/`. From
 this directory:

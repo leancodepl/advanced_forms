@@ -121,13 +121,23 @@ function paletteTs() {
     .join("")
   const theme = tokens =>
     tokenNames
-      .map(name => `    /** ${palette.tokens[name]} */\n    ${name}: "${cssColor(color(tokens[name]))}",\n`)
+      .map(name => {
+        const value = tokens[name]
+        const swatch =
+          typeof value === "string" ? `swatches.${value}` : `withAlpha(swatches.${value.of}, ${value.alpha})`
+        return `    /** ${palette.tokens[name]} */\n    ${name}: ${swatch},\n`
+      })
       .join("")
   return (
     `// ${doNotEdit("scripts/palette.mjs", "palette.json")}\n\n` +
     `/** The LeanCode swatches, as \`#rrggbb\`. */\n` +
     `export const swatches = {\n${swatches}} as const\n\n` +
-    `/** The site's \`--af-*\` tokens per theme, as CSS colors. */\n` +
+    `/** \`#rrggbb\` at an alpha, as \`rgba()\` — the one color form every renderer of ours understands. */\n` +
+    `export function withAlpha(hex: string, alpha: number): string {\n` +
+    `  const [r, g, b] = [1, 3, 5].map(i => Number.parseInt(hex.slice(i, i + 2), 16))\n` +
+    `  return \`rgba(\${r}, \${g}, \${b}, \${alpha})\`\n` +
+    `}\n\n` +
+    `/** The site's \`--af-*\` tokens per theme, built from the swatches. */\n` +
     `export const themes = {\n` +
     `  light: {\n${theme(palette.themes.light)}  },\n` +
     `  dark: {\n${theme(palette.themes.dark)}  },\n` +
@@ -137,8 +147,8 @@ function paletteTs() {
 
 /**
  * The palette as Dart: `enum Palette` names the swatches, `AfTheme` holds one
- * theme's tokens, and `afLight`/`afDark` build them from the enum — the same
- * shape ciach's landing page uses. `members` are the enum's color accessors,
+ * theme's tokens, and `afLight`/`afDark` build them from the enum. `members`
+ * are the enum's color accessors,
  * which differ between Flutter's and Jaspr's `Color`; `themeMembers` are extra
  * members of `AfTheme`.
  */

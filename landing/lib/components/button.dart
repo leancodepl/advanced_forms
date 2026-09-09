@@ -13,9 +13,9 @@ enum ButtonVariant {
   secondary,
 }
 
-/// A pill-shaped call to action that links somewhere, the same component
-/// Ciach's site uses. [external] links open in a new tab. An icon can go
-/// before the label ([leading]) or after it ([trailing]).
+/// A pill-shaped call to action that links somewhere. [external] links open in
+/// a new tab. An icon can go before the label ([leading]) or after it
+/// ([trailing]).
 class Button extends StatelessComponent {
   const Button(
     this.label, {

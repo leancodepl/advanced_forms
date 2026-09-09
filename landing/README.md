@@ -39,8 +39,7 @@ stylesheet to copy: the styles are Dart, and the build inlines them into `index.
 ## Styles
 
 There is no stylesheet file. Every component declares the rules for the classes it renders in a
-`@css static List<StyleRule> get styles` getter next to its `build`, the way [ciach's
-website](https://github.com/leancodepl/ciach/tree/main/website/lib) does; `lib/styles.dart` holds what is not any one
+`@css static List<StyleRule> get styles` getter next to its `build`; `lib/styles.dart` holds what is not any one
 component's: the `@font-face` rules, the `--af-*` tokens for the light (`:root`) and dark (`.dark`) themes — written
 from `afLight` and `afDark` in `lib/palette.generated.dart`, so the colors come from `docs_app/palette.json` like the
 docs' — the reset, the container and skip-link utilities and the reduced-motion rule. `jaspr_builder` collects every `@css` getter into
@@ -53,9 +52,8 @@ element, the cascade follows the bundle order, so a rule in `sections.dart` can 
 
 ## Fonts
 
-`web/fonts/` holds Space Grotesk and JetBrains Mono as variable fonts in their Latin and Latin Extended subsets, the
-same files [ciach.leancode.co](https://github.com/leancodepl/ciach/tree/main/website/web/fonts) ships, under the SIL
-Open Font License (the `OFL-*.txt` files alongside). Self-hosting them means no third-party stylesheet blocks the first
+`web/fonts/` holds Space Grotesk and JetBrains Mono as variable fonts in their Latin and Latin Extended subsets, under
+the SIL Open Font License (the `OFL-*.txt` files alongside). Self-hosting them means no third-party stylesheet blocks the first
 paint; `lib/styles.dart` opens with the `@font-face` rules and `main.server.dart` preloads the two Latin files, which
 carry every glyph above the fold. To update a font, fetch the Google Fonts CSS with a modern Chrome user agent and copy
 the `woff2` files it points at.

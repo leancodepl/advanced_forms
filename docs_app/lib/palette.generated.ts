@@ -44,86 +44,92 @@ export const swatches = {
   successOnLight: "#527b28",
 } as const
 
-/** The site's `--af-*` tokens per theme, as CSS colors. */
+/** `#rrggbb` at an alpha, as `rgba()` — the one color form every renderer of ours understands. */
+export function withAlpha(hex: string, alpha: number): string {
+  const [r, g, b] = [1, 3, 5].map(i => Number.parseInt(hex.slice(i, i + 2), 16))
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
+/** The site's `--af-*` tokens per theme, built from the swatches. */
 export const themes = {
   light: {
     /** Page background. */
-    bg: "#ffffff",
+    bg: swatches.white,
     /** Section background: footer, code panels. */
-    bg2: "#f7f7f5",
+    bg2: swatches.paper,
     /** Cards and frames. */
-    surface: "#ffffff",
+    surface: swatches.white,
     /** Bars and chips on a surface. */
-    surface2: "#f2f2ef",
+    surface2: swatches.paper2,
     /** The hairline. */
-    border: "#e5e5e5",
+    border: swatches.lineOnLight,
     /** The stronger hairline, for controls. */
-    border2: "#cfcfcb",
+    border2: swatches.lineStrongOnLight,
     /** Headings and primary text. */
-    text: "#000000",
+    text: swatches.black,
     /** Body copy. */
-    text2: "#3f3f3c",
+    text2: swatches.bodyOnLight,
     /** Captions and metadata. */
-    muted: "#6f6f6f",
+    muted: swatches.mutedOnLight,
     /** The CTA yellow, as a fill. */
-    accent: "#f0ff00",
+    accent: swatches.ctaYellow,
     /** Text on the accent. */
-    accentInk: "#000000",
+    accentInk: swatches.black,
     /** The accent as text. */
-    accentText: "#606a00",
+    accentText: swatches.ctaYellowOnLight,
     /** The primary button's hover fill. */
-    accentHover: "#f5ff4d",
+    accentHover: swatches.ctaYellowLight,
     /** The accent as a wash behind icons, pills and glows. */
-    accentSoft: "rgba(240, 255, 0, 0.45)",
+    accentSoft: withAlpha(swatches.ctaYellow, 0.45),
     /** The docs' primary action fill. */
-    primary: "#000000",
+    primary: swatches.black,
     /** Text on the primary fill. */
-    primaryInk: "#f0ff00",
+    primaryInk: swatches.ctaYellow,
     /** The scrim behind dialogs. */
-    overlay: "rgba(0, 0, 0, 0.3)",
+    overlay: withAlpha(swatches.black, 0.3),
     /** Error signal. */
-    danger: "#be2119",
+    danger: swatches.errorOnLight,
     /** Success signal. */
-    ok: "#527b28",
+    ok: swatches.successOnLight,
   },
   dark: {
     /** Page background. */
-    bg: "#000000",
+    bg: swatches.black,
     /** Section background: footer, code panels. */
-    bg2: "#0a0a08",
+    bg2: swatches.nearBlack,
     /** Cards and frames. */
-    surface: "#151513",
+    surface: swatches.surface,
     /** Bars and chips on a surface. */
-    surface2: "#1d1d1a",
+    surface2: swatches.surface2,
     /** The hairline. */
-    border: "rgba(255, 255, 255, 0.12)",
+    border: withAlpha(swatches.white, 0.12),
     /** The stronger hairline, for controls. */
-    border2: "rgba(255, 255, 255, 0.2)",
+    border2: withAlpha(swatches.white, 0.2),
     /** Headings and primary text. */
-    text: "#ffffff",
+    text: swatches.white,
     /** Body copy. */
-    text2: "#d8d8d4",
+    text2: swatches.bodyGray,
     /** Captions and metadata. */
-    muted: "#a3a3a0",
+    muted: swatches.mutedGray,
     /** The CTA yellow, as a fill. */
-    accent: "#f0ff00",
+    accent: swatches.ctaYellow,
     /** Text on the accent. */
-    accentInk: "#000000",
+    accentInk: swatches.black,
     /** The accent as text. */
-    accentText: "#f0ff00",
+    accentText: swatches.ctaYellow,
     /** The primary button's hover fill. */
-    accentHover: "#f5ff4d",
+    accentHover: swatches.ctaYellowLight,
     /** The accent as a wash behind icons, pills and glows. */
-    accentSoft: "rgba(240, 255, 0, 0.06)",
+    accentSoft: withAlpha(swatches.ctaYellow, 0.06),
     /** The docs' primary action fill. */
-    primary: "#f0ff00",
+    primary: swatches.ctaYellow,
     /** Text on the primary fill. */
-    primaryInk: "#000000",
+    primaryInk: swatches.black,
     /** The scrim behind dialogs. */
-    overlay: "rgba(0, 0, 0, 0.6)",
+    overlay: withAlpha(swatches.black, 0.6),
     /** Error signal. */
-    danger: "#e64239",
+    danger: swatches.error,
     /** Success signal. */
-    ok: "#80c340",
+    ok: swatches.success,
   },
 } as const
