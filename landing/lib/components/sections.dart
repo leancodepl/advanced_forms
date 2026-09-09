@@ -5,6 +5,7 @@ import 'package:advanced_forms_landing/components/pill.dart';
 import 'package:advanced_forms_landing/components/section.dart';
 import 'package:advanced_forms_landing/examples.dart';
 import 'package:advanced_forms_landing/site.dart';
+import 'package:advanced_forms_landing/styles.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
@@ -132,6 +133,60 @@ class ValidationSection extends StatelessComponent {
   const ValidationSection({required this.example, super.key});
 
   final LandingExample example;
+
+  /// The numbered rules and the three mode cards. The cards themselves are
+  /// `.af-card` and `.af-feature-icon`, defined in [Features.styles].
+  @css
+  static List<StyleRule> get styles => [
+    css(
+      '.af-rules',
+    ).styles(display: .grid, gap: .all(1.rem), raw: {'counter-reset': 'rule'}),
+    css('.af-rule').styles(
+      position: const .relative(),
+      padding: .only(left: 3.25.rem),
+    ),
+    css('.af-rule::before').styles(
+      position: .absolute(top: 0.15.rem, left: .zero),
+      color: accentTextColor,
+      fontFamily: fontMono,
+      fontSize: 0.85.rem,
+      fontWeight: .w600,
+      raw: {
+        'counter-increment': 'rule',
+        'content': 'counter(rule, decimal-leading-zero)',
+      },
+    ),
+    css('.af-rule h3').styles(
+      margin: .only(bottom: 0.35.rem),
+      fontSize: 1.1.rem,
+    ),
+    css('.af-rule p').styles(color: text2Color, fontSize: 0.98.rem),
+    css('.af-modes').styles(margin: .only(top: 2.5.rem)),
+    css(
+      '.af-mode',
+    ).styles(display: .flex, flexDirection: .column, gap: .all(0.35.rem)),
+    css('.af-mode:hover').combine(cardHover),
+    css('.af-mode-head').styles(
+      display: .flex,
+      justifyContent: .spaceBetween,
+      gap: .all(0.75.rem),
+      raw: {'align-items': 'flex-start'},
+    ),
+    css('.af-mode h3').styles(
+      margin: .only(top: 0.25.rem, right: .zero, bottom: .zero, left: .zero),
+    ),
+    css('.af-mode h3 code').styles(fontSize: 0.95.rem, fontWeight: .w600),
+    css('.af-mode-when').styles(
+      fontWeight: .w600,
+      raw: {'color': '${textColor.value} !important'},
+    ),
+    css.media(MediaQuery.all(minWidth: 960.px), [
+      css('.af-rules').styles(
+        gap: .all(2.rem),
+        raw: {'grid-template-columns': 'repeat(3, 1fr)'},
+      ),
+    ]),
+  ];
 
   @override
   Component build(BuildContext context) {
@@ -311,8 +366,64 @@ const _features = [
   ),
 ];
 
+/// A card lifts a little when hovered. Shared by the feature and mode cards.
+final cardHover = Styles(
+  transform: .translate(y: (-2).px),
+  raw: {'border-color': 'var(--af-border-2)'},
+);
+
 class Features extends StatelessComponent {
   const Features({super.key});
+
+  /// The card grid, and the card vocabulary (`.af-card`, `.af-feature-icon`)
+  /// the mode cards in [ValidationSection] reuse.
+  @css
+  static List<StyleRule> get styles => [
+    css('.af-card').styles(
+      padding: .all(1.5.rem),
+      border: hairline(borderColor),
+      radius: const .circular(radius),
+      transition: .combine([
+        Transition('border-color', duration: 200.ms, curve: .ease),
+        Transition('transform', duration: 200.ms, curve: .ease),
+      ]),
+      backgroundColor: surfaceColor,
+    ),
+    css('.af-card h3').styles(
+      margin: .only(top: .zero, right: .zero, bottom: 0.5.rem, left: .zero),
+      fontSize: 1.15.rem,
+      fontWeight: .w600,
+    ),
+    css(
+      '.af-card p',
+    ).styles(margin: .zero, color: text2Color, fontSize: 0.95.rem),
+    css('.af-feature-grid').styles(
+      display: .grid,
+      gap: .all(1.rem),
+      raw: {
+        'grid-template-columns':
+            'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
+      },
+    ),
+    css(
+      '.af-feature',
+    ).styles(display: .flex, flexDirection: .column, gap: .all(0.6.rem)),
+    css('.af-feature:hover').combine(cardHover),
+    css('.af-feature-icon').styles(
+      display: .inlineGrid,
+      width: 42.px,
+      height: 42.px,
+      margin: .only(bottom: 0.5.rem),
+      radius: .circular(12.px),
+      color: accentTextColor,
+      backgroundColor: accentSoftColor,
+      raw: {
+        'place-items': 'center',
+        'border': '1px solid ${colorMix(accentColor, 35, with_: borderColor)}',
+      },
+    ),
+    css('.af-feature p').styles(raw: {'flex': '1'}),
+  ];
 
   @override
   Component build(BuildContext context) {
@@ -344,6 +455,34 @@ class Features extends StatelessComponent {
 /// The Agent Skill band.
 class SkillBand extends StatelessComponent {
   const SkillBand({super.key});
+
+  @css
+  static List<StyleRule> get styles => [
+    css('.af-band').styles(
+      display: .grid,
+      padding: .all(2.rem),
+      border: hairline(borderColor),
+      radius: const .circular(radius),
+      alignItems: .center,
+      gap: .all(2.rem),
+      raw: {
+        'background':
+            'radial-gradient(60% 80% at 100% 0%, var(--af-accent-soft), '
+            'transparent 70%), var(--af-surface)',
+      },
+    ),
+    css('.af-band > *').styles(minWidth: .zero),
+    css(
+      '.af-band h2',
+    ).styles(fontSize: const .expression('clamp(1.5rem, 2.6vw, 2rem)')),
+    css('.af-band .af-hero-actions').styles(margin: const .only(top: .zero)),
+    css.media(MediaQuery.all(minWidth: 760.px), [
+      css('.af-band').styles(
+        padding: .all(2.5.rem),
+        raw: {'grid-template-columns': '1.3fr 1fr'},
+      ),
+    ]),
+  ];
 
   @override
   Component build(BuildContext context) {

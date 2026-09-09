@@ -140,8 +140,9 @@ JetBrains Mono — and the `--color-fd-*` variables Fumadocs paints with are re-
 the default; light is a paper variant where the accent is a fill with dark ink on it, the way leancode.co does it.
 
 Code blocks and live examples share one window frame: a title bar with three dots (the first one lime), a mono title,
-and the content below. The landing page in `../landing/web/landing.css` uses the same tokens and the same frame, so the
-homepage and the docs read as one site — change a colour in one place and mirror it in the other.
+and the content below. The landing page (`../landing/lib/styles.dart` for the tokens, the components for the frame) uses
+the same tokens and the same frame, so the homepage and the docs read as one site — change a colour in one place and
+mirror it in the other.
 
 ## Deployment
 

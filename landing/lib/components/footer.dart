@@ -2,13 +2,90 @@ import 'package:advanced_forms_landing/components/button.dart';
 import 'package:advanced_forms_landing/components/nav_bar.dart';
 import 'package:advanced_forms_landing/components/section.dart';
 import 'package:advanced_forms_landing/site.dart';
+import 'package:advanced_forms_landing/styles.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
+/// The closing call to action, the link columns and the colophon.
 class SiteFooter extends StatelessComponent {
   const SiteFooter({required this.version, super.key});
 
   final String version;
+
+  @css
+  static List<StyleRule> get styles => [
+    css('.af-footer').styles(
+      border: .only(top: hairlineSide(borderColor)),
+      fontSize: 1.rem,
+      backgroundColor: bg2Color,
+    ),
+    css('.af-cta').styles(
+      padding: const .symmetric(
+        vertical: .expression('clamp(3.5rem, 7vw, 5.5rem)'),
+        horizontal: .zero,
+      ),
+      border: .only(bottom: hairlineSide(borderColor)),
+      raw: {
+        'background':
+            'radial-gradient(50% 60% at 50% 100%, var(--af-accent-soft), '
+            'transparent 70%), var(--af-bg-2)',
+      },
+    ),
+    css('.af-cta-inner').styles(maxWidth: 40.rem, textAlign: .center),
+    css(
+      '.af-cta h2',
+    ).styles(fontSize: const .expression('clamp(1.9rem, 3.6vw, 2.75rem)')),
+    css('.af-cta p').styles(
+      margin: .only(top: 1.rem),
+      color: text2Color,
+      fontSize: 1.1.rem,
+    ),
+    css('.af-footer-grid').styles(
+      display: .grid,
+      padding: .symmetric(vertical: 3.5.rem, horizontal: .zero),
+      gap: .all(2.5.rem),
+    ),
+    css('.af-footer-grid h3').styles(
+      margin: .only(bottom: 0.9.rem),
+      color: mutedColor,
+      fontFamily: fontMono,
+      fontSize: 0.72.rem,
+      fontWeight: .w600,
+      textTransform: .upperCase,
+      letterSpacing: 0.08.em,
+    ),
+    css('.af-footer-grid ul').styles(display: .grid, gap: .all(0.5.rem)),
+    css('.af-footer-grid li a').styles(color: text2Color),
+    css('.af-footer-grid li a:hover').styles(color: accentTextColor),
+    css('.af-footer-brand .af-logo img').styles(height: 44.px),
+    css('.af-footer-brand p').styles(
+      maxWidth: 24.rem,
+      margin: .only(top: 1.rem),
+      color: text2Color,
+      fontSize: 0.95.rem,
+    ),
+    // Links in running text are underlined, not only coloured.
+    css('.af-footer-brand p a').styles(color: textColor, raw: underlinedLink),
+    css('.af-footer-bottom').styles(
+      display: .flex,
+      padding: .only(top: 1.5.rem, bottom: 2.rem),
+      border: .only(top: hairlineSide(borderColor)),
+      flexWrap: .wrap,
+      justifyContent: .spaceBetween,
+      gap: .all(0.75.rem),
+      color: mutedColor,
+      fontSize: 0.85.rem,
+    ),
+    css('.af-footer-bottom a').styles(color: text2Color, raw: underlinedLink),
+    css.media(MediaQuery.all(minWidth: 760.px), [
+      css('.af-footer-grid').styles(raw: {'grid-template-columns': '1fr 1fr'}),
+    ]),
+    css.media(MediaQuery.all(minWidth: 1000.px), [
+      css(
+        '.af-footer-grid',
+      ).styles(raw: {'grid-template-columns': '1.6fr 1fr 1fr 1.4fr'}),
+    ]),
+  ];
 
   @override
   Component build(BuildContext context) {

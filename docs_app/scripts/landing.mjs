@@ -28,8 +28,9 @@ const output = path.join(landing, "build", "jaspr")
 const publicDir = path.join(docsApp, "public")
 
 /**
- * What ends up in public/. Everything else in build/jaspr is build tooling —
- * including landing.css, which the page inlines into its <head>.
+ * What ends up in public/. Everything else in build/jaspr is build tooling.
+ * There is no stylesheet: the styles are Dart (`@css` getters next to the
+ * components), and Jaspr inlines them into the page's <head>.
  */
 const artifacts = ["index.html", "landing.js", "landing-icon.svg", "fonts"]
 
