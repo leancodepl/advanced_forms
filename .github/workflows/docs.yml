@@ -16,17 +16,16 @@ name: docs
 # on every change to the package. The two events filter differently on purpose:
 #
 # - A pull request only builds when the docs themselves change, so work on the
-#   library is never held up by them.
+#   library is never held up by them. It deploys a preview of the site and
+#   comments the URL on the pull request, so the change is reviewed as a page.
 # - A push to main also builds when `lib/` changes, because the bundle contains
 #   the package's own compiled source. Once per merge is cheap, and it is what
 #   catches a snippet the API has outgrown — and what keeps the live examples on
 #   the site running the current library rather than the one from the last docs
-#   change.
+#   change. `main` is the only ref that deploys to production.
 on:
   push:
-    # `main` deploys to production; `docs` deploys a preview of the same Vercel
-    # project, so the site can be reviewed before the documentation PR merges.
-    branches: [main, docs]
+    branches: [main]
     tags-ignore: ['v*']
     paths:
       - 'docs/**'
@@ -54,6 +53,12 @@ env:
   # `flutter …` commands keep using their own.
   DART_VERSION: '3.13.0'
   JASPR_CLI_VERSION: '0.23.4'
+
+# One deployment at a time per ref. A newer push to a pull request supersedes
+# the preview in flight; on main every push still deploys, in order.
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
@@ -150,8 +155,16 @@ jobs:
   deploy:
     name: Deploy to Vercel
     needs: build
-    if: github.event_name == 'push'
+    # Pushes to main and pull requests from this repository. A fork's pull
+    # request runs without the secrets, so it gets the build job only.
+    if: >-
+      github.event_name == 'push' ||
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # For the preview URL comment on the pull request.
+      pull-requests: write
     defaults:
       run:
         working-directory: docs_app
@@ -203,12 +216,12 @@ jobs:
         run: flutter pub get
         working-directory: docs_app/flutter
 
-      # Only `main` is production. Any other deploying branch gets a preview
-      # deployment of the same project, with its own URL printed in the log.
+      # Only a push to `main` is production. A pull request gets a preview
+      # deployment of the same project, with its own URL.
       - name: Pick the Vercel environment
         if: env.VERCEL_TOKEN != ''
         run: |
-          if [ "$GITHUB_REF_NAME" = "main" ]; then
+          if [ "$GITHUB_EVENT_NAME" = "push" ] && [ "$GITHUB_REF_NAME" = "main" ]; then
             echo "VERCEL_ENV=production" >> "$GITHUB_ENV"
             echo "VERCEL_PROD_FLAG=--prod" >> "$GITHUB_ENV"
           else
@@ -244,3 +257,29 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
           echo "Deployed ($VERCEL_ENV): $(tail -n 1 deployment-url.txt)" >> "$GITHUB_STEP_SUMMARY"
+
+      # One comment per pull request, updated on every deploy, so the thread
+      # always shows the URL of the latest preview rather than a history of them.
+      - name: Comment the preview URL on the pull request
+        if: env.VERCEL_TOKEN != '' && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const url = fs.readFileSync('deployment-url.txt', 'utf8').trim().split('\n').pop();
+            const marker = '<!-- docs-preview -->';
+            const sha = context.payload.pull_request.head.sha;
+            const body = [
+              marker,
+              `**Docs preview:** ${url}`,
+              '',
+              `Built from ${sha.slice(0, 7)}; the landing page is at \`/\`, the docs under \`/docs\`.`,
+            ].join('\n');
+            const issue = { ...context.repo, issue_number: context.issue.number };
+            const { data: comments } = await github.rest.issues.listComments({ ...issue, per_page: 100 });
+            const existing = comments.find(c => c.body?.startsWith(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ ...context.repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ ...issue, body });
+            }

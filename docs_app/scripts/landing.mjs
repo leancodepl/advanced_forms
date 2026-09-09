@@ -27,8 +27,11 @@ const landing = path.resolve(docsApp, "..", "landing")
 const output = path.join(landing, "build", "jaspr")
 const publicDir = path.join(docsApp, "public")
 
-/** What ends up in public/. Everything else in build/jaspr is build tooling. */
-const artifacts = ["index.html", "landing.css", "landing.js", "landing-icon.svg"]
+/**
+ * What ends up in public/. Everything else in build/jaspr is build tooling —
+ * including landing.css, which the page inlines into its <head>.
+ */
+const artifacts = ["index.html", "landing.js", "landing-icon.svg", "fonts"]
 
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, { stdio: "inherit", cwd: landing, ...options })
@@ -70,8 +73,8 @@ function build() {
   mkdirSync(publicDir, { recursive: true })
   for (const file of artifacts) {
     const target = path.join(publicDir, file)
-    rmSync(target, { force: true })
-    cpSync(path.join(output, file), target)
+    rmSync(target, { recursive: true, force: true })
+    cpSync(path.join(output, file), target, { recursive: true })
   }
   console.log(`Landing page copied to public/ (${artifacts.join(", ")})`)
 }

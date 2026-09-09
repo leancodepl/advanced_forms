@@ -63,7 +63,7 @@
     button.addEventListener("click", () => {
       // The visible panel is the one whose radio is checked.
       const code = button.closest(".af-example-code");
-      const inputs = [...code.querySelectorAll(":scope > .af-tab-input")];
+      const inputs = [...code.querySelectorAll(".af-tab-input")];
       const index = inputs.findIndex(input => input.checked);
       const panel = code.querySelectorAll(".af-code-panel")[Math.max(index, 0)];
       const pre = panel?.querySelector("pre");
@@ -306,7 +306,22 @@
     observer.observe(stage);
   }
 
-  for (const stage of document.querySelectorAll(".af-example-stage[data-example-id]")) {
-    mountIsland(stage);
+  // The engine is a 3+ MB download and most of a second of script. Start it
+  // once the page has loaded and the main thread is idle, so the text, the
+  // fonts and the logo are on screen first and the first paint never waits
+  // behind it. On a fast connection that is a few dozen milliseconds later
+  // than the page could ask for it.
+  function mountIslands() {
+    for (const stage of document.querySelectorAll(".af-example-stage[data-example-id]")) {
+      mountIsland(stage);
+    }
   }
+
+  function whenIdle(run) {
+    if (typeof requestIdleCallback === "function") requestIdleCallback(run, { timeout: 1000 });
+    else setTimeout(run, 0);
+  }
+
+  if (document.readyState === "complete") whenIdle(mountIslands);
+  else window.addEventListener("load", () => whenIdle(mountIslands), { once: true });
 })();
