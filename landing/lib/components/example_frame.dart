@@ -17,7 +17,7 @@ enum ExampleLayout {
 /// The window around a live example: a title bar with the island's status,
 /// the running Flutter view, and the source that produced it.
 ///
-/// The stage is an empty `<div>` carrying the example id; `web/islands.js`
+/// The stage is an empty `<div>` carrying the example id; `web/landing.js`
 /// attaches a view of the shared Flutter engine to it once it scrolls near,
 /// and keeps the status pill honest. File tabs are radio inputs and CSS —
 /// no script needed to switch files.
@@ -85,43 +85,51 @@ class _SourceTabs extends StatelessComponent {
       classes: 'af-example-code',
       attributes: const {'data-tabs': 'true'},
       [
-        for (final (index, file) in example.files.indexed)
-          Component.element(
-            tag: 'input',
-            attributes: {
-              'type': 'radio',
-              'name': group,
-              'id': '$group-$index',
-              'class': 'af-tab-input',
-              'aria-label': file.name,
-              if (index == 0) 'checked': '',
+        div(classes: 'af-example-toolbar', [
+          // What it is, to assistive technology: a group of radio buttons, one
+          // per file, each followed by the label that is its visible tab. The
+          // CSS reads the checked one to show its tab and its panel.
+          div(
+            classes: 'af-example-tabs',
+            attributes: const {
+              'role': 'radiogroup',
+              'aria-label': 'Source files',
             },
-          ),
-        div(
-          classes: 'af-example-tabs',
-          attributes: const {'role': 'tablist', 'aria-label': 'Source files'},
-          [
-            for (final (index, file) in example.files.indexed)
-              label(
-                classes: 'af-example-tab',
-                attributes: {'for': '$group-$index'},
-                [.text(file.name)],
-              ),
-            button(
-              classes: 'af-example-copy',
-              attributes: const {
-                'type': 'button',
-                'data-copy': '',
-                'aria-label': 'Copy this file',
-                'title': 'Copy this file',
-              },
-              [
-                span(classes: 'af-copy-idle', [Icon.copy.build(size: 15)]),
-                span(classes: 'af-copy-done', [Icon.check.build(size: 15)]),
+            [
+              for (final (index, file) in example.files.indexed) ...[
+                Component.element(
+                  tag: 'input',
+                  attributes: {
+                    'type': 'radio',
+                    'name': group,
+                    'id': '$group-$index',
+                    'class': 'af-tab-input',
+                    'aria-label': file.name,
+                    if (index == 0) 'checked': '',
+                  },
+                ),
+                label(
+                  classes: 'af-example-tab',
+                  attributes: {'for': '$group-$index'},
+                  [.text(file.name)],
+                ),
               ],
-            ),
-          ],
-        ),
+            ],
+          ),
+          button(
+            classes: 'af-example-copy',
+            attributes: const {
+              'type': 'button',
+              'data-copy': '',
+              'aria-label': 'Copy this file',
+              'title': 'Copy this file',
+            },
+            [
+              span(classes: 'af-copy-idle', [Icon.copy.build(size: 15)]),
+              span(classes: 'af-copy-done', [Icon.check.build(size: 15)]),
+            ],
+          ),
+        ]),
         div(classes: 'af-example-panels', [
           for (final file in example.files)
             div(classes: 'af-code-panel', [
