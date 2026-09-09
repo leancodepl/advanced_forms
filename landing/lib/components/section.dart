@@ -1,3 +1,4 @@
+import 'package:advanced_forms_landing/styles.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
@@ -21,6 +22,78 @@ class Section extends StatelessComponent {
   final List<Component> heading;
   final List<Component>? lead;
   final List<Component> children;
+
+  /// The section itself and the vocabulary its children share: the header
+  /// (eyebrow, heading, lead), a "read more" line, the demo slot and the
+  /// checklist under a demo.
+  @css
+  static List<StyleRule> get styles => [
+    css('.af-section').styles(
+      padding: const .symmetric(
+        vertical: .expression('clamp(3.5rem, 7vw, 6rem)'),
+        horizontal: .zero,
+      ),
+      border: .only(top: hairlineSide(borderColor)),
+    ),
+    css('.af-section-head').styles(
+      maxWidth: 44.rem,
+      margin: .only(bottom: 2.5.rem),
+    ),
+    css(
+      '.af-section h2',
+    ).styles(fontSize: const .expression('clamp(1.9rem, 3.6vw, 2.75rem)')),
+    css('.af-eyebrow').styles(
+      display: .inlineFlex,
+      margin: .only(bottom: 1.rem),
+      alignItems: .center,
+      gap: .all(0.5.rem),
+      color: accentTextColor,
+      fontFamily: fontMono,
+      fontSize: 0.78.rem,
+      fontWeight: .w600,
+      textTransform: .upperCase,
+      letterSpacing: 0.08.em,
+    ),
+    css('.af-eyebrow::before').styles(
+      content: '',
+      width: 1.5.rem,
+      height: 2.px,
+      backgroundColor: accentColor,
+    ),
+    css('.af-lead').styles(
+      margin: .only(top: 1.rem),
+      color: text2Color,
+      fontSize: 1.125.rem,
+    ),
+    css('.af-section-more').styles(
+      margin: .only(top: 1.5.rem),
+      fontWeight: .w500,
+    ),
+    css('.af-section-more a').styles(color: accentTextColor),
+    css(
+      '.af-section-more a:hover',
+    ).styles(textDecoration: const TextDecoration(line: .underline)),
+    css('.af-section-demo').styles(margin: .only(top: 2.5.rem)),
+    css('.af-checklist').styles(
+      display: .grid,
+      maxWidth: 52.rem,
+      margin: .only(top: 2.rem),
+      gap: .all(0.75.rem),
+    ),
+    css('.af-checklist li').styles(
+      position: const .relative(),
+      padding: .only(left: 1.6.rem),
+      color: text2Color,
+    ),
+    css('.af-checklist li strong').styles(color: textColor, fontWeight: .w600),
+    css('.af-checklist li::before').styles(
+      content: '',
+      position: .absolute(top: 0.7.em, left: .zero),
+      width: 0.9.rem,
+      height: 2.px,
+      backgroundColor: accentColor,
+    ),
+  ];
 
   @override
   Component build(BuildContext context) {

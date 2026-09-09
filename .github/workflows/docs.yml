@@ -134,6 +134,12 @@ jobs:
         run: dart pub get
         working-directory: landing
 
+      # main.server.dart imports the options jaspr_builder writes from the
+      # `@css` getters (gitignored), so they have to exist before analysis.
+      - name: Generate the landing page's Jaspr options
+        run: dart run build_runner build --delete-conflicting-outputs
+        working-directory: landing
+
       - name: Analyze the landing page
         run: dart analyze --fatal-infos
         working-directory: landing

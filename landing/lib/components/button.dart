@@ -1,5 +1,6 @@
 import 'package:advanced_forms_landing/components/icons.dart';
 import 'package:advanced_forms_landing/components/section.dart';
+import 'package:advanced_forms_landing/styles.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
@@ -15,8 +16,6 @@ enum ButtonVariant {
 /// A pill-shaped call to action that links somewhere, the same component
 /// Ciach's site uses. [external] links open in a new tab. An icon can go
 /// before the label ([leading]) or after it ([trailing]).
-///
-/// Styled by `.af-button*` in web/landing.css.
 class Button extends StatelessComponent {
   const Button(
     this.label, {
@@ -34,6 +33,42 @@ class Button extends StatelessComponent {
   final bool external;
   final Icon? leading;
   final Icon? trailing;
+
+  @css
+  static List<StyleRule> get styles => [
+    css('.af-button').styles(
+      display: .inlineFlex,
+      padding: .symmetric(vertical: 0.75.rem, horizontal: 1.2.rem),
+      border: hairline(const Color('transparent')),
+      radius: .circular(999.px),
+      cursor: .pointer,
+      transition: .combine([
+        Transition('transform', duration: 150.ms, curve: .ease),
+        Transition('background-color', duration: 150.ms, curve: .ease),
+        Transition('border-color', duration: 150.ms, curve: .ease),
+        Transition('color', duration: 150.ms, curve: .ease),
+      ]),
+      alignItems: .center,
+      gap: .all(0.5.rem),
+      fontSize: 0.95.rem,
+      fontWeight: .w600,
+      lineHeight: const .expression('1'),
+      whiteSpace: .noWrap,
+    ),
+    css('.af-button:hover').styles(transform: .translate(y: (-1).px)),
+    css(
+      '.af-button-primary',
+    ).styles(color: accentInkColor, backgroundColor: accentColor),
+    css('.af-button-primary:hover').styles(backgroundColor: accentHoverColor),
+    css('.af-button-secondary').styles(
+      color: textColor,
+      backgroundColor: surfaceColor,
+      raw: {'border-color': border2Color.value},
+    ),
+    css(
+      '.af-button-secondary:hover',
+    ).styles(raw: {'border-color': accentColor.value}),
+  ];
 
   @override
   Component build(BuildContext context) {

@@ -146,8 +146,8 @@ with pointed at the tokens. Space Grotesk and JetBrains Mono. Dark is the design
 variant where the accent is a fill with black ink on it, the way leancode.co does it.
 
 Code blocks and live examples share one window frame: a title bar with three dots (the first one yellow), a mono title,
-and the content below. The landing page in `../landing/web/landing.css` uses the same tokens and the same frame, so the
-homepage and the docs read as one site.
+and the content below. The landing page (`../landing/lib/styles.dart` writes the tokens from the generated palette, the
+components style the frame) uses the same tokens and the same frame, so the homepage and the docs read as one site.
 
 ## Deployment
 

@@ -18,32 +18,47 @@ jaspr serve        # http://localhost:8080, rebuilds on change
 jaspr build        # build/jaspr/{index.html,landing.js,landing-icon.svg,fonts/}
 ```
 
-From `../docs_app`, `npm run landing:build` runs the build and copies those four into `public/`. The stylesheet is
-inlined into `index.html`, so it is not copied on its own.
+From `../docs_app`, `npm run landing:build` runs the build and copies those four into `public/`. There is no
+stylesheet to copy: the styles are Dart, and the build inlines them into `index.html`.
 
 ## Layout
 
 | Path                   | What lives there                                                                                                 |
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `lib/main.server.dart` | The entrypoint: the `<head>` (font preloads, the inlined stylesheet, theme bootstrap, Open Graph) and the `App`. |
+| `lib/main.server.dart` | The entrypoint: the `<head>` (font preloads, theme bootstrap, Open Graph) and the `App`.                         |
 | `lib/app.dart`         | The page: header, hero, three sections with a live demo each, features, agent skill band, footer.                |
-| `lib/components/`      | One file per section; `example_frame.dart` is the window around a live demo.                                     |
+| `lib/components/`      | One file per section, each with its styles in a `@css` getter; `example_frame.dart` is the window around a demo. |
 | `lib/examples.dart`    | Reads the demos from `../docs_app/content/landing/*.mdx` and maps them to the compiled bundle.                   |
-| `lib/highlight.dart`   | Build-time Dart syntax highlighting (`syntax_highlight_lite`) into `tk-*` spans.                                 |
+| `lib/highlight.dart`   | Build-time Dart syntax highlighting (`syntax_highlight_lite`) into `tk-*` spans, and their colours.              |
 | `lib/site.dart`        | URLs, copy, the package version from `../pubspec.yaml`. `SITE_URL` (a `--dart-define`) for previews.             |
-| `lib/palette.generated.dart` | The palette — `enum Palette`, `afLight`/`afDark` — generated from `../docs_app/palette.json` by `npm run palette:generate` there. The `<head>` writes the `--af-*` variables from it. |
-| `web/landing.css`      | The stylesheet: everything but the colors, dark by default. Inlined at build, after the variables.               |
+| `lib/palette.generated.dart` | The palette — `enum Palette`, `afLight`/`afDark` — generated from `../docs_app/palette.json` by `npm run palette:generate` there. |
+| `lib/styles.dart`      | Fonts, the `--af-*` tokens (written from the palette), the reset and utilities. See "Styles" below.              |
 | `web/fonts/`           | Space Grotesk and JetBrains Mono, self-hosted (see its README), so no third-party request blocks paint.          |
 | `web/landing.js`       | The client: Flutter islands, copy buttons, theme toggle. No framework, no build step.                            |
+
+## Styles
+
+There is no stylesheet file. Every component declares the rules for the classes it renders in a
+`@css static List<StyleRule> get styles` getter next to its `build`, the way [ciach's
+website](https://github.com/leancodepl/ciach/tree/main/website/lib) does; `lib/styles.dart` holds what is not any one
+component's: the `@font-face` rules, the `--af-*` tokens for the light (`:root`) and dark (`.dark`) themes — written
+from `afLight` and `afDark` in `lib/palette.generated.dart`, so the colors come from `docs_app/palette.json` like the
+docs' — the reset, the container and skip-link utilities and the reduced-motion rule. `jaspr_builder` collects every `@css` getter into
+`lib/main.server.options.dart` (generated, not committed), and Jaspr renders them as one `<style>` in the `<head>` —
+global rules first, then components in file order — so nothing render-blocking is fetched.
+
+Jaspr's typed properties cover most of it; what they cannot say (`color-mix()`, `:has()`, `counter()`, an `infinite`
+animation, a `@font-face` with a weight range) goes into the `raw` map of the same rule. Where two files style the same
+element, the cascade follows the bundle order, so a rule in `sections.dart` can refine one from `section.dart`.
 
 ## Fonts
 
 `web/fonts/` holds Space Grotesk and JetBrains Mono as variable fonts in their Latin and Latin Extended subsets, the
 same files [ciach.leancode.co](https://github.com/leancodepl/ciach/tree/main/website/web/fonts) ships, under the SIL
 Open Font License (the `OFL-*.txt` files alongside). Self-hosting them means no third-party stylesheet blocks the first
-paint; `landing.css` opens with the `@font-face` rules and `main.server.dart` preloads the two Latin files, which carry
-every glyph above the fold. To update a font, fetch the Google Fonts CSS with a modern Chrome user agent and copy the
-`woff2` files it points at.
+paint; `lib/styles.dart` opens with the `@font-face` rules and `main.server.dart` preloads the two Latin files, which
+carry every glyph above the fold. To update a font, fetch the Google Fonts CSS with a modern Chrome user agent and copy
+the `woff2` files it points at.
 
 ## Live demos
 
