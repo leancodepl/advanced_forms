@@ -6,9 +6,10 @@
  * The advanced_forms homepage — the LeanCode design system: black surfaces,
  * one CTA yellow, Space Grotesk and JetBrains Mono. Dark is the design; light
  * is a paper variant where the accent is a fill with black ink on it. The
- * colors are the `--af-*` variables of af-tokens.css, generated from
- * docs_app/palette.json and shared with the docs app under /docs, so the two
- * read as one site; this file holds everything else.
+ * colors are `--af-*` variables that main.server.dart writes ahead of this
+ * sheet from lib/palette.generated.dart — the palette in docs_app/palette.json,
+ * shared with the docs app under /docs, so the two read as one site; this file
+ * holds everything else.
  */
 
 /* ---------- Fonts ---------- */

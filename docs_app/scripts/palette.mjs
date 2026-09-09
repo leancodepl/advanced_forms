@@ -16,10 +16,11 @@
  *   check     fail if any of them differs from what palette.json says
  *
  * Generated (committed, so every checkout builds without running this):
- *   app/af-tokens.css, ../landing/web/af-tokens.css   the tokens as CSS variables
- *   lib/palette.generated.ts                          the swatches and tokens for the OG cards and the logo
- *   flutter/lib/support/palette.generated.dart        the swatches and tokens as Flutter Colors, for the live demos
- *   ../landing/lib/palette.generated.dart             the same as Jaspr Colors, and the landing page's theme-color
+ *   app/af-tokens.css                            the tokens as CSS variables, for the docs' stylesheet
+ *   lib/palette.generated.ts                     the swatches and tokens for the OG cards and the logo
+ *   flutter/lib/support/palette.generated.dart   the swatches and tokens as Flutter Colors, for the live demos
+ *   ../landing/lib/palette.generated.dart        the same as Jaspr Colors; the landing page writes its
+ *                                                `--af-*` variables and theme-color from it at build time
  *
  * Recolored in place: SVG elements carrying `data-palette="<swatch>"` get that
  * swatch as their fill. The logos and icons stay single files of artwork; the
@@ -138,9 +139,10 @@ function paletteTs() {
  * The palette as Dart: `enum Palette` names the swatches, `AfTheme` holds one
  * theme's tokens, and `afLight`/`afDark` build them from the enum — the same
  * shape ciach's landing page uses. `members` are the enum's color accessors,
- * which differ between Flutter's and Jaspr's `Color`.
+ * which differ between Flutter's and Jaspr's `Color`; `themeMembers` are extra
+ * members of `AfTheme`.
  */
-function dart({ header, import: importLine, members, trailer = "" }) {
+function dart({ header, import: importLine, members, themeMembers = "", trailer = "" }) {
   const swatches = Object.entries(palette.swatches)
     .map(([name, { hex, note }]) => `${doc(note)}  ${name}(0x${hex.slice(1)}),\n`)
     .join("\n")
@@ -169,7 +171,7 @@ function dart({ header, import: importLine, members, trailer = "" }) {
     `/// page paint them.\n` +
     `class AfTheme {\n` +
     `  const AfTheme({\n${params}  });\n\n` +
-    `${fields}}\n\n` +
+    `${fields}${themeMembers}}\n\n` +
     `/// The light theme.\n` +
     `final afLight = AfTheme(\n${theme(palette.themes.light)});\n\n` +
     `/// The dark theme.\n` +
@@ -208,6 +210,11 @@ function landingDart() {
       `  String get hex => color.value;\n\n` +
       `  Color alpha(double alpha) =>\n` +
       `      Color.rgba(rgb >> 16 & 0xff, rgb >> 8 & 0xff, rgb & 0xff, alpha);\n`,
+    themeMembers:
+      `\n  /// The theme as the \`--af-*\` custom properties the stylesheet reads.\n` +
+      `  Map<String, Color> get cssVariables => {\n` +
+      tokenNames.map(name => `    '${cssName(name)}': ${name},\n`).join("") +
+      `  };\n`,
     trailer:
       `\n/// The dark theme's page background, for \`<meta name="theme-color">\`.\n` +
       `final themeColor = afDark.bg.value;\n`,
@@ -228,7 +235,6 @@ function recolorSvg(file, svg) {
 
 const generated = [
   { file: join(docsApp, "app", "af-tokens.css"), content: tokensCss },
-  { file: join(landing, "web", "af-tokens.css"), content: tokensCss },
   { file: join(docsApp, "lib", "palette.generated.ts"), content: paletteTs },
   { file: join(docsApp, "flutter", "lib", "support", "palette.generated.dart"), content: flutterDart },
   { file: join(landing, "lib", "palette.generated.dart"), content: landingDart },

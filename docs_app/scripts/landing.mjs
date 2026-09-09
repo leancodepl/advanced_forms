@@ -29,8 +29,7 @@ const publicDir = path.join(docsApp, "public")
 
 /**
  * What ends up in public/. Everything else in build/jaspr is build tooling —
- * including af-tokens.css and landing.css, which the page inlines into its
- * <head>.
+ * including landing.css, which the page inlines into its <head>.
  */
 const artifacts = ["index.html", "landing.js", "landing-icon.svg", "fonts"]
 

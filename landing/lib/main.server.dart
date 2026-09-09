@@ -96,23 +96,27 @@ Future<void> main() async {
   );
 }
 
-/// The stylesheet, inlined: `web/af-tokens.css` (the colors, generated from
-/// `docs_app/palette.json`) and then `web/landing.css`. The page is one HTML
-/// document with nothing render-blocking left but its stylesheet, and that
-/// stylesheet is 6 KB over the wire: fetching it separately would cost a round
-/// trip before the first paint and save nothing, since there is no second page
-/// to reuse it on. Read on every render so `jaspr serve` picks up an edit on
-/// reload.
+/// The stylesheet, inlined: the `--af-*` colors of both themes, written from
+/// the palette (`palette.generated.dart`, from `docs_app/palette.json`), and
+/// then `web/landing.css`. The page is one HTML document with nothing
+/// render-blocking left but its stylesheet, and that stylesheet is 6 KB over
+/// the wire: fetching it separately would cost a round trip before the first
+/// paint and save nothing, since there is no second page to reuse it on. Read
+/// on every render so `jaspr serve` picks up an edit on reload.
 class _Stylesheet extends StatelessComponent {
   const _Stylesheet();
 
   @override
   Component build(BuildContext context) {
-    final css = [
-      'web/af-tokens.css',
-      'web/landing.css',
-    ].map((file) => File(file).readAsStringSync()).join('\n');
-    return RawText('<style>${_minify(css)}</style>');
+    final tokens = [(':root', afLight), ('.dark', afDark)].map((theme) {
+      final (selector, palette) = theme;
+      final declarations = palette.cssVariables.entries
+          .map((variable) => '${variable.key}:${variable.value.value}')
+          .join(';');
+      return '$selector{$declarations}';
+    }).join();
+    final css = File('web/landing.css').readAsStringSync();
+    return RawText('<style>$tokens${_minify(css)}</style>');
   }
 
   /// Drops comments and the whitespace the grammar does not need. Strings in

@@ -162,6 +162,29 @@ class AfTheme {
 
   /// Success signal.
   final Color ok;
+
+  /// The theme as the `--af-*` custom properties the stylesheet reads.
+  Map<String, Color> get cssVariables => {
+    '--af-bg': bg,
+    '--af-bg-2': bg2,
+    '--af-surface': surface,
+    '--af-surface-2': surface2,
+    '--af-border': border,
+    '--af-border-2': border2,
+    '--af-text': text,
+    '--af-text-2': text2,
+    '--af-muted': muted,
+    '--af-accent': accent,
+    '--af-accent-ink': accentInk,
+    '--af-accent-text': accentText,
+    '--af-accent-hover': accentHover,
+    '--af-accent-soft': accentSoft,
+    '--af-primary': primary,
+    '--af-primary-ink': primaryInk,
+    '--af-overlay': overlay,
+    '--af-danger': danger,
+    '--af-ok': ok,
+  };
 }
 
 /// The light theme.
