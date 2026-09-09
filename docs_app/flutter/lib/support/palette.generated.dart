@@ -4,10 +4,86 @@
 
 import 'dart:ui' show Color;
 
+/// The LeanCode swatches, as `palette.json` names them, each a packed
+/// `0xRRGGBB`.
+enum Palette {
+  /// Primary surface. LeanCode is black-first; yellow is the exception.
+  black(0x000000),
+
+  /// Text and headings on black; the light document surface.
+  white(0xffffff),
+
+  /// Call to action and emphasis only. Text on it is always black.
+  ctaYellow(0xf0ff00),
+
+  /// Body copy on dark surfaces.
+  bodyGray(0xd8d8d4),
+
+  /// Secondary text, captions, metadata on dark.
+  mutedGray(0xa3a3a0),
+
+  /// Secondary text, captions, metadata on light: the design system's #757575,
+  /// a step darker so it also reads AA on paper.
+  mutedOnLight(0x6f6f6f),
+
+  /// Cards and panels on black, warm-tinted.
+  surface(0x151513),
+
+  /// A second surface step on black.
+  surface2(0x1d1d1a),
+
+  /// The 1px hairline on white.
+  lineOnLight(0xe5e5e5),
+
+  /// Error signal, sparingly.
+  error(0xe64239),
+
+  /// Success signal, sparingly.
+  success(0x80c340),
+
+  /// Site tint: a section background a step above black.
+  nearBlack(0x0a0a08),
+
+  /// Site tint: a section background a step below white.
+  paper(0xf7f7f5),
+
+  /// Site tint: a second surface step on white.
+  paper2(0xf2f2ef),
+
+  /// Site tint: body copy on light surfaces.
+  bodyOnLight(0x3f3f3c),
+
+  /// Site tint: the stronger hairline on white, for controls.
+  lineStrongOnLight(0xcfcfcb),
+
+  /// Site tint: the CTA yellow lifted, for the primary button's hover.
+  ctaYellowLight(0xf5ff4d),
+
+  /// Site tint: the CTA yellow as text on white, which yellow itself never is.
+  ctaYellowOnLight(0x606a00),
+
+  /// Site tint: the error signal as text on white.
+  errorOnLight(0xbe2119),
+
+  /// Site tint: the success signal as text on white.
+  successOnLight(0x527b28);
+
+  const Palette(this.rgb);
+
+  final int rgb;
+
+  Color get color => Color(0xff000000 | rgb);
+
+  /// `#rrggbb`.
+  String get hex => '#${rgb.toRadixString(16).padLeft(6, '0')}';
+
+  Color alpha(double alpha) => color.withValues(alpha: alpha);
+}
+
 /// The site's `--af-*` tokens for one theme, as the docs and the landing
 /// page paint them.
-class AfPalette {
-  const AfPalette({
+class AfTheme {
+  const AfTheme({
     required this.bg,
     required this.bg2,
     required this.surface,
@@ -88,47 +164,47 @@ class AfPalette {
 }
 
 /// The light theme.
-const afLight = AfPalette(
-  bg: Color(0xFFFFFFFF),
-  bg2: Color(0xFFF7F7F5),
-  surface: Color(0xFFFFFFFF),
-  surface2: Color(0xFFF2F2EF),
-  border: Color(0xFFE5E5E5),
-  border2: Color(0xFFCFCFCB),
-  text: Color(0xFF000000),
-  text2: Color(0xFF3F3F3C),
-  muted: Color(0xFF6F6F6F),
-  accent: Color(0xFFF0FF00),
-  accentInk: Color(0xFF000000),
-  accentText: Color(0xFF606A00),
-  accentHover: Color(0xFFF5FF4D),
-  accentSoft: Color(0x73F0FF00),
-  primary: Color(0xFF000000),
-  primaryInk: Color(0xFFF0FF00),
-  overlay: Color(0x4D000000),
-  danger: Color(0xFFBE2119),
-  ok: Color(0xFF527B28),
+final afLight = AfTheme(
+  bg: Palette.white.color,
+  bg2: Palette.paper.color,
+  surface: Palette.white.color,
+  surface2: Palette.paper2.color,
+  border: Palette.lineOnLight.color,
+  border2: Palette.lineStrongOnLight.color,
+  text: Palette.black.color,
+  text2: Palette.bodyOnLight.color,
+  muted: Palette.mutedOnLight.color,
+  accent: Palette.ctaYellow.color,
+  accentInk: Palette.black.color,
+  accentText: Palette.ctaYellowOnLight.color,
+  accentHover: Palette.ctaYellowLight.color,
+  accentSoft: Palette.ctaYellow.alpha(0.45),
+  primary: Palette.black.color,
+  primaryInk: Palette.ctaYellow.color,
+  overlay: Palette.black.alpha(0.3),
+  danger: Palette.errorOnLight.color,
+  ok: Palette.successOnLight.color,
 );
 
 /// The dark theme.
-const afDark = AfPalette(
-  bg: Color(0xFF000000),
-  bg2: Color(0xFF0A0A08),
-  surface: Color(0xFF151513),
-  surface2: Color(0xFF1D1D1A),
-  border: Color(0x1FFFFFFF),
-  border2: Color(0x33FFFFFF),
-  text: Color(0xFFFFFFFF),
-  text2: Color(0xFFD8D8D4),
-  muted: Color(0xFFA3A3A0),
-  accent: Color(0xFFF0FF00),
-  accentInk: Color(0xFF000000),
-  accentText: Color(0xFFF0FF00),
-  accentHover: Color(0xFFF5FF4D),
-  accentSoft: Color(0x0FF0FF00),
-  primary: Color(0xFFF0FF00),
-  primaryInk: Color(0xFF000000),
-  overlay: Color(0x99000000),
-  danger: Color(0xFFE64239),
-  ok: Color(0xFF80C340),
+final afDark = AfTheme(
+  bg: Palette.black.color,
+  bg2: Palette.nearBlack.color,
+  surface: Palette.surface.color,
+  surface2: Palette.surface2.color,
+  border: Palette.white.alpha(0.12),
+  border2: Palette.white.alpha(0.2),
+  text: Palette.white.color,
+  text2: Palette.bodyGray.color,
+  muted: Palette.mutedGray.color,
+  accent: Palette.ctaYellow.color,
+  accentInk: Palette.black.color,
+  accentText: Palette.ctaYellow.color,
+  accentHover: Palette.ctaYellowLight.color,
+  accentSoft: Palette.ctaYellow.alpha(0.06),
+  primary: Palette.ctaYellow.color,
+  primaryInk: Palette.black.color,
+  overlay: Palette.black.alpha(0.6),
+  danger: Palette.error.color,
+  ok: Palette.success.color,
 );

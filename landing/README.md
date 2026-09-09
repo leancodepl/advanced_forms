@@ -31,6 +31,7 @@ inlined into `index.html`, so it is not copied on its own.
 | `lib/examples.dart`    | Reads the demos from `../docs_app/content/landing/*.mdx` and maps them to the compiled bundle.                   |
 | `lib/highlight.dart`   | Build-time Dart syntax highlighting (`syntax_highlight_lite`) into `tk-*` spans.                                 |
 | `lib/site.dart`        | URLs, copy, the package version from `../pubspec.yaml`. `SITE_URL` (a `--dart-define`) for previews.             |
+| `lib/palette.generated.dart` | The palette as Dart — `enum Palette`, `afLight`/`afDark` — generated from `../docs_app/palette.json`.       |
 | `web/af-tokens.css`    | The `--af-*` colors, generated from `../docs_app/palette.json` by `npm run palette:generate` there. Inlined.      |
 | `web/landing.css`      | The stylesheet: everything but the colors, dark by default. Inlined at build, after the tokens.                  |
 | `web/fonts/`           | Space Grotesk and JetBrains Mono, self-hosted (see its README), so no third-party request blocks paint.          |

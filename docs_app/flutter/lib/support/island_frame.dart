@@ -95,28 +95,30 @@ class _IslandFrameState extends State<IslandFrame> {
 /// it — a yellow *text* would not be legible on paper.
 ThemeData islandTheme(Brightness brightness) {
   final dark = brightness == Brightness.dark;
-  final palette = dark ? afDark : afLight;
-
-  final accent = palette.accent;
-  final accentInk = palette.accentInk;
-  final ink = palette.text;
-  final ink2 = palette.text2;
-  final muted = palette.muted;
-  final surface = palette.surface;
-  final surface2 = palette.surface2;
-  final border = palette.border2;
-  final borderSoft = palette.border;
-  final danger = palette.danger;
-  final ok = palette.ok;
-
-  final primary = palette.primary;
-  final onPrimary = palette.primaryInk;
+  final AfTheme(
+    :accent,
+    :accentInk,
+    :accentSoft,
+    text: ink,
+    text2: ink2,
+    :muted,
+    :surface,
+    :surface2,
+    border2: border,
+    border: borderSoft,
+    :danger,
+    :ok,
+    :primary,
+    primaryInk: onPrimary,
+  ) = dark
+      ? afDark
+      : afLight;
 
   final scheme = ColorScheme(
     brightness: brightness,
     primary: primary,
     onPrimary: onPrimary,
-    primaryContainer: palette.accentSoft,
+    primaryContainer: accentSoft,
     onPrimaryContainer: ink,
     secondary: accent,
     onSecondary: accentInk,

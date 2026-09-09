@@ -2,5 +2,213 @@
 // ../../docs_app/palette.json — do not edit. Run `npm run palette:generate`
 // in docs_app after changing the palette.
 
+import 'package:jaspr/dom.dart';
+
+/// The LeanCode swatches, as `palette.json` names them, each a packed
+/// `0xRRGGBB`.
+enum Palette {
+  /// Primary surface. LeanCode is black-first; yellow is the exception.
+  black(0x000000),
+
+  /// Text and headings on black; the light document surface.
+  white(0xffffff),
+
+  /// Call to action and emphasis only. Text on it is always black.
+  ctaYellow(0xf0ff00),
+
+  /// Body copy on dark surfaces.
+  bodyGray(0xd8d8d4),
+
+  /// Secondary text, captions, metadata on dark.
+  mutedGray(0xa3a3a0),
+
+  /// Secondary text, captions, metadata on light: the design system's #757575,
+  /// a step darker so it also reads AA on paper.
+  mutedOnLight(0x6f6f6f),
+
+  /// Cards and panels on black, warm-tinted.
+  surface(0x151513),
+
+  /// A second surface step on black.
+  surface2(0x1d1d1a),
+
+  /// The 1px hairline on white.
+  lineOnLight(0xe5e5e5),
+
+  /// Error signal, sparingly.
+  error(0xe64239),
+
+  /// Success signal, sparingly.
+  success(0x80c340),
+
+  /// Site tint: a section background a step above black.
+  nearBlack(0x0a0a08),
+
+  /// Site tint: a section background a step below white.
+  paper(0xf7f7f5),
+
+  /// Site tint: a second surface step on white.
+  paper2(0xf2f2ef),
+
+  /// Site tint: body copy on light surfaces.
+  bodyOnLight(0x3f3f3c),
+
+  /// Site tint: the stronger hairline on white, for controls.
+  lineStrongOnLight(0xcfcfcb),
+
+  /// Site tint: the CTA yellow lifted, for the primary button's hover.
+  ctaYellowLight(0xf5ff4d),
+
+  /// Site tint: the CTA yellow as text on white, which yellow itself never is.
+  ctaYellowOnLight(0x606a00),
+
+  /// Site tint: the error signal as text on white.
+  errorOnLight(0xbe2119),
+
+  /// Site tint: the success signal as text on white.
+  successOnLight(0x527b28);
+
+  const Palette(this.rgb);
+
+  final int rgb;
+
+  Color get color => Color.value(rgb);
+
+  /// `#rrggbb`.
+  String get hex => color.value;
+
+  Color alpha(double alpha) =>
+      Color.rgba(rgb >> 16 & 0xff, rgb >> 8 & 0xff, rgb & 0xff, alpha);
+}
+
+/// The site's `--af-*` tokens for one theme, as the docs and the landing
+/// page paint them.
+class AfTheme {
+  const AfTheme({
+    required this.bg,
+    required this.bg2,
+    required this.surface,
+    required this.surface2,
+    required this.border,
+    required this.border2,
+    required this.text,
+    required this.text2,
+    required this.muted,
+    required this.accent,
+    required this.accentInk,
+    required this.accentText,
+    required this.accentHover,
+    required this.accentSoft,
+    required this.primary,
+    required this.primaryInk,
+    required this.overlay,
+    required this.danger,
+    required this.ok,
+  });
+
+  /// Page background.
+  final Color bg;
+
+  /// Section background: footer, code panels.
+  final Color bg2;
+
+  /// Cards and frames.
+  final Color surface;
+
+  /// Bars and chips on a surface.
+  final Color surface2;
+
+  /// The hairline.
+  final Color border;
+
+  /// The stronger hairline, for controls.
+  final Color border2;
+
+  /// Headings and primary text.
+  final Color text;
+
+  /// Body copy.
+  final Color text2;
+
+  /// Captions and metadata.
+  final Color muted;
+
+  /// The CTA yellow, as a fill.
+  final Color accent;
+
+  /// Text on the accent.
+  final Color accentInk;
+
+  /// The accent as text.
+  final Color accentText;
+
+  /// The primary button's hover fill.
+  final Color accentHover;
+
+  /// The accent as a wash behind icons, pills and glows.
+  final Color accentSoft;
+
+  /// The docs' primary action fill.
+  final Color primary;
+
+  /// Text on the primary fill.
+  final Color primaryInk;
+
+  /// The scrim behind dialogs.
+  final Color overlay;
+
+  /// Error signal.
+  final Color danger;
+
+  /// Success signal.
+  final Color ok;
+}
+
+/// The light theme.
+final afLight = AfTheme(
+  bg: Palette.white.color,
+  bg2: Palette.paper.color,
+  surface: Palette.white.color,
+  surface2: Palette.paper2.color,
+  border: Palette.lineOnLight.color,
+  border2: Palette.lineStrongOnLight.color,
+  text: Palette.black.color,
+  text2: Palette.bodyOnLight.color,
+  muted: Palette.mutedOnLight.color,
+  accent: Palette.ctaYellow.color,
+  accentInk: Palette.black.color,
+  accentText: Palette.ctaYellowOnLight.color,
+  accentHover: Palette.ctaYellowLight.color,
+  accentSoft: Palette.ctaYellow.alpha(0.45),
+  primary: Palette.black.color,
+  primaryInk: Palette.ctaYellow.color,
+  overlay: Palette.black.alpha(0.3),
+  danger: Palette.errorOnLight.color,
+  ok: Palette.successOnLight.color,
+);
+
+/// The dark theme.
+final afDark = AfTheme(
+  bg: Palette.black.color,
+  bg2: Palette.nearBlack.color,
+  surface: Palette.surface.color,
+  surface2: Palette.surface2.color,
+  border: Palette.white.alpha(0.12),
+  border2: Palette.white.alpha(0.2),
+  text: Palette.white.color,
+  text2: Palette.bodyGray.color,
+  muted: Palette.mutedGray.color,
+  accent: Palette.ctaYellow.color,
+  accentInk: Palette.black.color,
+  accentText: Palette.ctaYellow.color,
+  accentHover: Palette.ctaYellowLight.color,
+  accentSoft: Palette.ctaYellow.alpha(0.06),
+  primary: Palette.ctaYellow.color,
+  primaryInk: Palette.black.color,
+  overlay: Palette.black.alpha(0.6),
+  danger: Palette.error.color,
+  ok: Palette.success.color,
+);
+
 /// The dark theme's page background, for `<meta name="theme-color">`.
-const themeColor = '#000000';
+final themeColor = afDark.bg.value;
