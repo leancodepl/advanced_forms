@@ -28,7 +28,7 @@ const output = path.join(landing, "build", "jaspr")
 const publicDir = path.join(docsApp, "public")
 
 /** What ends up in public/. Everything else in build/jaspr is build tooling. */
-const artifacts = ["index.html", "landing.css", "landing.js", "landing-icon.svg"]
+const artifacts = ["index.html", "af-tokens.css", "landing.css", "landing.js", "landing-icon.svg"]
 
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, { stdio: "inherit", cwd: landing, ...options })

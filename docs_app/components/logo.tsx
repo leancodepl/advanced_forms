@@ -5,6 +5,7 @@
  */
 import logoDark from "@/public/logo-dark.svg"
 import logoLight from "@/public/logo-light.svg"
+import { swatches } from "@/lib/palette"
 import { appName } from "@/lib/shared"
 import { cn } from "@/lib/cn"
 
@@ -48,8 +49,8 @@ export function LogoMark({ size = 56 }: { size?: number }) {
         transform="matrix(0.5 0.866025 0.866025 -0.5 209.527 183.354)"
         fill="white"
       />
-      <rect x="282.922" y="171.48" width="147.351" height="31.4026" rx="15.7013" fill="#F9FF07" />
-      <rect x="317.948" y="221" width="112.325" height="31.4026" rx="15.7013" fill="#F9FF07" />
+      <rect x="282.922" y="171.48" width="147.351" height="31.4026" rx="15.7013" fill={swatches.ctaYellow} />
+      <rect x="317.948" y="221" width="112.325" height="31.4026" rx="15.7013" fill={swatches.ctaYellow} />
     </svg>
   )
 }

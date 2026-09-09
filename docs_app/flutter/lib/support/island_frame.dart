@@ -5,6 +5,7 @@
  *   edited-by: Claude Fable 5.1 (Claude Code)
  */
 import 'package:advanced_forms_docs_islands/support/example_log.dart';
+import 'package:advanced_forms_docs_islands/support/palette.generated.dart';
 import 'package:flutter/material.dart';
 
 /// The part of an island that has nothing to do with the browser.
@@ -88,32 +89,34 @@ class _IslandFrameState extends State<IslandFrame> {
 
 /// The LeanCode design system, as a Material theme.
 ///
-/// The same tokens the docs page paints with: near-black surfaces, one lime
-/// accent, rounded filled inputs. In the light variant the accent becomes a
-/// fill with dark ink on it — a lime *text* would not be legible on paper.
+/// The same `--af-*` tokens the docs page paints with, from
+/// `palette.generated.dart`: black surfaces, one CTA yellow, rounded filled
+/// inputs. In the light variant the accent becomes a fill with black ink on
+/// it — a yellow *text* would not be legible on paper.
 ThemeData islandTheme(Brightness brightness) {
   final dark = brightness == Brightness.dark;
+  final palette = dark ? afDark : afLight;
 
-  const accent = Color(0xFFEDFF2F);
-  const accentInk = Color(0xFF0B0C00);
-  final ink = dark ? const Color(0xFFF4F4F1) : const Color(0xFF0B0B0D);
-  final ink2 = dark ? const Color(0xFFB7B7B3) : const Color(0xFF4B4B52);
-  const muted = Color(0xFF7D7D84);
-  final surface = dark ? const Color(0xFF101013) : Colors.white;
-  final surface2 = dark ? const Color(0xFF16161B) : const Color(0xFFEFEFE9);
-  final border = dark ? const Color(0xFF33333E) : const Color(0xFFCFCFC7);
-  final borderSoft = dark ? const Color(0xFF23232B) : const Color(0xFFE2E2DC);
-  final danger = dark ? const Color(0xFFFF5D5D) : const Color(0xFFD93636);
-  final ok = dark ? const Color(0xFF58E08A) : const Color(0xFF1F9D55);
+  final accent = palette.accent;
+  final accentInk = palette.accentInk;
+  final ink = palette.text;
+  final ink2 = palette.text2;
+  final muted = palette.muted;
+  final surface = palette.surface;
+  final surface2 = palette.surface2;
+  final border = palette.border2;
+  final borderSoft = palette.border;
+  final danger = palette.danger;
+  final ok = palette.ok;
 
-  final primary = dark ? accent : const Color(0xFF0B0B0D);
-  final onPrimary = dark ? accentInk : accent;
+  final primary = palette.primary;
+  final onPrimary = palette.primaryInk;
 
   final scheme = ColorScheme(
     brightness: brightness,
     primary: primary,
     onPrimary: onPrimary,
-    primaryContainer: accent.withValues(alpha: dark ? 0.16 : 0.45),
+    primaryContainer: palette.accentSoft,
     onPrimaryContainer: ink,
     secondary: accent,
     onSecondary: accentInk,
@@ -137,7 +140,7 @@ ThemeData islandTheme(Brightness brightness) {
     scrim: Colors.black,
     inverseSurface: ink,
     onInverseSurface: surface,
-    inversePrimary: dark ? const Color(0xFF0B0B0D) : accent,
+    inversePrimary: (dark ? afLight : afDark).primary,
   );
 
   final rounded = RoundedRectangleBorder(
@@ -161,10 +164,10 @@ ThemeData islandTheme(Brightness brightness) {
       fillColor: surface2,
       isDense: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      hintStyle: const TextStyle(color: muted),
+      hintStyle: TextStyle(color: muted),
       labelStyle: TextStyle(color: ink2),
       floatingLabelStyle: TextStyle(color: primary),
-      helperStyle: const TextStyle(color: muted),
+      helperStyle: TextStyle(color: muted),
       errorStyle: TextStyle(color: danger),
       prefixIconColor: muted,
       suffixIconColor: muted,

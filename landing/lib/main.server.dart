@@ -5,6 +5,7 @@ import 'dart:convert';
 
 import 'package:advanced_forms_landing/app.dart';
 import 'package:advanced_forms_landing/highlight.dart';
+import 'package:advanced_forms_landing/palette.generated.dart';
 import 'package:advanced_forms_landing/site.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/server.dart';
@@ -23,11 +24,11 @@ Future<void> main() async {
     Document(
       lang: 'en',
       title: seoTitle,
-      meta: const {
+      meta: {
         'description': description,
         'author': 'LeanCode',
         'robots': 'index, follow, max-image-preview:large',
-        'theme-color': '#050505',
+        'theme-color': themeColor,
         'application-name': siteName,
         'generator': 'Jaspr',
         'twitter:card': 'summary_large_image',
@@ -58,6 +59,8 @@ Future<void> main() async {
               '?family=Space+Grotesk:wght@400;500;600;700'
               '&family=JetBrains+Mono:wght@400;600&display=swap',
         ),
+        // The colors, generated from docs_app/palette.json; then the rest.
+        const link(rel: 'stylesheet', href: '/af-tokens.css'),
         const link(rel: 'stylesheet', href: '/landing.css'),
         // Applied before paint so a light-theme visitor never sees a dark flash.
         const script(

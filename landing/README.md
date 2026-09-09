@@ -30,7 +30,8 @@ From `../docs_app`, `npm run landing:build` runs the build and copies those four
 | `lib/examples.dart`     | Reads the demos from `../docs_app/content/landing/*.mdx` and maps them to the compiled bundle.    |
 | `lib/highlight.dart`    | Build-time Dart syntax highlighting (`syntax_highlight_lite`) into `tk-*` spans.                 |
 | `lib/site.dart`         | URLs, copy, the package version from `../pubspec.yaml`. `SITE_URL` (a `--dart-define`) for previews. |
-| `web/landing.css`       | The stylesheet: the same `--af-*` tokens as `docs_app/app/global.css`, dark by default.          |
+| `web/af-tokens.css`     | The `--af-*` color tokens, generated from `../docs_app/palette.json` by `npm run palette:generate` there; the docs use the same file. |
+| `web/landing.css`       | The stylesheet: everything but the colors, dark by default.                                      |
 | `web/landing.js`        | The client: Flutter islands, copy buttons, theme toggle. No framework, no build step.            |
 
 ## Live demos

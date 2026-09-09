@@ -100,6 +100,12 @@ jobs:
       - name: Check the example manifest
         run: npm run examples:check
 
+      # Fails when a generated copy of the palette (the landing page's and the
+      # docs' tokens, the social cards, the Flutter demos, the logos) no longer
+      # matches palette.json; `npm run palette:generate` rewrites them.
+      - name: Check the palette
+        run: npm run palette:check
+
       - name: Generate the example sources
         run: npm run examples:generate
 

@@ -3,32 +3,17 @@
  *   model: Claude Fable 5.1
  *   harness: Claude Code
  *
- * The advanced_forms homepage — the LeanCode design system as used on
- * ciach.leancode.co: near-black surfaces, one lime accent, Space Grotesk and
- * JetBrains Mono. Dark is the design; light is a paper variant where the
- * accent is a fill with dark ink on it. The docs app under /docs uses the same
- * tokens, so the two read as one site.
+ * The advanced_forms homepage — the LeanCode design system: black surfaces,
+ * one CTA yellow, Space Grotesk and JetBrains Mono. Dark is the design; light
+ * is a paper variant where the accent is a fill with black ink on it. The
+ * colors are the `--af-*` variables of af-tokens.css, generated from
+ * docs_app/palette.json and shared with the docs app under /docs, so the two
+ * read as one site; this file holds everything else.
  */
 
 /* ---------- Tokens ---------- */
 
 :root {
-  --af-bg: #f6f6f2;
-  --af-bg-2: #ffffff;
-  --af-surface: #ffffff;
-  --af-surface-2: #efefe9;
-  --af-border: #e2e2dc;
-  --af-border-2: #cfcfc7;
-  --af-text: #0b0b0d;
-  --af-text-2: #4b4b52;
-  --af-muted: #7d7d84;
-  --af-accent: #edff2f;
-  --af-accent-2: #c9dc00;
-  --af-accent-ink: #0b0c00;
-  --af-accent-text: #5f6e00;
-  --af-accent-soft: rgba(237, 255, 47, 0.45);
-  --af-danger: #d93636;
-  --af-ok: #1f9d55;
   --af-shadow: 0 24px 60px -32px rgba(0, 0, 0, 0.25);
   --af-radius: 14px;
   --af-header-h: 3.5rem;
@@ -51,19 +36,6 @@
 }
 
 .dark {
-  --af-bg: #050505;
-  --af-bg-2: #0b0b0d;
-  --af-surface: #101013;
-  --af-surface-2: #16161b;
-  --af-border: #23232b;
-  --af-border-2: #33333e;
-  --af-text: #f4f4f1;
-  --af-text-2: #b7b7b3;
-  --af-muted: #7d7d84;
-  --af-accent-text: #edff2f;
-  --af-accent-soft: rgba(237, 255, 47, 0.12);
-  --af-danger: #ff5d5d;
-  --af-ok: #58e08a;
   --af-shadow: 0 24px 60px -32px rgba(0, 0, 0, 0.9);
 
   /* Code tokens: Material Palenight, the palette ciach uses. */
@@ -339,7 +311,7 @@ h3 code {
   font-size: 0.8rem;
   font-weight: 500;
   color: var(--af-text-2);
-  background: rgba(127, 127, 127, 0.04);
+  background: color-mix(in srgb, var(--af-text) 4%, transparent);
   white-space: nowrap;
 }
 
@@ -350,7 +322,7 @@ h3 code {
 }
 
 a.af-pill-accent:hover {
-  border-color: var(--af-accent-2);
+  border-color: var(--af-accent);
 }
 
 .af-button {
@@ -382,7 +354,7 @@ a.af-pill-accent:hover {
 }
 
 .af-button-primary:hover {
-  background: #f6ff6b;
+  background: var(--af-accent-hover);
 }
 
 .af-button-secondary {
@@ -392,7 +364,7 @@ a.af-pill-accent:hover {
 }
 
 .af-button-secondary:hover {
-  border-color: var(--af-accent-2);
+  border-color: var(--af-accent);
 }
 
 .af-card {
@@ -431,18 +403,26 @@ a.af-pill-accent:hover {
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(55% 45% at 72% 18%, rgba(237, 255, 47, 0.55), transparent 65%),
-    radial-gradient(40% 40% at 10% 90%, rgba(237, 255, 47, 0.25), transparent 60%),
-    repeating-linear-gradient(-58deg, transparent 0 148px, rgba(11, 11, 13, 0.06) 148px 149px);
+    radial-gradient(55% 45% at 72% 18%, color-mix(in srgb, var(--af-accent) 55%, transparent), transparent 65%),
+    radial-gradient(40% 40% at 10% 90%, color-mix(in srgb, var(--af-accent) 25%, transparent), transparent 60%),
+    repeating-linear-gradient(
+      -58deg,
+      transparent 0 148px,
+      color-mix(in srgb, var(--af-text) 6%, transparent) 148px 149px
+    );
   mask-image: linear-gradient(to bottom, #000 30%, transparent 100%);
   -webkit-mask-image: linear-gradient(to bottom, #000 30%, transparent 100%);
 }
 
 .dark .af-hero-bg {
   background:
-    radial-gradient(55% 45% at 72% 18%, rgba(237, 255, 47, 0.16), transparent 65%),
-    radial-gradient(40% 40% at 10% 90%, rgba(237, 255, 47, 0.07), transparent 60%),
-    repeating-linear-gradient(-58deg, transparent 0 148px, rgba(237, 255, 47, 0.09) 148px 149px);
+    radial-gradient(55% 45% at 72% 18%, color-mix(in srgb, var(--af-accent) 16%, transparent), transparent 65%),
+    radial-gradient(40% 40% at 10% 90%, color-mix(in srgb, var(--af-accent) 7%, transparent), transparent 60%),
+    repeating-linear-gradient(
+      -58deg,
+      transparent 0 148px,
+      color-mix(in srgb, var(--af-accent) 9%, transparent) 148px 149px
+    );
 }
 
 .af-hero-grid {
@@ -581,7 +561,7 @@ a.af-pill-accent:hover {
 
 .af-copy-button:hover {
   color: var(--af-text);
-  border-color: var(--af-accent-2);
+  border-color: var(--af-accent);
 }
 
 .af-copy-done {

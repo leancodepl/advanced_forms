@@ -8,6 +8,7 @@ public/index.html
 public/landing.css
 public/landing.js
 public/landing-icon.svg
+public/af-tokens.css
 # Written by `next dev` (agentRules). Regenerated on every run.
 AGENTS.md
 CLAUDE.md
