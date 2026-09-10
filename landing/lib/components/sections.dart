@@ -1,8 +1,10 @@
 import 'package:advanced_forms_landing/components/button.dart';
+import 'package:advanced_forms_landing/components/card.dart';
 import 'package:advanced_forms_landing/components/example_frame.dart';
 import 'package:advanced_forms_landing/components/icons.dart';
 import 'package:advanced_forms_landing/components/pill.dart';
 import 'package:advanced_forms_landing/components/section.dart';
+import 'package:advanced_forms_landing/components/text.dart';
 import 'package:advanced_forms_landing/examples.dart';
 import 'package:advanced_forms_landing/site.dart';
 import 'package:advanced_forms_landing/styles.dart';
@@ -30,16 +32,16 @@ class ModelSection extends StatelessComponent {
       ),
       children: [
         ExampleFrame(example: example, layout: ExampleLayout.split),
-        ul(classes: 'af-checklist', [
-          li([
+        Checklist([
+          [
             strong(rich('One call to `registerFields`')),
             ...rich(
               ' and the form owns the fields: it disposes them, tracks '
               '`wasModified`, and reaches them in `validate`, `resetAll` and '
               'every other broadcast.',
             ),
-          ]),
-          li([
+          ],
+          [
             strong(
               rich(
                 'The field owns its `TextEditingController` and `FocusNode`.',
@@ -49,14 +51,14 @@ class ModelSection extends StatelessComponent {
               ' Bind the widget to `field.textController` and programmatic '
               'writes — `reset`, `prefill`, a relation — show up on screen.',
             ),
-          ]),
-          li([
+          ],
+          [
             const strong([.text('Errors are your type.')]),
             ...rich(
               ' `E` is whatever you choose: a string, an enum, a sealed class. '
               'The package never formats a message.',
             ),
-          ]),
+          ],
         ]),
       ],
     );
@@ -134,18 +136,24 @@ class ValidationSection extends StatelessComponent {
 
   final LandingExample example;
 
-  /// The numbered rules and the three mode cards. The cards themselves are
-  /// `.af-card` and `.af-feature-icon`, defined in [Features.styles].
+  static const _rulesList = ClassName('af-rules');
+  static const _rule = ClassName('af-rule');
+  static const _modesGrid = ClassName('af-modes');
+  static const _mode = ClassName('af-mode');
+  static const _modeHead = ClassName('af-mode-head');
+  static const _modeWhen = ClassName('af-mode-when');
+
+  /// The numbered rules, and what the mode cards add to a [Card].
   @css
   static List<StyleRule> get styles => [
     css(
-      '.af-rules',
+      _rulesList.selector,
     ).styles(display: .grid, gap: .all(1.rem), raw: {'counter-reset': 'rule'}),
-    css('.af-rule').styles(
+    css(_rule.selector).styles(
       position: const .relative(),
       padding: .only(left: 3.25.rem),
     ),
-    css('.af-rule::before').styles(
+    css('${_rule.selector}::before').styles(
       position: .absolute(top: 0.15.rem, left: .zero),
       color: accentTextColor,
       fontFamily: fontMono,
@@ -156,32 +164,31 @@ class ValidationSection extends StatelessComponent {
         'content': 'counter(rule, decimal-leading-zero)',
       },
     ),
-    css('.af-rule h3').styles(
+    css('${_rule.selector} h3').styles(
       margin: .only(bottom: 0.35.rem),
       fontSize: 1.1.rem,
     ),
-    css('.af-rule p').styles(color: text2Color, fontSize: 0.98.rem),
-    css('.af-modes').styles(margin: .only(top: 2.5.rem)),
-    css(
-      '.af-mode',
-    ).styles(display: .flex, flexDirection: .column, gap: .all(0.35.rem)),
-    css('.af-mode:hover').combine(cardHover),
-    css('.af-mode-head').styles(
+    css('${_rule.selector} p').styles(color: text2Color, fontSize: 0.98.rem),
+    css(_modesGrid.selector).styles(margin: .only(top: 2.5.rem)),
+    css(_mode.selector).styles(gap: .all(0.35.rem)),
+    css(_modeHead.selector).styles(
       display: .flex,
       justifyContent: .spaceBetween,
       gap: .all(0.75.rem),
       raw: {'align-items': 'flex-start'},
     ),
-    css('.af-mode h3').styles(
+    css('${_mode.selector} h3').styles(
       margin: .only(top: 0.25.rem, right: .zero, bottom: .zero, left: .zero),
     ),
-    css('.af-mode h3 code').styles(fontSize: 0.95.rem, fontWeight: .w600),
-    css('.af-mode-when').styles(
+    css(
+      '${_mode.selector} h3 code',
+    ).styles(fontSize: 0.95.rem, fontWeight: .w600),
+    css(_modeWhen.selector).styles(
       fontWeight: .w600,
       raw: {'color': '${textColor.value} !important'},
     ),
     css.media(MediaQuery.all(minWidth: 960.px), [
-      css('.af-rules').styles(
+      css(_rulesList.selector).styles(
         gap: .all(2.rem),
         raw: {'grid-template-columns': 'repeat(3, 1fr)'},
       ),
@@ -201,35 +208,32 @@ class ValidationSection extends StatelessComponent {
         ),
       ],
       children: [
-        ol(classes: 'af-rules', [
+        ol(classes: _rulesList.name, [
           for (final rule in _rules)
-            li(classes: 'af-rule', [
+            li(classes: _rule.name, [
               h3([.text(rule.title)]),
               p(rich(rule.body)),
             ]),
         ]),
-        ul(classes: 'af-feature-grid af-modes', [
+        CardGrid(className: _modesGrid, [
           for (final mode in _modes)
-            li(classes: 'af-card af-mode', [
-              div(classes: 'af-mode-head', [
-                span(classes: 'af-feature-icon', [mode.icon.build(size: 22)]),
+            Card(className: _mode, [
+              div(classes: _modeHead.name, [
+                CardIcon(mode.icon),
                 Pill(mode.tag, accent: true),
               ]),
               h3([
                 code([.text(mode.name)]),
               ]),
-              p(classes: 'af-mode-when', [.text(mode.when)]),
+              p(classes: _modeWhen.name, [.text(mode.when)]),
               p([.text(mode.body)]),
             ]),
         ]),
-        const p(classes: 'af-section-more', [
-          a(href: '$docsPath/validation/modes', [
-            .text('Every mode and every event, explained →'),
-          ]),
-        ]),
-        div(classes: 'af-section-demo', [
-          ExampleFrame(example: example, layout: ExampleLayout.split),
-        ]),
+        const MoreLink(
+          'Every mode and every event, explained →',
+          href: '$docsPath/validation/modes',
+        ),
+        DemoSlot(ExampleFrame(example: example, layout: ExampleLayout.split)),
       ],
     );
   }
@@ -254,8 +258,8 @@ class AsyncSection extends StatelessComponent {
       ),
       children: [
         ExampleFrame(example: example, layout: ExampleLayout.split),
-        ul(classes: 'af-checklist', [
-          li([
+        Checklist([
+          [
             const strong([
               .text('Debounced while typing, immediate on submit.'),
             ]),
@@ -263,34 +267,33 @@ class AsyncSection extends StatelessComponent {
               ' `await validate()` flushes a waiting check rather than '
               'reporting the field bad for being busy.',
             ),
-          ]),
-          const li([
+          ],
+          const [
             strong([.text('A stale answer can never land.')]),
             .text(
               ' A new value replaces the round in flight; the old result is '
               'dropped, not applied late.',
             ),
-          ]),
-          const li([
+          ],
+          const [
             strong([.text('Verdicts are reused.')]),
             .text(
               ' A second submit on an unchanged form makes zero network calls.',
             ),
-          ]),
-          li([
+          ],
+          [
             const strong([.text('A failure is not an error.')]),
             ...rich(
               ' A validator that throws or times out puts the field on '
               '`failedValidation`: not valid, not stuck, retried by the next '
               'submit.',
             ),
-          ]),
+          ],
         ]),
-        const p(classes: 'af-section-more', [
-          a(href: '$docsPath/validation/async', [
-            .text('How rounds, verdicts and failures fit together →'),
-          ]),
-        ]),
+        const MoreLink(
+          'How rounds, verdicts and failures fit together →',
+          href: '$docsPath/validation/async',
+        ),
       ],
     );
   }
@@ -366,63 +369,17 @@ const _features = [
   ),
 ];
 
-/// A card lifts a little when hovered. Shared by the feature and mode cards.
-final cardHover = Styles(
-  transform: .translate(y: (-2).px),
-  raw: {'border-color': 'var(--af-border-2)'},
-);
-
+/// "Everything a form needs": the feature cards.
 class Features extends StatelessComponent {
   const Features({super.key});
 
-  /// The card grid, and the card vocabulary (`.af-card`, `.af-feature-icon`)
-  /// the mode cards in [ValidationSection] reuse.
+  static const _feature = ClassName('af-feature');
+
+  /// What a feature card adds to a [Card].
   @css
   static List<StyleRule> get styles => [
-    css('.af-card').styles(
-      padding: .all(1.5.rem),
-      border: hairline(borderColor),
-      radius: const .circular(radius),
-      transition: .combine([
-        Transition('border-color', duration: 200.ms, curve: .ease),
-        Transition('transform', duration: 200.ms, curve: .ease),
-      ]),
-      backgroundColor: surfaceColor,
-    ),
-    css('.af-card h3').styles(
-      margin: .only(top: .zero, right: .zero, bottom: 0.5.rem, left: .zero),
-      fontSize: 1.15.rem,
-      fontWeight: .w600,
-    ),
-    css(
-      '.af-card p',
-    ).styles(margin: .zero, color: text2Color, fontSize: 0.95.rem),
-    css('.af-feature-grid').styles(
-      display: .grid,
-      gap: .all(1.rem),
-      raw: {
-        'grid-template-columns':
-            'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
-      },
-    ),
-    css(
-      '.af-feature',
-    ).styles(display: .flex, flexDirection: .column, gap: .all(0.6.rem)),
-    css('.af-feature:hover').combine(cardHover),
-    css('.af-feature-icon').styles(
-      display: .inlineGrid,
-      width: 42.px,
-      height: 42.px,
-      margin: .only(bottom: 0.5.rem),
-      radius: .circular(12.px),
-      color: accentTextColor,
-      backgroundColor: accentSoftColor,
-      raw: {
-        'place-items': 'center',
-        'border': '1px solid ${colorMix(accentColor, 35, with_: borderColor)}',
-      },
-    ),
-    css('.af-feature p').styles(raw: {'flex': '1'}),
+    css(_feature.selector).styles(gap: .all(0.6.rem)),
+    css('${_feature.selector} p').styles(raw: {'flex': '1'}),
   ];
 
   @override
@@ -439,10 +396,10 @@ class Features extends StatelessComponent {
         ),
       ],
       children: [
-        ul(classes: 'af-feature-grid', [
+        CardGrid([
           for (final feature in _features)
-            li(classes: 'af-card af-feature', [
-              span(classes: 'af-feature-icon', [feature.icon.build(size: 22)]),
+            Card(className: _feature, [
+              CardIcon(feature.icon),
               h3([.text(feature.title)]),
               p(rich(feature.body)),
             ]),
@@ -456,9 +413,11 @@ class Features extends StatelessComponent {
 class SkillBand extends StatelessComponent {
   const SkillBand({super.key});
 
+  static const _band = ClassName('af-band');
+
   @css
   static List<StyleRule> get styles => [
-    css('.af-band').styles(
+    css(_band.selector).styles(
       display: .grid,
       padding: .all(2.rem),
       border: hairline(borderColor),
@@ -471,13 +430,12 @@ class SkillBand extends StatelessComponent {
             'transparent 70%), var(--af-surface)',
       },
     ),
-    css('.af-band > *').styles(minWidth: .zero),
+    css('${_band.selector} > *').styles(minWidth: .zero),
     css(
-      '.af-band h2',
+      '${_band.selector} h2',
     ).styles(fontSize: const .expression('clamp(1.5rem, 2.6vw, 2rem)')),
-    css('.af-band .af-hero-actions').styles(margin: const .only(top: .zero)),
     css.media(MediaQuery.all(minWidth: 760.px), [
-      css('.af-band').styles(
+      css(_band.selector).styles(
         padding: .all(2.5.rem),
         raw: {'grid-template-columns': '1.3fr 1fr'},
       ),
@@ -486,41 +444,37 @@ class SkillBand extends StatelessComponent {
 
   @override
   Component build(BuildContext context) {
-    return section(
-      classes: 'af-section',
-      attributes: const {'aria-labelledby': 'skill-heading'},
-      [
-        div(classes: 'af-container', [
-          div(classes: 'af-band', [
-            div([
-              const p(classes: 'af-eyebrow', [.text('Agent skill')]),
-              const h2(id: 'skill-heading', [
-                .text('Your coding agent already knows this API.'),
-              ]),
-              p(
-                classes: 'af-lead',
-                rich(
-                  'The repository ships an Agent Skill that teaches Claude '
-                  'Code — or any agent that supports skills — the full '
-                  '`advanced_forms` API, so it generates fields, validation, '
-                  'cross-field logic and subforms idiomatically.',
-                ),
-              ),
+    return Section.plain(
+      labelledBy: 'skill-heading',
+      children: [
+        div(classes: _band.name, [
+          div([
+            const Eyebrow('Agent skill'),
+            const h2(id: 'skill-heading', [
+              .text('Your coding agent already knows this API.'),
             ]),
-            const div(classes: 'af-hero-actions', [
-              Button(
-                'Install the skill',
-                href: '$docsPath/agent-skill',
-                leading: .bot,
+            Lead(
+              rich(
+                'The repository ships an Agent Skill that teaches Claude '
+                'Code — or any agent that supports skills — the full '
+                '`advanced_forms` API, so it generates fields, validation, '
+                'cross-field logic and subforms idiomatically.',
               ),
-              Button(
-                'Read SKILL.md',
-                href: skillUrl,
-                variant: .secondary,
-                external: true,
-                trailing: .arrowRight,
-              ),
-            ]),
+            ),
+          ]),
+          const ButtonRow(flush: true, [
+            Button(
+              'Install the skill',
+              href: '$docsPath/agent-skill',
+              leading: .bot,
+            ),
+            Button(
+              'Read SKILL.md',
+              href: skillUrl,
+              variant: .secondary,
+              external: true,
+              trailing: .arrowRight,
+            ),
           ]),
         ]),
       ],

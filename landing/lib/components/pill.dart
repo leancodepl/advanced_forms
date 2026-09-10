@@ -1,4 +1,4 @@
-import 'package:advanced_forms_landing/components/section.dart';
+import 'package:advanced_forms_landing/components/text.dart';
 import 'package:advanced_forms_landing/styles.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
@@ -12,9 +12,12 @@ class Pill extends StatelessComponent {
   final String? href;
   final bool accent;
 
+  static const _pill = ClassName('af-pill');
+  static const _accent = ClassName('af-pill-accent');
+
   @css
   static List<StyleRule> get styles => [
-    css('.af-pill').styles(
+    css(_pill.selector).styles(
       display: .inlineFlex,
       padding: .symmetric(vertical: 0.3.rem, horizontal: 0.7.rem),
       border: hairline(border2Color),
@@ -27,19 +30,19 @@ class Pill extends StatelessComponent {
       whiteSpace: .noWrap,
       raw: {'background': colorMix(textColor, 4)},
     ),
-    css('.af-pill-accent').styles(
+    css(_accent.selector).styles(
       color: accentTextColor,
       backgroundColor: accentSoftColor,
       raw: {'border-color': colorMix(accentColor, 45, with_: border2Color)},
     ),
     css(
-      'a.af-pill-accent:hover',
+      'a${_accent.selector}:hover',
     ).styles(raw: {'border-color': accentColor.value}),
   ];
 
   @override
   Component build(BuildContext context) {
-    final classes = accent ? 'af-pill af-pill-accent' : 'af-pill';
+    final classes = (accent ? _pill + _accent : _pill).name;
     if (href case final href?) {
       return externalLink(href, classes: classes, [.text(text)]);
     }

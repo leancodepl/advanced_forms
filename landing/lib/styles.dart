@@ -1,7 +1,7 @@
 /// Design tokens and the site-wide rules: the fonts, the reset, typography and
-/// shared utilities. Everything else lives next to the component it styles, in
-/// `@css` getters; Jaspr collects all of them into one stylesheet, global rules
-/// first, and inlines it into the page's `<head>`.
+/// the one layout utility. Everything else lives next to the component it
+/// styles, in `@css` getters; Jaspr collects all of them into one stylesheet,
+/// global rules first, and inlines it into the page's `<head>`.
 ///
 /// The LeanCode design system: black surfaces, one CTA yellow, Space Grotesk
 /// and JetBrains Mono. Dark is the design; light is a paper variant where the
@@ -13,6 +13,30 @@ library;
 
 import 'package:advanced_forms_landing/palette.generated.dart';
 import 'package:jaspr/dom.dart';
+
+// ---------- Class names ----------
+
+/// A CSS class name. A component keeps the classes it renders as `ClassName`
+/// constants and spells both its selectors and its `classes:` attributes from
+/// them, so a name is written once, a rename cannot miss a use, and a class
+/// another component needs is a typed reference to its owner rather than a
+/// string that happens to match.
+///
+/// The class names `web/landing.js` looks up, and those the docs app's
+/// `global.css` shares for the example frame and the logo, are a contract with
+/// those files: rename them in step or not at all.
+extension type const ClassName(String name) {
+  /// This class in a selector: `.name`. For a [+] combination, `.a.b`: an
+  /// element that carries both.
+  String get selector => '.${name.replaceAll(' ', '.')}';
+
+  /// This class and [other] on the same element: `a b` as a `classes:` value.
+  ClassName operator +(ClassName other) => ClassName('$name ${other.name}');
+}
+
+/// Centers the content column: `min(100% - 2.5rem, var(--af-container))`
+/// wide. The one class any component may put on an element of its own.
+const container = ClassName('af-container');
 
 // ---------- Tokens ----------
 //
@@ -74,13 +98,16 @@ String colorMix(Color color, int percent, {Color? with_}) =>
     '${with_?.value ?? 'transparent'})';
 
 /// Everything the page needs before any component draws: fonts, tokens, the
-/// reset, utilities and the motion preference.
+/// reset, the container and the motion preference.
 @css
 List<StyleRule> get styles => [
   ..._fonts,
   ..._tokens,
   ..._reset,
-  ..._utilities,
+  css(container.selector).styles(
+    width: const .expression('min(100% - 2.5rem, var(--af-container))'),
+    raw: {'margin-inline': 'auto'},
+  ),
   ..._motion,
 ];
 
@@ -245,34 +272,6 @@ List<StyleRule> get _reset => [
   css(
     '::selection',
   ).styles(color: accentInkColor, backgroundColor: accentColor),
-];
-
-// ---------- Utilities ----------
-
-List<StyleRule> get _utilities => [
-  css('.af-container').styles(
-    width: const .expression('min(100% - 2.5rem, var(--af-container))'),
-    raw: {'margin-inline': 'auto'},
-  ),
-  // Grid and flex children may hold wide code samples; let them shrink and
-  // scroll instead of stretching the page.
-  css(
-    '.af-landing > *, .af-hero-grid > *, .af-feature-grid > *, '
-    '.af-example-body > *',
-  ).styles(minWidth: .zero),
-  css('.af-skip-link').styles(
-    position: .fixed(top: 12.px, left: 12.px),
-    zIndex: const ZIndex(100),
-    padding: .symmetric(vertical: 0.6.rem, horizontal: 1.rem),
-    radius: .circular(8.px),
-    transition: Transition('transform', duration: 200.ms, curve: .ease),
-    transform: .translate(y: (-200).percent),
-    color: accentInkColor,
-    fontWeight: .w600,
-    backgroundColor: accentColor,
-  ),
-  css('.af-skip-link:focus').styles(transform: const .translate(y: .zero)),
-  css('.af-accent').styles(color: accentTextColor),
 ];
 
 // ---------- Motion ----------

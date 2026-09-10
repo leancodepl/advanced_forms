@@ -1,5 +1,6 @@
 import 'package:advanced_forms_landing/components/icons.dart';
-import 'package:advanced_forms_landing/components/section.dart';
+import 'package:advanced_forms_landing/components/logo.dart';
+import 'package:advanced_forms_landing/components/text.dart';
 import 'package:advanced_forms_landing/site.dart';
 import 'package:advanced_forms_landing/styles.dart';
 import 'package:jaspr/dom.dart';
@@ -11,9 +12,18 @@ import 'package:jaspr/jaspr.dart';
 class NavBar extends StatelessComponent {
   const NavBar({super.key});
 
+  static const _header = ClassName('af-header');
+  static const _nav = ClassName('af-nav');
+  static const _brand = ClassName('af-brand');
+  static const _links = ClassName('af-nav-links');
+  static const _secondary = ClassName('af-nav-secondary');
+  static const _toggle = ClassName('af-theme-toggle');
+  static const _sun = ClassName('af-theme-sun');
+  static const _moon = ClassName('af-theme-moon');
+
   @css
   static List<StyleRule> get styles => [
-    css('.af-header').styles(
+    css(_header.selector).styles(
       position: const .sticky(top: .zero),
       zIndex: const ZIndex(50),
       height: headerHeight,
@@ -24,29 +34,18 @@ class NavBar extends StatelessComponent {
         '-webkit-backdrop-filter': 'saturate(140%) blur(14px)',
       },
     ),
-    css('.af-nav').styles(
+    css(_nav.selector).styles(
       display: .flex,
       height: 100.percent,
       justifyContent: .spaceBetween,
       alignItems: .center,
       gap: .all(1.rem),
     ),
-    css('.af-brand').styles(display: .inlineFlex, alignItems: .center),
-    css('.af-logo').styles(display: .inlineFlex, alignItems: .center),
-    // The intrinsic size is the SVG's viewBox; the height is set here and the
-    // browser keeps the ratio, so the space is reserved before the file
-    // arrives.
+    css(_brand.selector).styles(display: .inlineFlex, alignItems: .center),
     css(
-      '.af-logo img',
-    ).styles(width: .auto, height: 34.px, raw: {'vertical-align': 'middle'}),
-    // One file per theme.
-    css('.af-theme-dark').styles(display: .none),
-    css('.dark .af-theme-light').styles(display: .none),
-    css('.dark .af-theme-dark').styles(display: .inline),
-    css(
-      '.af-nav-links',
+      _links.selector,
     ).styles(display: .flex, alignItems: .center, gap: .all(0.25.rem)),
-    css('.af-nav-links a, .af-theme-toggle').styles(
+    css('${_links.selector} a, ${_toggle.selector}').styles(
       display: .inlineFlex,
       padding: .symmetric(vertical: 0.5.rem, horizontal: 0.85.rem),
       radius: .circular(999.px),
@@ -61,44 +60,44 @@ class NavBar extends StatelessComponent {
       fontWeight: .w500,
     ),
     css(
-      '.af-nav-links a:hover, .af-theme-toggle:hover',
+      '${_links.selector} a:hover, ${_toggle.selector}:hover',
     ).styles(color: textColor, backgroundColor: surface2Color),
-    css('.af-theme-toggle').styles(padding: .all(0.5.rem)),
-    css('.af-theme-moon').styles(display: .none),
-    css('.dark .af-theme-sun').styles(display: .none),
-    css('.dark .af-theme-moon').styles(display: .inlineFlex),
+    css(_toggle.selector).styles(padding: .all(0.5.rem)),
+    // One icon per theme.
+    css(_moon.selector).styles(display: .none),
+    css('.dark ${_sun.selector}').styles(display: .none),
+    css('.dark ${_moon.selector}').styles(display: .inlineFlex),
     css.media(MediaQuery.all(maxWidth: 540.px), [
-      css('.af-nav-links a, .af-theme-toggle').styles(
+      css('${_links.selector} a, ${_toggle.selector}').styles(
         padding: .symmetric(vertical: 0.5.rem, horizontal: 0.55.rem),
         fontSize: 0.9.rem,
       ),
-      css('.af-nav-links').styles(gap: const .all(.zero)),
+      css(_links.selector).styles(gap: const .all(.zero)),
       // Examples is reachable from the docs; the row has to fit next to the
       // logo.
-      css('.af-nav-secondary').styles(display: .none),
-      css('.af-logo img').styles(height: 28.px),
+      css(_secondary.selector).styles(display: .none),
     ]),
   ];
 
   @override
   Component build(BuildContext context) {
-    return header(classes: 'af-header', [
+    return header(classes: _header.name, [
       nav(
-        classes: 'af-container af-nav',
+        classes: (container + _nav).name,
         attributes: const {'aria-label': 'Primary'},
         [
           a(
             href: '/',
-            classes: 'af-brand',
+            classes: _brand.name,
             attributes: const {'aria-label': '$siteName home'},
-            [logo()],
+            const [Logo()],
           ),
-          ul(classes: 'af-nav-links', [
+          ul(classes: _links.name, [
             const li([
               a(href: docsPath, [.text('Docs')]),
             ]),
             // Secondary: dropped on narrow screens, where the row would not fit.
-            const li(classes: 'af-nav-secondary', [
+            li(classes: _secondary.name, const [
               a(href: '$docsPath/example-app', [.text('Examples')]),
             ]),
             li([
@@ -113,7 +112,7 @@ class NavBar extends StatelessComponent {
             ]),
             li([
               button(
-                classes: 'af-theme-toggle',
+                classes: _toggle.name,
                 attributes: const {
                   'type': 'button',
                   'data-theme-toggle': '',
@@ -121,8 +120,8 @@ class NavBar extends StatelessComponent {
                   'title': 'Toggle theme',
                 },
                 [
-                  span(classes: 'af-theme-sun', [Icon.sun.build(size: 18)]),
-                  span(classes: 'af-theme-moon', [Icon.moon.build(size: 18)]),
+                  span(classes: _sun.name, [Icon.sun.build(size: 18)]),
+                  span(classes: _moon.name, [Icon.moon.build(size: 18)]),
                 ],
               ),
             ]),
@@ -132,24 +131,3 @@ class NavBar extends StatelessComponent {
     ]);
   }
 }
-
-/// The designed word mark: `logo-light.svg` on the light theme and
-/// `logo-dark.svg` on the dark one. Both files are served by the docs app from
-/// its `public/` folder, so the two sites share one pair of assets. Sized and
-/// switched by `.af-logo` and `.af-theme-*` in [NavBar.styles].
-Component logo() => const span(classes: 'af-logo', [
-  img(
-    src: '/logo-light.svg',
-    alt: siteName,
-    width: 1480,
-    height: 388,
-    classes: 'af-theme-light',
-  ),
-  img(
-    src: '/logo-dark.svg',
-    alt: siteName,
-    width: 1480,
-    height: 388,
-    classes: 'af-theme-dark',
-  ),
-]);

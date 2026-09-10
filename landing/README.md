@@ -23,18 +23,18 @@ stylesheet to copy: the styles are Dart, and the build inlines them into `index.
 
 ## Layout
 
-| Path                   | What lives there                                                                                                 |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `lib/main.server.dart` | The entrypoint: the `<head>` (font preloads, theme bootstrap, Open Graph) and the `App`.                         |
-| `lib/app.dart`         | The page: header, hero, three sections with a live demo each, features, agent skill band, footer.                |
-| `lib/components/`      | One file per section, each with its styles in a `@css` getter; `example_frame.dart` is the window around a demo. |
-| `lib/examples.dart`    | Reads the demos from `../docs_app/content/landing/*.mdx` and maps them to the compiled bundle.                   |
-| `lib/highlight.dart`   | Build-time Dart syntax highlighting (`syntax_highlight_lite`) into `tk-*` spans, and their colours.              |
-| `lib/site.dart`        | URLs, copy, the package version from `../pubspec.yaml`. `SITE_URL` (a `--dart-define`) for previews.             |
+| Path                         | What lives there                                                                                                                  |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `lib/main.server.dart`       | The entrypoint: the `<head>` (font preloads, theme bootstrap, Open Graph) and the `App`.                                          |
+| `lib/app.dart`               | The page: header, hero, three sections with a live demo each, features, agent skill band, footer.                                 |
+| `lib/components/`            | One file per section or shared piece, each with its styles in a `@css` getter; `example_frame.dart` is the window around a demo.  |
+| `lib/examples.dart`          | Reads the demos from `../docs_app/content/landing/*.mdx` and maps them to the compiled bundle.                                    |
+| `lib/highlight.dart`         | Build-time Dart syntax highlighting (`syntax_highlight_lite`) into `tk-*` spans, and their colours.                               |
+| `lib/site.dart`              | URLs, copy, the package version from `../pubspec.yaml`. `SITE_URL` (a `--dart-define`) for previews.                              |
 | `lib/palette.generated.dart` | The palette — `enum Palette`, `afLight`/`afDark` — generated from `../docs_app/palette.json` by `npm run palette:generate` there. |
-| `lib/styles.dart`      | Fonts, the `--af-*` tokens (written from the palette), the reset and utilities. See "Styles" below.              |
-| `web/fonts/`           | Space Grotesk and JetBrains Mono, self-hosted (see its README), so no third-party request blocks paint.          |
-| `web/landing.js`       | The client: Flutter islands, copy buttons, theme toggle. No framework, no build step.                            |
+| `lib/styles.dart`            | Fonts, the `--af-*` tokens (written from the palette), the reset, the container and `ClassName`. See "Styles" below.              |
+| `web/fonts/`                 | Space Grotesk and JetBrains Mono, self-hosted (see its README), so no third-party request blocks paint.                           |
+| `web/landing.js`             | The client: Flutter islands, copy buttons, theme toggle. No framework, no build step.                                             |
 
 ## Styles
 
@@ -42,13 +42,26 @@ There is no stylesheet file. Every component declares the rules for the classes 
 `@css static List<StyleRule> get styles` getter next to its `build`; `lib/styles.dart` holds what is not any one
 component's: the `@font-face` rules, the `--af-*` tokens for the light (`:root`) and dark (`.dark`) themes — written
 from `afLight` and `afDark` in `lib/palette.generated.dart`, so the colors come from `docs_app/palette.json` like the
-docs' — the reset, the container and skip-link utilities and the reduced-motion rule. `jaspr_builder` collects every `@css` getter into
-`lib/main.server.options.dart` (generated, not committed), and Jaspr renders them as one `<style>` in the `<head>` —
-global rules first, then components in file order — so nothing render-blocking is fetched.
+docs' — the reset, the `af-container` column and the reduced-motion rule. `jaspr_builder` collects every `@css` getter
+into `lib/main.server.options.dart` (generated, not committed), and Jaspr renders them as one `<style>` in the `<head>`
+— global rules first, then components in file order — so nothing render-blocking is fetched.
+
+A component owns the classes it renders. Each one is a `ClassName` constant on the component (`extension type` over the
+string, in `lib/styles.dart`), and both the selector (`css(_hero.selector)`, `'${_grid.selector} > *'`) and the
+attribute (`classes: _hero.name`, `(container + _grid).name`) are spelled from it, so a name is written once and a
+rename cannot miss a use. Nothing styles or renders another component's class by string: a piece two places need is
+its own component — `CopyButton`, `Logo`, `ButtonRow`, the `Card` family, the `Section` vocabulary (`Eyebrow`, `Lead`,
+`Checklist`, `MoreLink`, `DemoSlot`) — and where a parent has to reach into a child, the child exports the constant
+(`CopyButton.labelClassName`, hidden by the hero's install line on narrow screens). Variants are enum values carrying
+their class (`ButtonVariant`, `CopyButtonVariant`), and `Card`/`CardGrid` take a caller's `className` for the caller's
+own rules on them. Two sets of names are a contract with other files and stay as they are: the ones `web/landing.js`
+looks up (`af-example*`, `af-tab-input`, `af-code-panel`) and the ones the docs' `global.css` shares for the example
+frame, the logo and `af-landing`.
 
 Jaspr's typed properties cover most of it; what they cannot say (`color-mix()`, `:has()`, `counter()`, an `infinite`
 animation, a `@font-face` with a weight range) goes into the `raw` map of the same rule. Where two files style the same
-element, the cascade follows the bundle order, so a rule in `sections.dart` can refine one from `section.dart`.
+element, the cascade follows the bundle order — files alphabetically, getters alphabetically within a file — so a
+`Card` rule in `card.dart` is refined by the mode card's `className` rules in `sections.dart`.
 
 ## Fonts
 
