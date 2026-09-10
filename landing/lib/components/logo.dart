@@ -17,8 +17,9 @@ class Logo extends StatelessComponent {
 
   static const _logo = ClassName.shared('af-logo');
   static const _large = ClassName.shared('af-logo-large');
-  static const _light = ClassName('af-logo-light', owner: Logo);
-  static const _dark = ClassName('af-logo-dark', owner: Logo);
+  static const _class = ClassScope<Logo>();
+  static final _light = _class('af-logo-light');
+  static final _dark = _class('af-logo-dark');
 
   @css
   static List<StyleRule> get styles => [

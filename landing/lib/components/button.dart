@@ -7,14 +7,15 @@ import 'package:jaspr/jaspr.dart';
 /// How a [Button] is filled.
 enum ButtonVariant {
   /// Accent fill with dark text: the one action a section wants taken.
-  primary(ClassName('af-button-primary', owner: Button)),
+  primary('af-button-primary'),
 
   /// Surface fill with a hairline: the alternative next to a primary button.
-  secondary(ClassName('af-button-secondary', owner: Button));
+  secondary('af-button-secondary');
 
-  const ButtonVariant(this.className);
+  const ButtonVariant(this._local);
 
-  final ClassName className;
+  /// The class, before [Button] scopes it.
+  final String _local;
 }
 
 /// A pill-shaped call to action that links somewhere. [external] links open in
@@ -38,7 +39,12 @@ class Button extends StatelessComponent {
   final Icon? leading;
   final Icon? trailing;
 
-  static const _button = ClassName('af-button', owner: Button);
+  static const _class = ClassScope<Button>();
+  static final _button = _class('af-button');
+
+  /// The class of a [variant].
+  static ClassName _variantClass(ButtonVariant variant) =>
+      _class(variant._local);
 
   @css
   static List<StyleRule> get styles => [
@@ -63,24 +69,24 @@ class Button extends StatelessComponent {
     ),
     css('${_button.selector}:hover').styles(transform: .translate(y: (-1).px)),
     css(
-      ButtonVariant.primary.className.selector,
+      _variantClass(.primary).selector,
     ).styles(color: accentInkColor, backgroundColor: accentColor),
     css(
-      '${ButtonVariant.primary.className.selector}:hover',
+      '${_variantClass(.primary).selector}:hover',
     ).styles(backgroundColor: accentHoverColor),
-    css(ButtonVariant.secondary.className.selector).styles(
+    css(_variantClass(.secondary).selector).styles(
       color: textColor,
       backgroundColor: surfaceColor,
       raw: {'border-color': border2Color.value},
     ),
     css(
-      '${ButtonVariant.secondary.className.selector}:hover',
+      '${_variantClass(.secondary).selector}:hover',
     ).styles(raw: {'border-color': accentColor.value}),
   ];
 
   @override
   Component build(BuildContext context) {
-    final classes = (_button + variant.className).name;
+    final classes = (_button + _variantClass(variant)).name;
     final children = <Component>[
       if (leading case final icon?) icon.build(size: 18),
       .text(label),
@@ -110,9 +116,10 @@ class ButtonRow extends StatelessComponent {
   /// Without the gap above it, where the row stands on its own.
   final bool flush;
 
-  static const _row = ClassName('af-actions', owner: ButtonRow);
-  static const _center = ClassName('af-actions-center', owner: ButtonRow);
-  static const _flush = ClassName('af-actions-flush', owner: ButtonRow);
+  static const _class = ClassScope<ButtonRow>();
+  static final _row = _class('af-actions');
+  static final _center = _class('af-actions-center');
+  static final _flush = _class('af-actions-flush');
 
   @css
   static List<StyleRule> get styles => [

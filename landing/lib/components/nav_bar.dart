@@ -12,14 +12,15 @@ import 'package:jaspr/jaspr.dart';
 class NavBar extends StatelessComponent {
   const NavBar({super.key});
 
-  static const _header = ClassName('af-header', owner: NavBar);
-  static const _nav = ClassName('af-nav', owner: NavBar);
-  static const _brand = ClassName('af-brand', owner: NavBar);
-  static const _links = ClassName('af-nav-links', owner: NavBar);
-  static const _secondary = ClassName('af-nav-secondary', owner: NavBar);
-  static const _toggle = ClassName('af-theme-toggle', owner: NavBar);
-  static const _sun = ClassName('af-theme-sun', owner: NavBar);
-  static const _moon = ClassName('af-theme-moon', owner: NavBar);
+  static const _class = ClassScope<NavBar>();
+  static final _header = _class('af-header');
+  static final _nav = _class('af-nav');
+  static final _brand = _class('af-brand');
+  static final _links = _class('af-nav-links');
+  static final _secondary = _class('af-nav-secondary');
+  static final _toggle = _class('af-theme-toggle');
+  static final _sun = _class('af-theme-sun');
+  static final _moon = _class('af-theme-moon');
 
   @css
   static List<StyleRule> get styles => [

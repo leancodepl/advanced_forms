@@ -15,7 +15,8 @@ class App extends StatelessComponent {
 
   /// `<main>`. The docs' `global.css` knows the name too.
   static const _landing = ClassName.shared('af-landing');
-  static const _skipLink = ClassName('af-skip-link', owner: App);
+  static const _class = ClassScope<App>();
+  static final _skipLink = _class('af-skip-link');
 
   @css
   static List<StyleRule> get styles => [

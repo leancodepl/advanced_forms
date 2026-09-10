@@ -12,8 +12,9 @@ class Pill extends StatelessComponent {
   final String? href;
   final bool accent;
 
-  static const _pill = ClassName('af-pill', owner: Pill);
-  static const _accent = ClassName('af-pill-accent', owner: Pill);
+  static const _class = ClassScope<Pill>();
+  static final _pill = _class('af-pill');
+  static final _accent = _class('af-pill-accent');
 
   @css
   static List<StyleRule> get styles => [

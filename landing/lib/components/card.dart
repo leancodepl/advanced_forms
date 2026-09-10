@@ -12,7 +12,8 @@ class CardGrid extends StatelessComponent {
   /// A class of the caller's, for its own rules on this grid.
   final ClassName? className;
 
-  static const _grid = ClassName('af-card-grid', owner: CardGrid);
+  static const _class = ClassScope<CardGrid>();
+  static final _grid = _class('af-card-grid');
 
   @css
   static List<StyleRule> get styles => [
@@ -45,7 +46,8 @@ class Card extends StatelessComponent {
   /// A class of the caller's, for its own rules on this card.
   final ClassName? className;
 
-  static const _card = ClassName('af-card', owner: Card);
+  static const _class = ClassScope<Card>();
+  static final _card = _class('af-card');
 
   @css
   static List<StyleRule> get styles => [
@@ -87,7 +89,8 @@ class CardIcon extends StatelessComponent {
 
   final Icon icon;
 
-  static const _icon = ClassName('af-card-icon', owner: CardIcon);
+  static const _class = ClassScope<CardIcon>();
+  static final _icon = _class('af-card-icon');
 
   @css
   static List<StyleRule> get styles => [

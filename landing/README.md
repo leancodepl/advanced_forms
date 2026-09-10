@@ -47,11 +47,12 @@ into `lib/main.server.options.dart` (generated, not committed), and Jaspr render
 — global rules first, then components in file order — so nothing render-blocking is fetched.
 
 A component owns the classes it renders, and the stylesheet is global, so class names are scoped the way CSS modules
-scope them. Each class is a `ClassName` constant on its component — `ClassName('af-grid', owner: Hero)` — and renders
-as `af-grid-<suffix>`, the suffix a short hash of the owner's type name (`lib/styles.dart`). Both the selector
-(`css(_hero.selector)`, `'${_grid.selector} > *'`) and the attribute (`classes: _hero.name`, `(container + _grid).name`)
-are spelled from the constant, so the suffix is never written by hand, a rename cannot miss a use, and two components
-may pick the same local name without meeting in the stylesheet. Nothing styles or renders another component's class
+scope them. Each component declares one `ClassScope<Hero>()` and makes its classes from it — `_class('af-grid')` — which
+render as `af-grid-<suffix>`, the suffix a short hash of the component's type name (`lib/styles.dart`; two scopes that
+would hash alike fail the build). Both the selector (`css(_hero.selector)`, `'${_grid.selector} > *'`) and the attribute
+(`classes: _hero.name`, `(container + _grid).name`) are spelled from the constant, so the suffix is never written by
+hand, a rename cannot miss a use, and two components may pick the same local name without meeting in the stylesheet.
+Nothing styles or renders another component's class
 by string: a piece two places need is its own component — `CopyButton`, `Logo`, `ButtonRow`, the `Card` family, the
 `Section` vocabulary (`Eyebrow`, `Lead`, `Checklist`, `MoreLink`, `DemoSlot`) — and where a parent has to reach into a
 child, the child exports the constant (`CopyButton.labelClassName`, hidden by the hero's install line on narrow

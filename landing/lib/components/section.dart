@@ -37,8 +37,9 @@ class Section extends StatelessComponent {
   final List<Component> children;
   final String? _labelledBy;
 
-  static const _section = ClassName('af-section', owner: Section);
-  static const _head = ClassName('af-section-head', owner: Section);
+  static const _class = ClassScope<Section>();
+  static final _section = _class('af-section');
+  static final _head = _class('af-section-head');
 
   @css
   static List<StyleRule> get styles => [
@@ -86,7 +87,8 @@ class Eyebrow extends StatelessComponent {
 
   final String text;
 
-  static const _eyebrow = ClassName('af-eyebrow', owner: Eyebrow);
+  static const _class = ClassScope<Eyebrow>();
+  static final _eyebrow = _class('af-eyebrow');
 
   @css
   static List<StyleRule> get styles => [
@@ -121,7 +123,8 @@ class Lead extends StatelessComponent {
 
   final List<Component> children;
 
-  static const _lead = ClassName('af-lead', owner: Lead);
+  static const _class = ClassScope<Lead>();
+  static final _lead = _class('af-lead');
 
   @css
   static List<StyleRule> get styles => [
@@ -143,7 +146,8 @@ class MoreLink extends StatelessComponent {
   final String text;
   final String href;
 
-  static const _more = ClassName('af-section-more', owner: MoreLink);
+  static const _class = ClassScope<MoreLink>();
+  static final _more = _class('af-section-more');
 
   @css
   static List<StyleRule> get styles => [
@@ -169,7 +173,8 @@ class DemoSlot extends StatelessComponent {
 
   final Component child;
 
-  static const _demo = ClassName('af-section-demo', owner: DemoSlot);
+  static const _class = ClassScope<DemoSlot>();
+  static final _demo = _class('af-section-demo');
 
   @css
   static List<StyleRule> get styles => [
@@ -188,7 +193,8 @@ class Checklist extends StatelessComponent {
   /// One entry per item; the entry's components become the `<li>`.
   final List<List<Component>> items;
 
-  static const _list = ClassName('af-checklist', owner: Checklist);
+  static const _class = ClassScope<Checklist>();
+  static final _list = _class('af-checklist');
 
   @css
   static List<StyleRule> get styles => [

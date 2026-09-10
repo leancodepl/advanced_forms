@@ -12,12 +12,13 @@ class SiteFooter extends StatelessComponent {
 
   final String version;
 
-  static const _footer = ClassName('af-footer', owner: SiteFooter);
-  static const _cta = ClassName('af-cta', owner: SiteFooter);
-  static const _ctaInner = ClassName('af-cta-inner', owner: SiteFooter);
-  static const _grid = ClassName('af-footer-grid', owner: SiteFooter);
-  static const _brand = ClassName('af-footer-brand', owner: SiteFooter);
-  static const _bottom = ClassName('af-footer-bottom', owner: SiteFooter);
+  static const _class = ClassScope<SiteFooter>();
+  static final _footer = _class('af-footer');
+  static final _cta = _class('af-cta');
+  static final _ctaInner = _class('af-cta-inner');
+  static final _grid = _class('af-footer-grid');
+  static final _brand = _class('af-footer-brand');
+  static final _bottom = _class('af-footer-bottom');
 
   @css
   static List<StyleRule> get styles => [

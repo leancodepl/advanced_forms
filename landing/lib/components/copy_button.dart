@@ -6,14 +6,15 @@ import 'package:jaspr/jaspr.dart';
 /// How a [CopyButton] looks.
 enum CopyButtonVariant {
   /// A framed button with a label, sitting in a command line.
-  framed(ClassName('af-copy-framed', owner: CopyButton)),
+  framed('af-copy-framed'),
 
   /// A square, icon-only button that fills on hover, for a toolbar.
-  ghost(ClassName('af-copy-ghost', owner: CopyButton));
+  ghost('af-copy-ghost');
 
-  const CopyButtonVariant(this.className);
+  const CopyButtonVariant(this._local);
 
-  final ClassName className;
+  /// The class, before [CopyButton] scopes it.
+  final String _local;
 }
 
 /// A button that copies text to the clipboard and shows a check mark for a
@@ -50,14 +51,20 @@ class CopyButton extends StatelessComponent {
   /// A tooltip.
   final String? title;
 
+  static const _class = ClassScope<CopyButton>();
+
   /// The button itself.
-  static const className = ClassName('af-copy-button', owner: CopyButton);
+  static final className = _class('af-copy-button');
 
   /// The visible [label], for a rule that hides it where the room is short.
-  static const labelClassName = ClassName('af-copy-label', owner: CopyButton);
+  static final labelClassName = _class('af-copy-label');
 
-  static const _idle = ClassName('af-copy-idle', owner: CopyButton);
-  static const _done = ClassName('af-copy-done', owner: CopyButton);
+  static final _idle = _class('af-copy-idle');
+  static final _done = _class('af-copy-done');
+
+  /// The class of a [variant].
+  static ClassName _variantClass(CopyButtonVariant variant) =>
+      _class(variant._local);
 
   @css
   static List<StyleRule> get styles => [
@@ -69,7 +76,7 @@ class CopyButton extends StatelessComponent {
       ]),
       alignItems: .center,
     ),
-    css(CopyButtonVariant.framed.className.selector).styles(
+    css(_variantClass(.framed).selector).styles(
       padding: .symmetric(vertical: 0.45.rem, horizontal: 0.75.rem),
       border: hairline(border2Color),
       radius: .circular(8.px),
@@ -79,9 +86,9 @@ class CopyButton extends StatelessComponent {
       raw: {'font': '600 0.78rem/1 var(--font-sans)'},
     ),
     css(
-      '${CopyButtonVariant.framed.className.selector}:hover',
+      '${_variantClass(.framed).selector}:hover',
     ).styles(color: textColor, raw: {'border-color': accentColor.value}),
-    css(CopyButtonVariant.ghost.className.selector).styles(
+    css(_variantClass(.ghost).selector).styles(
       display: .inlineGrid,
       width: 30.px,
       height: 30.px,
@@ -92,7 +99,7 @@ class CopyButton extends StatelessComponent {
       raw: {'place-items': 'center'},
     ),
     css(
-      '${CopyButtonVariant.ghost.className.selector}:hover',
+      '${_variantClass(.ghost).selector}:hover',
     ).styles(color: textColor, backgroundColor: surface2Color),
     // The icons sit in flex spans, so no line box adds slack around them.
     css('${_idle.selector}, ${_done.selector}').styles(display: .inlineFlex),
@@ -113,7 +120,7 @@ class CopyButton extends StatelessComponent {
   @override
   Component build(BuildContext context) {
     return button(
-      classes: (className + variant.className).name,
+      classes: (className + _variantClass(variant)).name,
       attributes: {
         'type': 'button',
         if (_text case final text?) 'data-copy-text': text else 'data-copy': '',
