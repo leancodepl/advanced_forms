@@ -7,10 +7,10 @@ import 'package:jaspr/jaspr.dart';
 /// How a [Button] is filled.
 enum ButtonVariant {
   /// Accent fill with dark text: the one action a section wants taken.
-  primary(ClassName('af-button-primary')),
+  primary(ClassName('af-button-primary', owner: Button)),
 
   /// Surface fill with a hairline: the alternative next to a primary button.
-  secondary(ClassName('af-button-secondary'));
+  secondary(ClassName('af-button-secondary', owner: Button));
 
   const ButtonVariant(this.className);
 
@@ -38,7 +38,7 @@ class Button extends StatelessComponent {
   final Icon? leading;
   final Icon? trailing;
 
-  static const _button = ClassName('af-button');
+  static const _button = ClassName('af-button', owner: Button);
 
   @css
   static List<StyleRule> get styles => [
@@ -110,9 +110,9 @@ class ButtonRow extends StatelessComponent {
   /// Without the gap above it, where the row stands on its own.
   final bool flush;
 
-  static const _row = ClassName('af-actions');
-  static const _center = ClassName('af-actions-center');
-  static const _flush = ClassName('af-actions-flush');
+  static const _row = ClassName('af-actions', owner: ButtonRow);
+  static const _center = ClassName('af-actions-center', owner: ButtonRow);
+  static const _flush = ClassName('af-actions-flush', owner: ButtonRow);
 
   @css
   static List<StyleRule> get styles => [

@@ -6,10 +6,10 @@ import 'package:jaspr/jaspr.dart';
 /// How a [CopyButton] looks.
 enum CopyButtonVariant {
   /// A framed button with a label, sitting in a command line.
-  framed(ClassName('af-copy-framed')),
+  framed(ClassName('af-copy-framed', owner: CopyButton)),
 
   /// A square, icon-only button that fills on hover, for a toolbar.
-  ghost(ClassName('af-copy-ghost'));
+  ghost(ClassName('af-copy-ghost', owner: CopyButton));
 
   const CopyButtonVariant(this.className);
 
@@ -51,13 +51,13 @@ class CopyButton extends StatelessComponent {
   final String? title;
 
   /// The button itself.
-  static const className = ClassName('af-copy-button');
+  static const className = ClassName('af-copy-button', owner: CopyButton);
 
   /// The visible [label], for a rule that hides it where the room is short.
-  static const labelClassName = ClassName('af-copy-label');
+  static const labelClassName = ClassName('af-copy-label', owner: CopyButton);
 
-  static const _idle = ClassName('af-copy-idle');
-  static const _done = ClassName('af-copy-done');
+  static const _idle = ClassName('af-copy-idle', owner: CopyButton);
+  static const _done = ClassName('af-copy-done', owner: CopyButton);
 
   @css
   static List<StyleRule> get styles => [

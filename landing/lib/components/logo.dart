@@ -15,10 +15,10 @@ class Logo extends StatelessComponent {
   /// little more on narrow screens so that row still fits.
   final bool large;
 
-  static const _logo = ClassName('af-logo');
-  static const _large = ClassName('af-logo-large');
-  static const _light = ClassName('af-logo-light');
-  static const _dark = ClassName('af-logo-dark');
+  static const _logo = ClassName.shared('af-logo');
+  static const _large = ClassName.shared('af-logo-large');
+  static const _light = ClassName('af-logo-light', owner: Logo);
+  static const _dark = ClassName('af-logo-dark', owner: Logo);
 
   @css
   static List<StyleRule> get styles => [

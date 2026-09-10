@@ -34,24 +34,24 @@ class ExampleFrame extends StatelessComponent {
   final LandingExample example;
   final ExampleLayout layout;
 
-  static const _example = ClassName('af-example');
-  static const _bar = ClassName('af-example-bar');
-  static const _dots = ClassName('af-dots');
-  static const _title = ClassName('af-example-title');
-  static const _status = ClassName('af-example-status');
-  static const _body = ClassName('af-example-body');
-  static const _stage = ClassName('af-example-stage');
-  static const _notice = ClassName('af-example-notice');
-  static const _gate = ClassName('af-example-gate');
-  static const _gateDone = ClassName('af-example-gate-done');
-  static const _caption = ClassName('af-example-caption');
-  static const _code = ClassName('af-example-code');
-  static const _toolbar = ClassName('af-example-toolbar');
-  static const _tabs = ClassName('af-example-tabs');
-  static const _tabInput = ClassName('af-tab-input');
-  static const _tab = ClassName('af-example-tab');
-  static const _panels = ClassName('af-example-panels');
-  static const _panel = ClassName('af-code-panel');
+  static const _example = ClassName.shared('af-example');
+  static const _bar = ClassName.shared('af-example-bar');
+  static const _dots = ClassName.shared('af-dots');
+  static const _title = ClassName.shared('af-example-title');
+  static const _status = ClassName.shared('af-example-status');
+  static const _body = ClassName.shared('af-example-body');
+  static const _stage = ClassName.shared('af-example-stage');
+  static const _notice = ClassName.shared('af-example-notice');
+  static const _gate = ClassName.shared('af-example-gate');
+  static const _gateDone = ClassName.shared('af-example-gate-done');
+  static const _caption = ClassName.shared('af-example-caption');
+  static const _code = ClassName.shared('af-example-code');
+  static const _toolbar = ClassName.shared('af-example-toolbar');
+  static const _tabs = ClassName.shared('af-example-tabs');
+  static const _tabInput = ClassName.shared('af-tab-input');
+  static const _tab = ClassName.shared('af-example-tab');
+  static const _panels = ClassName.shared('af-example-panels');
+  static const _panel = ClassName.shared('af-code-panel');
 
   static String _split(ClassName part) =>
       '${_example.selector}[data-layout="split"] ${part.selector}';

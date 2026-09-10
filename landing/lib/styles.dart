@@ -16,27 +16,63 @@ import 'package:jaspr/dom.dart';
 
 // ---------- Class names ----------
 
-/// A CSS class name. A component keeps the classes it renders as `ClassName`
-/// constants and spells both its selectors and its `classes:` attributes from
-/// them, so a name is written once, a rename cannot miss a use, and a class
-/// another component needs is a typed reference to its owner rather than a
-/// string that happens to match.
+/// A CSS class name, scoped to the component that owns it.
 ///
-/// The class names `web/landing.js` looks up, and those the docs app's
-/// `global.css` shares for the example frame and the logo, are a contract with
-/// those files: rename them in step or not at all.
-extension type const ClassName(String name) {
+/// Jaspr collects every `@css` getter into one global stylesheet and scopes
+/// nothing, so this does what CSS modules do at build time: a class declared
+/// as `ClassName('af-grid', owner: Hero)` renders as `af-grid-<suffix>`, the
+/// suffix a short hash of the owner's type name. Two components can both call
+/// something `af-grid` and never meet in the stylesheet, and a raw `'af-grid'`
+/// string elsewhere matches nothing. A component keeps its classes as
+/// `static const` values and spells both its selectors ([selector]) and its
+/// `classes:` attributes ([name]) from them, so the suffix is never written by
+/// hand and a rename cannot miss a use.
+///
+/// [ClassName.shared] renders the name as written, for the classes that are a
+/// contract with another file: the ones `web/landing.js` looks up, the ones
+/// the docs app's `global.css` uses for the same example frame and logo, and
+/// the [container] utility.
+final class ClassName {
+  /// A class of [owner]'s: `local-<suffix>`.
+  const ClassName(this._local, {required Type owner}) : _owner = owner;
+
+  /// A class rendered as written, because another file knows it by name.
+  const ClassName.shared(this._local) : _owner = null;
+
+  final String _local;
+  final Type? _owner;
+
+  /// The class as it appears in the page: the `classes:` value.
+  String get name => switch (_owner) {
+    null => _local,
+    final owner => '$_local-${_suffix(owner)}',
+  };
+
   /// This class in a selector: `.name`. For a [+] combination, `.a.b`: an
   /// element that carries both.
   String get selector => '.${name.replaceAll(' ', '.')}';
 
   /// This class and [other] on the same element: `a b` as a `classes:` value.
-  ClassName operator +(ClassName other) => ClassName('$name ${other.name}');
+  ClassName operator +(ClassName other) =>
+      ClassName.shared('$name ${other.name}');
+
+  /// Five base-36 digits of an FNV-1a hash of the owner's type name: stable
+  /// across builds, and short enough to read in the inspector.
+  static String _suffix(Type owner) {
+    var hash = 0x811c9dc5;
+    for (final unit in owner.toString().codeUnits) {
+      hash = ((hash ^ unit) * 0x01000193) & 0xffffffff;
+    }
+    return hash.toRadixString(36).padLeft(5, '0').substring(0, 5);
+  }
+
+  @override
+  String toString() => name;
 }
 
 /// Centers the content column: `min(100% - 2.5rem, var(--af-container))`
 /// wide. The one class any component may put on an element of its own.
-const container = ClassName('af-container');
+const container = ClassName.shared('af-container');
 
 // ---------- Tokens ----------
 //

@@ -46,17 +46,20 @@ docs' — the reset, the `af-container` column and the reduced-motion rule. `jas
 into `lib/main.server.options.dart` (generated, not committed), and Jaspr renders them as one `<style>` in the `<head>`
 — global rules first, then components in file order — so nothing render-blocking is fetched.
 
-A component owns the classes it renders. Each one is a `ClassName` constant on the component (`extension type` over the
-string, in `lib/styles.dart`), and both the selector (`css(_hero.selector)`, `'${_grid.selector} > *'`) and the
-attribute (`classes: _hero.name`, `(container + _grid).name`) are spelled from it, so a name is written once and a
-rename cannot miss a use. Nothing styles or renders another component's class by string: a piece two places need is
-its own component — `CopyButton`, `Logo`, `ButtonRow`, the `Card` family, the `Section` vocabulary (`Eyebrow`, `Lead`,
-`Checklist`, `MoreLink`, `DemoSlot`) — and where a parent has to reach into a child, the child exports the constant
-(`CopyButton.labelClassName`, hidden by the hero's install line on narrow screens). Variants are enum values carrying
-their class (`ButtonVariant`, `CopyButtonVariant`), and `Card`/`CardGrid` take a caller's `className` for the caller's
-own rules on them. Two sets of names are a contract with other files and stay as they are: the ones `web/landing.js`
-looks up (`af-example*`, `af-tab-input`, `af-code-panel`) and the ones the docs' `global.css` shares for the example
-frame, the logo and `af-landing`.
+A component owns the classes it renders, and the stylesheet is global, so class names are scoped the way CSS modules
+scope them. Each class is a `ClassName` constant on its component — `ClassName('af-grid', owner: Hero)` — and renders
+as `af-grid-<suffix>`, the suffix a short hash of the owner's type name (`lib/styles.dart`). Both the selector
+(`css(_hero.selector)`, `'${_grid.selector} > *'`) and the attribute (`classes: _hero.name`, `(container + _grid).name`)
+are spelled from the constant, so the suffix is never written by hand, a rename cannot miss a use, and two components
+may pick the same local name without meeting in the stylesheet. Nothing styles or renders another component's class
+by string: a piece two places need is its own component — `CopyButton`, `Logo`, `ButtonRow`, the `Card` family, the
+`Section` vocabulary (`Eyebrow`, `Lead`, `Checklist`, `MoreLink`, `DemoSlot`) — and where a parent has to reach into a
+child, the child exports the constant (`CopyButton.labelClassName`, hidden by the hero's install line on narrow
+screens). Variants are enum values carrying their class (`ButtonVariant`, `CopyButtonVariant`), and `Card`/`CardGrid`
+take a caller's `className` for the caller's own rules on them. `ClassName.shared` renders a name as written, for the
+classes that are a contract with another file: the ones `web/landing.js` looks up (`af-example*`, `af-tab-input`,
+`af-code-panel`), the ones the docs' `global.css` uses for the same example frame and logo, `af-landing`, and the
+`af-container` utility.
 
 Jaspr's typed properties cover most of it; what they cannot say (`color-mix()`, `:has()`, `counter()`, an `infinite`
 animation, a `@font-face` with a weight range) goes into the `raw` map of the same rule. Where two files style the same

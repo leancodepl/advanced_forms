@@ -136,12 +136,12 @@ class ValidationSection extends StatelessComponent {
 
   final LandingExample example;
 
-  static const _rulesList = ClassName('af-rules');
-  static const _rule = ClassName('af-rule');
-  static const _modesGrid = ClassName('af-modes');
-  static const _mode = ClassName('af-mode');
-  static const _modeHead = ClassName('af-mode-head');
-  static const _modeWhen = ClassName('af-mode-when');
+  static const _rulesList = ClassName('af-rules', owner: ValidationSection);
+  static const _rule = ClassName('af-rule', owner: ValidationSection);
+  static const _modesGrid = ClassName('af-modes', owner: ValidationSection);
+  static const _mode = ClassName('af-mode', owner: ValidationSection);
+  static const _modeHead = ClassName('af-mode-head', owner: ValidationSection);
+  static const _modeWhen = ClassName('af-mode-when', owner: ValidationSection);
 
   /// The numbered rules, and what the mode cards add to a [Card].
   @css
@@ -373,7 +373,7 @@ const _features = [
 class Features extends StatelessComponent {
   const Features({super.key});
 
-  static const _feature = ClassName('af-feature');
+  static const _feature = ClassName('af-feature', owner: Features);
 
   /// What a feature card adds to a [Card].
   @css
@@ -413,7 +413,7 @@ class Features extends StatelessComponent {
 class SkillBand extends StatelessComponent {
   const SkillBand({super.key});
 
-  static const _band = ClassName('af-band');
+  static const _band = ClassName('af-band', owner: SkillBand);
 
   @css
   static List<StyleRule> get styles => [

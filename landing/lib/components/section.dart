@@ -37,8 +37,8 @@ class Section extends StatelessComponent {
   final List<Component> children;
   final String? _labelledBy;
 
-  static const _section = ClassName('af-section');
-  static const _head = ClassName('af-section-head');
+  static const _section = ClassName('af-section', owner: Section);
+  static const _head = ClassName('af-section-head', owner: Section);
 
   @css
   static List<StyleRule> get styles => [
@@ -86,7 +86,7 @@ class Eyebrow extends StatelessComponent {
 
   final String text;
 
-  static const _eyebrow = ClassName('af-eyebrow');
+  static const _eyebrow = ClassName('af-eyebrow', owner: Eyebrow);
 
   @css
   static List<StyleRule> get styles => [
@@ -121,7 +121,7 @@ class Lead extends StatelessComponent {
 
   final List<Component> children;
 
-  static const _lead = ClassName('af-lead');
+  static const _lead = ClassName('af-lead', owner: Lead);
 
   @css
   static List<StyleRule> get styles => [
@@ -143,7 +143,7 @@ class MoreLink extends StatelessComponent {
   final String text;
   final String href;
 
-  static const _more = ClassName('af-section-more');
+  static const _more = ClassName('af-section-more', owner: MoreLink);
 
   @css
   static List<StyleRule> get styles => [
@@ -169,7 +169,7 @@ class DemoSlot extends StatelessComponent {
 
   final Component child;
 
-  static const _demo = ClassName('af-section-demo');
+  static const _demo = ClassName('af-section-demo', owner: DemoSlot);
 
   @css
   static List<StyleRule> get styles => [
@@ -188,7 +188,7 @@ class Checklist extends StatelessComponent {
   /// One entry per item; the entry's components become the `<li>`.
   final List<List<Component>> items;
 
-  static const _list = ClassName('af-checklist');
+  static const _list = ClassName('af-checklist', owner: Checklist);
 
   @css
   static List<StyleRule> get styles => [

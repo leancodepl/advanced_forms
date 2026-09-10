@@ -16,19 +16,19 @@ class Hero extends StatelessComponent {
   final String version;
   final LandingExample demo;
 
-  static const _hero = ClassName('af-hero');
-  static const _bg = ClassName('af-hero-bg');
-  static const _grid = ClassName('af-hero-grid');
-  static const _badges = ClassName('af-hero-badges');
-  static const _accent = ClassName('af-accent');
-  static const _lead = ClassName('af-hero-lead');
-  static const _install = ClassName('af-install');
-  static const _command = ClassName('af-install-command');
-  static const _prompt = ClassName('af-prompt');
-  static const _installAlt = ClassName('af-install-alt');
-  static const _demo = ClassName('af-hero-demo');
-  static const _demoLabel = ClassName('af-demo-label');
-  static const _demoDot = ClassName('af-demo-dot');
+  static const _hero = ClassName('af-hero', owner: Hero);
+  static const _bg = ClassName('af-hero-bg', owner: Hero);
+  static const _grid = ClassName('af-hero-grid', owner: Hero);
+  static const _badges = ClassName('af-hero-badges', owner: Hero);
+  static const _accent = ClassName('af-accent', owner: Hero);
+  static const _lead = ClassName('af-hero-lead', owner: Hero);
+  static const _install = ClassName('af-install', owner: Hero);
+  static const _command = ClassName('af-install-command', owner: Hero);
+  static const _prompt = ClassName('af-prompt', owner: Hero);
+  static const _installAlt = ClassName('af-install-alt', owner: Hero);
+  static const _demo = ClassName('af-hero-demo', owner: Hero);
+  static const _demoLabel = ClassName('af-demo-label', owner: Hero);
+  static const _demoDot = ClassName('af-demo-dot', owner: Hero);
 
   @css
   static List<StyleRule> get styles => [

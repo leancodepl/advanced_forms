@@ -14,8 +14,8 @@ class App extends StatelessComponent {
   final String version;
 
   /// `<main>`. The docs' `global.css` knows the name too.
-  static const _landing = ClassName('af-landing');
-  static const _skipLink = ClassName('af-skip-link');
+  static const _landing = ClassName.shared('af-landing');
+  static const _skipLink = ClassName('af-skip-link', owner: App);
 
   @css
   static List<StyleRule> get styles => [
