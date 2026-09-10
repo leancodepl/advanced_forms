@@ -148,6 +148,12 @@ jobs:
         run: dart format --output=none --set-exit-if-changed .
         working-directory: landing
 
+      # The styles are one global stylesheet, so every class name has exactly
+      # one owner: a `ClassName` constant on the component that renders it.
+      - name: Check the landing page's class names
+        run: dart run tool/check_class_names.dart
+        working-directory: landing
+
       - name: Check types
         run: npm run types:check
 

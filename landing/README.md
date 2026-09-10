@@ -56,7 +56,9 @@ its own component — `CopyButton`, `Logo`, `ButtonRow`, the `Card` family, the 
 their class (`ButtonVariant`, `CopyButtonVariant`), and `Card`/`CardGrid` take a caller's `className` for the caller's
 own rules on them. Two sets of names are a contract with other files and stay as they are: the ones `web/landing.js`
 looks up (`af-example*`, `af-tab-input`, `af-code-panel`) and the ones the docs' `global.css` shares for the example
-frame, the logo and `af-landing`.
+frame, the logo and `af-landing`. Jaspr scopes nothing — the stylesheet is global — so
+`dart run tool/check_class_names.dart` (in CI next to `dart analyze`) fails when a `ClassName` literal is declared
+twice or a class is written as a raw string outside a declaration.
 
 Jaspr's typed properties cover most of it; what they cannot say (`color-mix()`, `:has()`, `counter()`, an `infinite`
 animation, a `@font-face` with a weight range) goes into the `raw` map of the same rule. Where two files style the same
