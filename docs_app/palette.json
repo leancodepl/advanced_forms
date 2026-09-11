@@ -1,0 +1,96 @@
+{
+  "swatches": {
+    "black": { "hex": "#000000", "note": "Primary surface. LeanCode is black-first; yellow is the exception." },
+    "white": { "hex": "#ffffff", "note": "Text and headings on black; the light document surface." },
+    "ctaYellow": { "hex": "#f0ff00", "note": "Call to action and emphasis only. Text on it is always black." },
+    "bodyGray": { "hex": "#d8d8d4", "note": "Body copy on dark surfaces." },
+    "mutedGray": { "hex": "#a3a3a0", "note": "Secondary text, captions, metadata on dark." },
+    "mutedOnLight": {
+      "hex": "#6f6f6f",
+      "note": "Secondary text, captions, metadata on light: the design system's #757575, a step darker so it also reads AA on paper."
+    },
+    "surface": { "hex": "#151513", "note": "Cards and panels on black, warm-tinted." },
+    "surface2": { "hex": "#1d1d1a", "note": "A second surface step on black." },
+    "lineOnLight": { "hex": "#e5e5e5", "note": "The 1px hairline on white." },
+    "error": { "hex": "#e64239", "note": "Error signal, sparingly." },
+    "success": { "hex": "#80c340", "note": "Success signal, sparingly." },
+
+    "nearBlack": { "hex": "#0a0a08", "note": "Site tint: a section background a step above black." },
+    "paper": { "hex": "#f7f7f5", "note": "Site tint: a section background a step below white." },
+    "paper2": { "hex": "#f2f2ef", "note": "Site tint: a second surface step on white." },
+    "bodyOnLight": { "hex": "#3f3f3c", "note": "Site tint: body copy on light surfaces." },
+    "lineStrongOnLight": { "hex": "#cfcfcb", "note": "Site tint: the stronger hairline on white, for controls." },
+    "ctaYellowLight": { "hex": "#f5ff4d", "note": "Site tint: the CTA yellow lifted, for the primary button's hover." },
+    "ctaYellowOnLight": {
+      "hex": "#606a00",
+      "note": "Site tint: the CTA yellow as text on white, which yellow itself never is."
+    },
+    "errorOnLight": { "hex": "#be2119", "note": "Site tint: the error signal as text on white." },
+    "successOnLight": { "hex": "#527b28", "note": "Site tint: the success signal as text on white." }
+  },
+  "tokens": {
+    "bg": "Page background.",
+    "bg2": "Section background: footer, code panels.",
+    "surface": "Cards and frames.",
+    "surface2": "Bars and chips on a surface.",
+    "border": "The hairline.",
+    "border2": "The stronger hairline, for controls.",
+    "text": "Headings and primary text.",
+    "text2": "Body copy.",
+    "muted": "Captions and metadata.",
+    "accent": "The CTA yellow, as a fill.",
+    "accentInk": "Text on the accent.",
+    "accentText": "The accent as text.",
+    "accentHover": "The primary button's hover fill.",
+    "accentSoft": "The accent as a wash behind icons, pills and glows.",
+    "primary": "The docs' primary action fill.",
+    "primaryInk": "Text on the primary fill.",
+    "overlay": "The scrim behind dialogs.",
+    "danger": "Error signal.",
+    "ok": "Success signal."
+  },
+  "themes": {
+    "light": {
+      "bg": "white",
+      "bg2": "paper",
+      "surface": "white",
+      "surface2": "paper2",
+      "border": "lineOnLight",
+      "border2": "lineStrongOnLight",
+      "text": "black",
+      "text2": "bodyOnLight",
+      "muted": "mutedOnLight",
+      "accent": "ctaYellow",
+      "accentInk": "black",
+      "accentText": "ctaYellowOnLight",
+      "accentHover": "ctaYellowLight",
+      "accentSoft": { "of": "ctaYellow", "alpha": 0.45 },
+      "primary": "black",
+      "primaryInk": "ctaYellow",
+      "overlay": { "of": "black", "alpha": 0.3 },
+      "danger": "errorOnLight",
+      "ok": "successOnLight"
+    },
+    "dark": {
+      "bg": "black",
+      "bg2": "nearBlack",
+      "surface": "surface",
+      "surface2": "surface2",
+      "border": { "of": "white", "alpha": 0.12 },
+      "border2": { "of": "white", "alpha": 0.2 },
+      "text": "white",
+      "text2": "bodyGray",
+      "muted": "mutedGray",
+      "accent": "ctaYellow",
+      "accentInk": "black",
+      "accentText": "ctaYellow",
+      "accentHover": "ctaYellowLight",
+      "accentSoft": { "of": "ctaYellow", "alpha": 0.06 },
+      "primary": "ctaYellow",
+      "primaryInk": "black",
+      "overlay": { "of": "black", "alpha": 0.6 },
+      "danger": "error",
+      "ok": "success"
+    }
+  }
+}

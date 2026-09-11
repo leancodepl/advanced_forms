@@ -105,6 +105,12 @@ jobs:
       - name: Check the example manifest
         run: npm run examples:check
 
+      # Fails when a generated copy of the palette (the landing page's and the
+      # docs' tokens, the social cards, the Flutter demos, the logos) no longer
+      # matches palette.json; `npm run palette:generate` rewrites them.
+      - name: Check the palette
+        run: npm run palette:check
+
       - name: Generate the example sources
         run: npm run examples:generate
 
@@ -126,6 +132,14 @@ jobs:
 
       - name: Install the landing page's pub dependencies
         run: dart pub get
+        working-directory: landing
+
+      # The components declare part files holding their class-name scopes, and
+      # main.server.dart imports the options jaspr_builder writes from the
+      # `@css` getters. Both are gitignored, so both have to exist before
+      # analysis.
+      - name: Generate the landing page's part files
+        run: dart run build_runner build --delete-conflicting-outputs
         working-directory: landing
 
       - name: Analyze the landing page

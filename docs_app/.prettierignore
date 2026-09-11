@@ -14,6 +14,9 @@ flutter/
 # Build output and codegen.
 public/flutter-examples/
 lib/flutter-examples/manifest.generated.ts
+# The palette, written by `npm run palette:generate` from palette.json.
+app/af-tokens.css
+lib/palette.generated.ts
 # The landing page, built by Jaspr in ../landing and copied here.
 public/index.html
 public/landing.*

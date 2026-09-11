@@ -1,23 +1,110 @@
 import 'package:advanced_forms_landing/components/button.dart';
-import 'package:advanced_forms_landing/components/nav_bar.dart';
-import 'package:advanced_forms_landing/components/section.dart';
+import 'package:advanced_forms_landing/components/logo.dart';
+import 'package:advanced_forms_landing/components/text.dart';
 import 'package:advanced_forms_landing/site.dart';
+import 'package:advanced_forms_landing/styles.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
+part 'footer.scopes.dart';
+
+/// The closing call to action, the link columns and the colophon.
+@scopedCss
 class SiteFooter extends StatelessComponent {
   const SiteFooter({required this.version, super.key});
 
   final String version;
 
+  static const _class = _$siteFooterScope;
+  static final _footer = _class('af-footer');
+  static final _cta = _class('af-cta');
+  static final _ctaInner = _class('af-cta-inner');
+  static final _grid = _class('af-footer-grid');
+  static final _brand = _class('af-footer-brand');
+  static final _bottom = _class('af-footer-bottom');
+
+  @css
+  static List<StyleRule> get styles => [
+    css(_footer.selector).styles(
+      border: .only(top: hairlineSide(borderColor)),
+      fontSize: 1.rem,
+      backgroundColor: bg2Color,
+    ),
+    css(_cta.selector).styles(
+      padding: const .symmetric(
+        vertical: .expression('clamp(3.5rem, 7vw, 5.5rem)'),
+        horizontal: .zero,
+      ),
+      border: .only(bottom: hairlineSide(borderColor)),
+      raw: {
+        'background':
+            'radial-gradient(50% 60% at 50% 100%, var(--af-accent-soft), '
+            'transparent 70%), var(--af-bg-2)',
+      },
+    ),
+    css(_ctaInner.selector).styles(maxWidth: 40.rem, textAlign: .center),
+    css(
+      '${_cta.selector} h2',
+    ).styles(fontSize: const .expression('clamp(1.9rem, 3.6vw, 2.75rem)')),
+    css('${_cta.selector} p').styles(
+      margin: .only(top: 1.rem),
+      color: text2Color,
+      fontSize: 1.1.rem,
+    ),
+    css(_grid.selector).styles(
+      display: .grid,
+      padding: .symmetric(vertical: 3.5.rem, horizontal: .zero),
+      gap: .all(2.5.rem),
+    ),
+    css('${_grid.selector} h3').styles(
+      margin: .only(bottom: 0.9.rem),
+      color: mutedColor,
+      fontFamily: fontMono,
+      fontSize: 0.72.rem,
+      fontWeight: .w600,
+      textTransform: .upperCase,
+      letterSpacing: 0.08.em,
+    ),
+    css('${_grid.selector} ul').styles(display: .grid, gap: .all(0.5.rem)),
+    css('${_grid.selector} li a').styles(color: text2Color),
+    css('${_grid.selector} li a:hover').styles(color: accentTextColor),
+    css('${_brand.selector} p').styles(
+      maxWidth: 24.rem,
+      margin: .only(top: 1.rem),
+      color: text2Color,
+      fontSize: 0.95.rem,
+    ),
+    // Links in running text are underlined, not only coloured.
+    css('${_brand.selector} p a').styles(color: textColor, raw: underlinedLink),
+    css(_bottom.selector).styles(
+      display: .flex,
+      padding: .only(top: 1.5.rem, bottom: 2.rem),
+      border: .only(top: hairlineSide(borderColor)),
+      flexWrap: .wrap,
+      justifyContent: .spaceBetween,
+      gap: .all(0.75.rem),
+      color: mutedColor,
+      fontSize: 0.85.rem,
+    ),
+    css('${_bottom.selector} a').styles(color: text2Color, raw: underlinedLink),
+    css.media(MediaQuery.all(minWidth: 760.px), [
+      css(_grid.selector).styles(raw: {'grid-template-columns': '1fr 1fr'}),
+    ]),
+    css.media(MediaQuery.all(minWidth: 1000.px), [
+      css(
+        _grid.selector,
+      ).styles(raw: {'grid-template-columns': '1.6fr 1fr 1fr 1.4fr'}),
+    ]),
+  ];
+
   @override
   Component build(BuildContext context) {
-    return footer(classes: 'af-footer', [
-      const section(
-        classes: 'af-cta',
-        attributes: {'aria-labelledby': 'cta-heading'},
+    return footer(classes: _footer.name, [
+      section(
+        classes: _cta.name,
+        attributes: const {'aria-labelledby': 'cta-heading'},
         [
-          div(classes: 'af-container af-cta-inner', [
+          div(classes: (container + _ctaInner).name, const [
             h2(id: 'cta-heading', [.text('Ready to type your first field?')]),
             p([
               .text(
@@ -25,7 +112,7 @@ class SiteFooter extends StatelessComponent {
                 'can be submitted.',
               ),
             ]),
-            div(classes: 'af-hero-actions af-center', [
+            ButtonRow(center: true, [
               Button(
                 'Get it on pub.dev',
                 href: pubUrl,
@@ -42,9 +129,9 @@ class SiteFooter extends StatelessComponent {
           ]),
         ],
       ),
-      div(classes: 'af-container af-footer-grid', [
-        div(classes: 'af-footer-brand', [
-          logo(),
+      div(classes: (container + _grid).name, [
+        div(classes: _brand.name, [
+          const Logo(large: true),
           p([
             const .text('Form validation and state management for Flutter. '),
             externalLink(changelogUrl, [.text('v$version')]),
@@ -126,7 +213,7 @@ class SiteFooter extends StatelessComponent {
           ],
         ),
       ]),
-      div(classes: 'af-container af-footer-bottom', [
+      div(classes: (container + _bottom).name, [
         p([
           .text('© ${DateTime.now().year} '),
           externalLink(leancodeUrl, [const .text('LeanCode')]),

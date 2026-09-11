@@ -281,6 +281,24 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.23.4"
+  jaspr_class_scope:
+    dependency: "direct main"
+    description:
+      path: "packages/jaspr_class_scope"
+      ref: "claude/jaspra-scoped-classnames-kzspx3"
+      resolved-ref: "4a2dab9add51962993ad55820a177a8c44d0fa58"
+      url: "https://github.com/leancodepl/flutter_corelibrary"
+    source: git
+    version: "0.1.0"
+  jaspr_class_scope_builder:
+    dependency: "direct dev"
+    description:
+      path: "packages/jaspr_class_scope_builder"
+      ref: "claude/jaspra-scoped-classnames-kzspx3"
+      resolved-ref: "4a2dab9add51962993ad55820a177a8c44d0fa58"
+      url: "https://github.com/leancodepl/flutter_corelibrary"
+    source: git
+    version: "0.1.0"
   json_annotation:
     dependency: transitive
     description:

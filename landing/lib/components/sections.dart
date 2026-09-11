@@ -1,12 +1,17 @@
 import 'package:advanced_forms_landing/components/button.dart';
+import 'package:advanced_forms_landing/components/card.dart';
 import 'package:advanced_forms_landing/components/example_frame.dart';
 import 'package:advanced_forms_landing/components/icons.dart';
 import 'package:advanced_forms_landing/components/pill.dart';
 import 'package:advanced_forms_landing/components/section.dart';
+import 'package:advanced_forms_landing/components/text.dart';
 import 'package:advanced_forms_landing/examples.dart';
 import 'package:advanced_forms_landing/site.dart';
+import 'package:advanced_forms_landing/styles.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
+
+part 'sections.scopes.dart';
 
 /// "The model": the whole form next to the code that is the whole form.
 class ModelSection extends StatelessComponent {
@@ -29,16 +34,16 @@ class ModelSection extends StatelessComponent {
       ),
       children: [
         ExampleFrame(example: example, layout: ExampleLayout.split),
-        ul(classes: 'af-checklist', [
-          li([
+        Checklist([
+          [
             strong(rich('One call to `registerFields`')),
             ...rich(
               ' and the form owns the fields: it disposes them, tracks '
               '`wasModified`, and reaches them in `validate`, `resetAll` and '
               'every other broadcast.',
             ),
-          ]),
-          li([
+          ],
+          [
             strong(
               rich(
                 'The field owns its `TextEditingController` and `FocusNode`.',
@@ -48,14 +53,14 @@ class ModelSection extends StatelessComponent {
               ' Bind the widget to `field.textController` and programmatic '
               'writes — `reset`, `prefill`, a relation — show up on screen.',
             ),
-          ]),
-          li([
+          ],
+          [
             const strong([.text('Errors are your type.')]),
             ...rich(
               ' `E` is whatever you choose: a string, an enum, a sealed class. '
               'The package never formats a message.',
             ),
-          ]),
+          ],
         ]),
       ],
     );
@@ -128,10 +133,71 @@ const _modes = [
 
 /// "Three rules": the trigger behaviour, the three modes, and a demo that
 /// switches between them.
+@scopedCss
 class ValidationSection extends StatelessComponent {
   const ValidationSection({required this.example, super.key});
 
   final LandingExample example;
+
+  static const _class = _$validationSectionScope;
+  static final _rulesList = _class('af-rules');
+  static final _rule = _class('af-rule');
+  static final _modesGrid = _class('af-modes');
+  static final _mode = _class('af-mode');
+  static final _modeHead = _class('af-mode-head');
+  static final _modeWhen = _class('af-mode-when');
+
+  /// The numbered rules, and what the mode cards add to a [Card].
+  @css
+  static List<StyleRule> get styles => [
+    css(
+      _rulesList.selector,
+    ).styles(display: .grid, gap: .all(1.rem), raw: {'counter-reset': 'rule'}),
+    css(_rule.selector).styles(
+      position: const .relative(),
+      padding: .only(left: 3.25.rem),
+    ),
+    css('${_rule.selector}::before').styles(
+      position: .absolute(top: 0.15.rem, left: .zero),
+      color: accentTextColor,
+      fontFamily: fontMono,
+      fontSize: 0.85.rem,
+      fontWeight: .w600,
+      raw: {
+        'counter-increment': 'rule',
+        'content': 'counter(rule, decimal-leading-zero)',
+      },
+    ),
+    css('${_rule.selector} h3').styles(
+      margin: .only(bottom: 0.35.rem),
+      fontSize: 1.1.rem,
+    ),
+    css('${_rule.selector} p').styles(color: text2Color, fontSize: 0.98.rem),
+    css(_modesGrid.selector).styles(margin: .only(top: 2.5.rem)),
+    css(_mode.selector).styles(gap: .all(0.35.rem)),
+    css(_modeHead.selector).styles(
+      display: .flex,
+      justifyContent: .spaceBetween,
+      gap: .all(0.75.rem),
+      raw: {'align-items': 'flex-start'},
+    ),
+    css('${_mode.selector} h3').styles(
+      margin: .only(top: 0.25.rem, right: .zero, bottom: .zero, left: .zero),
+    ),
+    css(
+      '${_mode.selector} h3 code',
+    ).styles(fontSize: 0.95.rem, fontWeight: .w600),
+    css(_modeWhen.selector).styles(
+      fontWeight: .w600,
+      raw: {'color': '${textColor.value} !important'},
+    ),
+    css.media(MediaQuery.all(minWidth: 960.px), [
+      css(_rulesList.selector).styles(
+        gap: .all(2.rem),
+        raw: {'grid-template-columns': 'repeat(3, 1fr)'},
+      ),
+    ]),
+  ];
 
   @override
   Component build(BuildContext context) {
@@ -146,35 +212,32 @@ class ValidationSection extends StatelessComponent {
         ),
       ],
       children: [
-        ol(classes: 'af-rules', [
+        ol(classes: _rulesList.name, [
           for (final rule in _rules)
-            li(classes: 'af-rule', [
+            li(classes: _rule.name, [
               h3([.text(rule.title)]),
               p(rich(rule.body)),
             ]),
         ]),
-        ul(classes: 'af-feature-grid af-modes', [
+        CardGrid(className: _modesGrid, [
           for (final mode in _modes)
-            li(classes: 'af-card af-mode', [
-              div(classes: 'af-mode-head', [
-                span(classes: 'af-feature-icon', [mode.icon.build(size: 22)]),
+            Card(className: _mode, [
+              div(classes: _modeHead.name, [
+                CardIcon(mode.icon),
                 Pill(mode.tag, accent: true),
               ]),
               h3([
                 code([.text(mode.name)]),
               ]),
-              p(classes: 'af-mode-when', [.text(mode.when)]),
+              p(classes: _modeWhen.name, [.text(mode.when)]),
               p([.text(mode.body)]),
             ]),
         ]),
-        const p(classes: 'af-section-more', [
-          a(href: '$docsPath/validation/modes', [
-            .text('Every mode and every event, explained →'),
-          ]),
-        ]),
-        div(classes: 'af-section-demo', [
-          ExampleFrame(example: example, layout: ExampleLayout.split),
-        ]),
+        const MoreLink(
+          'Every mode and every event, explained →',
+          href: '$docsPath/validation/modes',
+        ),
+        DemoSlot(ExampleFrame(example: example, layout: ExampleLayout.split)),
       ],
     );
   }
@@ -199,8 +262,8 @@ class AsyncSection extends StatelessComponent {
       ),
       children: [
         ExampleFrame(example: example, layout: ExampleLayout.split),
-        ul(classes: 'af-checklist', [
-          li([
+        Checklist([
+          [
             const strong([
               .text('Debounced while typing, immediate on submit.'),
             ]),
@@ -208,34 +271,33 @@ class AsyncSection extends StatelessComponent {
               ' `await validate()` flushes a waiting check rather than '
               'reporting the field bad for being busy.',
             ),
-          ]),
-          const li([
+          ],
+          const [
             strong([.text('A stale answer can never land.')]),
             .text(
               ' A new value replaces the round in flight; the old result is '
               'dropped, not applied late.',
             ),
-          ]),
-          const li([
+          ],
+          const [
             strong([.text('Verdicts are reused.')]),
             .text(
               ' A second submit on an unchanged form makes zero network calls.',
             ),
-          ]),
-          li([
+          ],
+          [
             const strong([.text('A failure is not an error.')]),
             ...rich(
               ' A validator that throws or times out puts the field on '
               '`failedValidation`: not valid, not stuck, retried by the next '
               'submit.',
             ),
-          ]),
+          ],
         ]),
-        const p(classes: 'af-section-more', [
-          a(href: '$docsPath/validation/async', [
-            .text('How rounds, verdicts and failures fit together →'),
-          ]),
-        ]),
+        const MoreLink(
+          'How rounds, verdicts and failures fit together →',
+          href: '$docsPath/validation/async',
+        ),
       ],
     );
   }
@@ -311,8 +373,20 @@ const _features = [
   ),
 ];
 
+/// "Everything a form needs": the feature cards.
+@scopedCss
 class Features extends StatelessComponent {
   const Features({super.key});
+
+  static const _class = _$featuresScope;
+  static final _feature = _class('af-feature');
+
+  /// What a feature card adds to a [Card].
+  @css
+  static List<StyleRule> get styles => [
+    css(_feature.selector).styles(gap: .all(0.6.rem)),
+    css('${_feature.selector} p').styles(raw: {'flex': '1'}),
+  ];
 
   @override
   Component build(BuildContext context) {
@@ -328,10 +402,10 @@ class Features extends StatelessComponent {
         ),
       ],
       children: [
-        ul(classes: 'af-feature-grid', [
+        CardGrid([
           for (final feature in _features)
-            li(classes: 'af-card af-feature', [
-              span(classes: 'af-feature-icon', [feature.icon.build(size: 22)]),
+            Card(className: _feature, [
+              CardIcon(feature.icon),
               h3([.text(feature.title)]),
               p(rich(feature.body)),
             ]),
@@ -342,46 +416,73 @@ class Features extends StatelessComponent {
 }
 
 /// The Agent Skill band.
+@scopedCss
 class SkillBand extends StatelessComponent {
   const SkillBand({super.key});
 
+  static const _class = _$skillBandScope;
+  static final _band = _class('af-band');
+
+  @css
+  static List<StyleRule> get styles => [
+    css(_band.selector).styles(
+      display: .grid,
+      padding: .all(2.rem),
+      border: hairline(borderColor),
+      radius: const .circular(radius),
+      alignItems: .center,
+      gap: .all(2.rem),
+      raw: {
+        'background':
+            'radial-gradient(60% 80% at 100% 0%, var(--af-accent-soft), '
+            'transparent 70%), var(--af-surface)',
+      },
+    ),
+    css('${_band.selector} > *').styles(minWidth: .zero),
+    css(
+      '${_band.selector} h2',
+    ).styles(fontSize: const .expression('clamp(1.5rem, 2.6vw, 2rem)')),
+    css.media(MediaQuery.all(minWidth: 760.px), [
+      css(_band.selector).styles(
+        padding: .all(2.5.rem),
+        raw: {'grid-template-columns': '1.3fr 1fr'},
+      ),
+    ]),
+  ];
+
   @override
   Component build(BuildContext context) {
-    return section(
-      classes: 'af-section',
-      attributes: const {'aria-labelledby': 'skill-heading'},
-      [
-        div(classes: 'af-container', [
-          div(classes: 'af-band', [
-            div([
-              const p(classes: 'af-eyebrow', [.text('Agent skill')]),
-              const h2(id: 'skill-heading', [
-                .text('Your coding agent already knows this API.'),
-              ]),
-              p(
-                classes: 'af-lead',
-                rich(
-                  'The repository ships an Agent Skill that teaches Claude '
-                  'Code — or any agent that supports skills — the full '
-                  '`advanced_forms` API, so it generates fields, validation, '
-                  'cross-field logic and subforms idiomatically.',
-                ),
-              ),
+    return Section.plain(
+      labelledBy: 'skill-heading',
+      children: [
+        div(classes: _band.name, [
+          div([
+            const Eyebrow('Agent skill'),
+            const h2(id: 'skill-heading', [
+              .text('Your coding agent already knows this API.'),
             ]),
-            const div(classes: 'af-hero-actions', [
-              Button(
-                'Install the skill',
-                href: '$docsPath/agent-skill',
-                leading: .bot,
+            Lead(
+              rich(
+                'The repository ships an Agent Skill that teaches Claude '
+                'Code — or any agent that supports skills — the full '
+                '`advanced_forms` API, so it generates fields, validation, '
+                'cross-field logic and subforms idiomatically.',
               ),
-              Button(
-                'Read SKILL.md',
-                href: skillUrl,
-                variant: .secondary,
-                external: true,
-                trailing: .arrowRight,
-              ),
-            ]),
+            ),
+          ]),
+          const ButtonRow(flush: true, [
+            Button(
+              'Install the skill',
+              href: '$docsPath/agent-skill',
+              leading: .bot,
+            ),
+            Button(
+              'Read SKILL.md',
+              href: skillUrl,
+              variant: .secondary,
+              external: true,
+              trailing: .arrowRight,
+            ),
           ]),
         ]),
       ],

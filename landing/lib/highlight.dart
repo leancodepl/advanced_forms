@@ -4,7 +4,7 @@
 /// behind `jaspr_content`, while the site is pre-rendered. Its scopes are
 /// mapped to CSS classes here, so the browser receives finished `<span>`
 /// markup and never downloads a highlighting library. The classes are coloured
-/// in `web/styles.css`, with one palette per theme.
+/// by [tokenStyles], from the `--tk-*` tokens, one palette per theme.
 library;
 
 import 'package:jaspr/dom.dart';
@@ -23,6 +23,26 @@ final _theme = sh.HighlighterTheme.fromConfiguration(
 );
 
 final _highlighter = sh.Highlighter(language: 'dart', theme: _theme);
+
+/// One colour per token class, `.tk-<token>` from `--tk-<token>`. The
+/// variables are defined with the other tokens in `styles.dart`.
+@css
+List<StyleRule> get tokenStyles => [
+  for (final token in const [
+    'keyword',
+    'type',
+    'string',
+    'number',
+    'comment',
+    'annotation',
+    'function',
+    'operator',
+  ])
+    css('.tk-$token').styles(color: Color.variable('--tk-$token')),
+  css(
+    '.tk-doc',
+  ).styles(color: const .variable('--tk-comment'), fontStyle: .italic),
+];
 
 /// TextMate scope prefixes to CSS classes (`tk-<class>`). For each token the
 /// innermost scope is tried first, longest prefix first; a scope with no entry

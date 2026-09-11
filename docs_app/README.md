@@ -7,10 +7,9 @@ AI-Provenance:
 # advanced-forms-docs
 
 The documentation site for `advanced_forms`, under `/docs`: built with [Fumadocs](https://fumadocs.dev) on Next.js,
-styled after the LeanCode design system used on [ciach.leancode.co](https://ciach.leancode.co), and running its own code
-examples in Flutter, in the browser. The landing page at `/` is a separate static site written in
-[Jaspr](https://jaspr.site), in the repo-root `landing/` folder; this app serves its build output from `public/`, so the
-two ship as one deployment on one domain.
+styled after the LeanCode design system, and running its own code examples in Flutter, in the browser. The landing page
+at `/` is a separate static site written in [Jaspr](https://jaspr.site), in the repo-root `landing/` folder; this app
+serves its build output from `public/`, so the two ship as one deployment on one domain.
 
 MDX for the docs lives in the repo-root `docs/` folder; the landing page's live demos live in `content/landing/`. From
 this directory:
@@ -25,17 +24,18 @@ changes; `npm run dev` without it serves the docs and 404s on `/`.
 
 ## Layout
 
-| Path                                 | What lives there                                                                                                       |
-| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| `../docs/*.mdx`, `../docs/meta.json` | The documentation pages and their order. Section separators are `---Name---` entries in `meta.json`.                   |
-| `content/landing/*.mdx`              | The landing page's live demos: the Dart the Jaspr site shows and compiles, written like any docs example.              |
-| `../landing/`                        | The landing page, a Jaspr static site. `scripts/landing.mjs` builds it and copies the result into `public/`.           |
-| `app/docs/`                          | The notebook layout and the page renderer for `/docs/*`.                                                               |
-| `app/global.css`                     | The design system: tokens (`--af-*`), the Fumadocs variables they map onto, the example frame.                         |
-| `lib/shared.ts`                      | Routes, external URLs, site copy.                                                                                      |
-| `lib/layout.shared.tsx`              | The header: logo (`components/nav-title.tsx`, a plain link to the landing page), links, GitHub.                        |
-| `components/mdx.tsx`                 | The components MDX can use: Fumadocs' set, plus `Tabs`, `Steps`, `Accordions`, `TypeTable` and `AdvancedFormsExample`. |
-| `app/og/`                            | Branded Open Graph images, one per docs page.                                                                          |
+| Path                                  | What lives there                                                                                                                |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `../docs/*.mdx`, `../docs/meta.json`  | The documentation pages and their order. Section separators are `---Name---` entries in `meta.json`.                            |
+| `content/landing/*.mdx`               | The landing page's live demos: the Dart the Jaspr site shows and compiles, written like any docs example.                       |
+| `../landing/`                         | The landing page, a Jaspr static site. `scripts/landing.mjs` builds it and copies the result into `public/`.                    |
+| `app/docs/`                           | The notebook layout and the page renderer for `/docs/*`.                                                                        |
+| `palette.json`, `scripts/palette.mjs` | The palette — the LeanCode swatches and the light and dark `--af-*` tokens — and the generator that writes every copy of it.    |
+| `app/global.css`                      | The stylesheet: the Fumadocs variables mapped onto the `--af-*` tokens (generated into `app/af-tokens.css`), the example frame. |
+| `lib/shared.ts`                       | Routes, external URLs, site copy.                                                                                               |
+| `lib/layout.shared.tsx`               | The header: logo (`components/nav-title.tsx`, a plain link to the landing page), links, GitHub.                                 |
+| `components/mdx.tsx`                  | The components MDX can use: Fumadocs' set, plus `Tabs`, `Steps`, `Accordions`, `TypeTable` and `AdvancedFormsExample`.          |
+| `app/og/`                             | Branded Open Graph images, one per docs page.                                                                                   |
 
 ## Live Flutter examples
 
@@ -134,14 +134,19 @@ debug asset server sends no CORS headers, unlike the release one.
 
 ## Design
 
-The stylesheet is hand-written on top of the Fumadocs preset. Tokens are CSS custom properties prefixed `--af-` at the
-top of `app/global.css` — the ciach palette: `#050505` ground, `#101013` surfaces, `#edff2f` accent, Space Grotesk and
-JetBrains Mono — and the `--color-fd-*` variables Fumadocs paints with are re-pointed at them. Dark is the design and
-the default; light is a paper variant where the accent is a fill with dark ink on it, the way leancode.co does it.
+The colors are the LeanCode design system — black ground, warm surfaces, one CTA yellow `#f0ff00` — and live in one
+place, `palette.json`: the swatches as the design system names them, and the light and dark themes as `--af-*` tokens
+built from them. `npm run palette:generate` writes every copy a consumer needs (`app/af-tokens.css` for this stylesheet,
+`lib/palette.generated.ts` for the social cards and the logo, `flutter/lib/support/palette.generated.dart` for the live
+demos, `../landing/lib/palette.generated.dart` for the landing page, which writes its own `--af-*` variables from it)
+and recolors the shapes marked `data-palette` in the logo and icon SVGs; `npm run palette:check` fails CI when they
+drift. The stylesheet is hand-written on top of the Fumadocs preset, with the `--color-fd-*` variables Fumadocs paints
+with pointed at the tokens. Space Grotesk and JetBrains Mono. Dark is the design and the default; light is a paper
+variant where the accent is a fill with black ink on it, the way leancode.co does it.
 
-Code blocks and live examples share one window frame: a title bar with three dots (the first one lime), a mono title,
-and the content below. The landing page in `../landing/web/landing.css` uses the same tokens and the same frame, so the
-homepage and the docs read as one site — change a colour in one place and mirror it in the other.
+Code blocks and live examples share one window frame: a title bar with three dots (the first one yellow), a mono title,
+and the content below. The landing page (`../landing/lib/styles.dart` writes the tokens from the generated palette, the
+components style the frame) uses the same tokens and the same frame, so the homepage and the docs read as one site.
 
 ## Deployment
 
