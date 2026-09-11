@@ -3,6 +3,8 @@ import 'package:advanced_forms_landing/styles.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
+part 'copy_button.scopes.dart';
+
 /// How a [CopyButton] looks.
 enum CopyButtonVariant {
   /// A framed button with a label, sitting in a command line.
@@ -20,6 +22,7 @@ enum CopyButtonVariant {
 /// A button that copies text to the clipboard and shows a check mark for a
 /// moment afterwards. `web/landing.js` wires the click and flashes the
 /// `data-copied` attribute the styles below react to.
+@scopedCss
 class CopyButton extends StatelessComponent {
   /// Copies [text].
   const CopyButton({
@@ -51,7 +54,7 @@ class CopyButton extends StatelessComponent {
   /// A tooltip.
   final String? title;
 
-  static const _class = ClassScope<CopyButton>();
+  static const _class = _$copyButtonScope;
 
   /// The button itself.
   static final className = _class('af-copy-button');

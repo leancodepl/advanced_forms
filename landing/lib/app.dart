@@ -7,7 +7,10 @@ import 'package:advanced_forms_landing/styles.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
+part 'app.scopes.dart';
+
 /// The landing page: what advanced_forms is, four live demos, where to go next.
+@scopedCss
 class App extends StatelessComponent {
   const App({required this.version, super.key});
 
@@ -15,7 +18,7 @@ class App extends StatelessComponent {
 
   /// `<main>`. The docs' `global.css` knows the name too.
   static const _landing = ClassName.shared('af-landing');
-  static const _class = ClassScope<App>();
+  static const _class = _$appScope;
   static final _skipLink = _class('af-skip-link');
 
   @css

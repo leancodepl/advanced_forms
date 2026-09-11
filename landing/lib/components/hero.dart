@@ -9,14 +9,17 @@ import 'package:advanced_forms_landing/styles.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
+part 'hero.scopes.dart';
+
 /// The hero: badges, the pitch, the install command and the first live demo.
+@scopedCss
 class Hero extends StatelessComponent {
   const Hero({required this.version, required this.demo, super.key});
 
   final String version;
   final LandingExample demo;
 
-  static const _class = ClassScope<Hero>();
+  static const _class = _$heroScope;
   static final _hero = _class('af-hero');
   static final _bg = _class('af-hero-bg');
   static final _grid = _class('af-hero-grid');

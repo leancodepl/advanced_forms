@@ -3,8 +3,11 @@ import 'package:advanced_forms_landing/styles.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
+part 'pill.scopes.dart';
+
 /// A small rounded badge: a version, a licence, a promise. With [href] it
 /// links out; [accent] draws it in the accent colour.
+@scopedCss
 class Pill extends StatelessComponent {
   const Pill(this.text, {this.href, this.accent = false, super.key});
 
@@ -12,7 +15,7 @@ class Pill extends StatelessComponent {
   final String? href;
   final bool accent;
 
-  static const _class = ClassScope<Pill>();
+  static const _class = _$pillScope;
   static final _pill = _class('af-pill');
   static final _accent = _class('af-pill-accent');
 

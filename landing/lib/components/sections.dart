@@ -11,6 +11,8 @@ import 'package:advanced_forms_landing/styles.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
+part 'sections.scopes.dart';
+
 /// "The model": the whole form next to the code that is the whole form.
 class ModelSection extends StatelessComponent {
   const ModelSection({required this.example, super.key});
@@ -131,12 +133,13 @@ const _modes = [
 
 /// "Three rules": the trigger behaviour, the three modes, and a demo that
 /// switches between them.
+@scopedCss
 class ValidationSection extends StatelessComponent {
   const ValidationSection({required this.example, super.key});
 
   final LandingExample example;
 
-  static const _class = ClassScope<ValidationSection>();
+  static const _class = _$validationSectionScope;
   static final _rulesList = _class('af-rules');
   static final _rule = _class('af-rule');
   static final _modesGrid = _class('af-modes');
@@ -371,10 +374,11 @@ const _features = [
 ];
 
 /// "Everything a form needs": the feature cards.
+@scopedCss
 class Features extends StatelessComponent {
   const Features({super.key});
 
-  static const _class = ClassScope<Features>();
+  static const _class = _$featuresScope;
   static final _feature = _class('af-feature');
 
   /// What a feature card adds to a [Card].
@@ -412,10 +416,11 @@ class Features extends StatelessComponent {
 }
 
 /// The Agent Skill band.
+@scopedCss
 class SkillBand extends StatelessComponent {
   const SkillBand({super.key});
 
-  static const _class = ClassScope<SkillBand>();
+  static const _class = _$skillBandScope;
   static final _band = _class('af-band');
 
   @css

@@ -6,13 +6,16 @@ import 'package:advanced_forms_landing/styles.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
+part 'footer.scopes.dart';
+
 /// The closing call to action, the link columns and the colophon.
+@scopedCss
 class SiteFooter extends StatelessComponent {
   const SiteFooter({required this.version, super.key});
 
   final String version;
 
-  static const _class = ClassScope<SiteFooter>();
+  static const _class = _$siteFooterScope;
   static final _footer = _class('af-footer');
   static final _cta = _class('af-cta');
   static final _ctaInner = _class('af-cta-inner');

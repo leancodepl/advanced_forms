@@ -3,11 +3,14 @@ import 'package:advanced_forms_landing/styles.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
+part 'logo.scopes.dart';
+
 /// The designed word mark: `logo-light.svg` on the light theme and
 /// `logo-dark.svg` on the dark one. Both files are served by the docs app from
 /// its `public/` folder, so the two sites share one pair of assets, and the
 /// class names here are the ones the docs' `global.css` uses for the same
 /// mark.
+@scopedCss
 class Logo extends StatelessComponent {
   const Logo({this.large = false, super.key});
 
@@ -17,7 +20,7 @@ class Logo extends StatelessComponent {
 
   static const _logo = ClassName.shared('af-logo');
   static const _large = ClassName.shared('af-logo-large');
-  static const _class = ClassScope<Logo>();
+  static const _class = _$logoScope;
   static final _light = _class('af-logo-light');
   static final _dark = _class('af-logo-dark');
 

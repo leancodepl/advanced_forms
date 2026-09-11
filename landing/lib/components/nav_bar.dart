@@ -6,13 +6,16 @@ import 'package:advanced_forms_landing/styles.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
+part 'nav_bar.scopes.dart';
+
 /// The site header: the word mark on the left, the places a visitor can go on
 /// the right. The docs are a separate app under `/docs`, served from the same
 /// domain, so every item is a plain link.
+@scopedCss
 class NavBar extends StatelessComponent {
   const NavBar({super.key});
 
-  static const _class = ClassScope<NavBar>();
+  static const _class = _$navBarScope;
   static final _header = _class('af-header');
   static final _nav = _class('af-nav');
   static final _brand = _class('af-brand');

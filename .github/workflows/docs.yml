@@ -134,9 +134,11 @@ jobs:
         run: dart pub get
         working-directory: landing
 
+      # The components declare part files holding their class-name scopes, and
       # main.server.dart imports the options jaspr_builder writes from the
-      # `@css` getters (gitignored), so they have to exist before analysis.
-      - name: Generate the landing page's Jaspr options
+      # `@css` getters. Both are gitignored, so both have to exist before
+      # analysis.
+      - name: Generate the landing page's part files
         run: dart run build_runner build --delete-conflicting-outputs
         working-directory: landing
 

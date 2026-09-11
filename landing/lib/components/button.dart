@@ -4,6 +4,8 @@ import 'package:advanced_forms_landing/styles.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
+part 'button.scopes.dart';
+
 /// How a [Button] is filled.
 enum ButtonVariant {
   /// Accent fill with dark text: the one action a section wants taken.
@@ -21,6 +23,7 @@ enum ButtonVariant {
 /// A pill-shaped call to action that links somewhere. [external] links open in
 /// a new tab. An icon can go before the label ([leading]) or after it
 /// ([trailing]).
+@scopedCss
 class Button extends StatelessComponent {
   const Button(
     this.label, {
@@ -39,7 +42,7 @@ class Button extends StatelessComponent {
   final Icon? leading;
   final Icon? trailing;
 
-  static const _class = ClassScope<Button>();
+  static const _class = _$buttonScope;
   static final _button = _class('af-button');
 
   /// The class of a [variant].
@@ -100,6 +103,7 @@ class Button extends StatelessComponent {
 }
 
 /// A wrapping row of [Button]s under a piece of copy.
+@scopedCss
 class ButtonRow extends StatelessComponent {
   const ButtonRow(
     this.children, {
@@ -116,7 +120,7 @@ class ButtonRow extends StatelessComponent {
   /// Without the gap above it, where the row stands on its own.
   final bool flush;
 
-  static const _class = ClassScope<ButtonRow>();
+  static const _class = _$buttonRowScope;
   static final _row = _class('af-actions');
   static final _center = _class('af-actions-center');
   static final _flush = _class('af-actions-flush');

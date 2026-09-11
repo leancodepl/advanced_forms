@@ -32,7 +32,7 @@ stylesheet to copy: the styles are Dart, and the build inlines them into `index.
 | `lib/highlight.dart`         | Build-time Dart syntax highlighting (`syntax_highlight_lite`) into `tk-*` spans, and their colours.                               |
 | `lib/site.dart`              | URLs, copy, the package version from `../pubspec.yaml`. `SITE_URL` (a `--dart-define`) for previews.                              |
 | `lib/palette.generated.dart` | The palette — `enum Palette`, `afLight`/`afDark` — generated from `../docs_app/palette.json` by `npm run palette:generate` there. |
-| `lib/styles.dart`            | Fonts, the `--af-*` tokens (written from the palette), the reset, the container and `ClassName`. See "Styles" below.              |
+| `lib/styles.dart`            | Fonts, the `--af-*` tokens (written from the palette), the reset and the container. See "Styles" below.                          |
 | `web/fonts/`                 | Space Grotesk and JetBrains Mono, self-hosted (see its README), so no third-party request blocks paint.                           |
 | `web/landing.js`             | The client: Flutter islands, copy buttons, theme toggle. No framework, no build step.                                             |
 
@@ -46,10 +46,11 @@ docs' — the reset, the `af-container` column and the reduced-motion rule. `jas
 into `lib/main.server.options.dart` (generated, not committed), and Jaspr renders them as one `<style>` in the `<head>`
 — global rules first, then components in file order — so nothing render-blocking is fetched.
 
-A component owns the classes it renders, and the stylesheet is global, so class names are scoped the way CSS modules
-scope them. Each component declares one `ClassScope<Hero>()` and makes its classes from it — `_class('af-grid')` — which
-render as `af-grid-<suffix>`, the suffix a short hash of the component's type name (`lib/styles.dart`; two scopes that
-would hash alike fail the build). Both the selector (`css(_hero.selector)`, `'${_grid.selector} > *'`) and the attribute
+A component owns the classes it renders, and the stylesheet is global, so class names are locally scoped by
+[`jaspr_class_scope`](https://github.com/leancodepl/flutter_corelibrary/tree/master/packages/jaspr_class_scope). A
+component carries `@scopedCss` and a `part 'hero.scopes.dart'`, and its scope — `_$heroScope`, written by the builder
+into that part file — makes its classes: `_class('af-grid')` renders as `af-grid-<suffix>`, unique to this component.
+Both the selector (`css(_hero.selector)`, `'${_grid.selector} > *'`) and the attribute
 (`classes: _hero.name`, `(container + _grid).name`) are spelled from the constant, so the suffix is never written by
 hand, a rename cannot miss a use, and two components may pick the same local name without meeting in the stylesheet.
 Nothing styles or renders another component's class

@@ -13,85 +13,9 @@ library;
 
 import 'package:advanced_forms_landing/palette.generated.dart';
 import 'package:jaspr/dom.dart';
+import 'package:jaspr_class_scope/jaspr_class_scope.dart';
 
-// ---------- Class names ----------
-
-/// Makes the class names of one component, scoped to it.
-///
-/// Jaspr collects every `@css` getter into one global stylesheet and scopes
-/// nothing, so this does what CSS modules do at build time. A component
-/// declares one scope and makes its classes from it:
-///
-/// ```dart
-/// static const _class = ClassScope<Hero>();
-/// static final _grid = _class('af-hero-grid');
-/// ```
-///
-/// and `_grid` renders as `af-hero-grid-<suffix>`, the suffix a short hash of
-/// the component's type name. Two components can both call something
-/// `af-grid` and never meet in the stylesheet, and a raw `'af-grid'` string
-/// elsewhere matches nothing. Selectors ([ClassName.selector]) and `classes:`
-/// attributes ([ClassName.name]) are spelled from the constant, so the suffix
-/// is never written by hand. Two scopes that would hash alike fail the build
-/// the first time either renders, so a collision cannot slip through.
-final class ClassScope<T> {
-  const ClassScope();
-
-  /// The class [local] of this scope's component.
-  ClassName call(String local) => ClassName._(local, this);
-
-  /// Five base-36 digits of an FNV-1a hash of [T]'s name: the same on every
-  /// machine and Dart version, and short enough to read in the inspector.
-  String get suffix {
-    var hash = 0x811c9dc5;
-    for (final unit in T.toString().codeUnits) {
-      hash = ((hash ^ unit) * 0x01000193) & 0xffffffff;
-    }
-    final suffix = hash.toRadixString(36).padLeft(5, '0').substring(0, 5);
-    final taken = _suffixes.putIfAbsent(suffix, () => T);
-    if (taken != T) {
-      throw StateError(
-        'ClassScope<$T> and ClassScope<$taken> both scope to "-$suffix"; '
-        'rename one of the components.',
-      );
-    }
-    return suffix;
-  }
-
-  static final _suffixes = <String, Type>{};
-}
-
-/// A CSS class name: made by a [ClassScope] for the component that owns it, or
-/// [ClassName.shared] for the classes that are a contract with another file —
-/// the ones `web/landing.js` looks up, the ones the docs app's `global.css`
-/// uses for the same example frame and logo, and the [container] utility —
-/// which render as written.
-final class ClassName {
-  /// A class rendered as written, because another file knows it by name.
-  const ClassName.shared(this._local) : _scope = null;
-
-  const ClassName._(this._local, this._scope);
-
-  final String _local;
-  final ClassScope<Object?>? _scope;
-
-  /// The class as it appears in the page: the `classes:` value.
-  String get name => switch (_scope) {
-    null => _local,
-    final scope => '$_local-${scope.suffix}',
-  };
-
-  /// This class in a selector: `.name`. For a [+] combination, `.a.b`: an
-  /// element that carries both.
-  String get selector => '.${name.replaceAll(' ', '.')}';
-
-  /// This class and [other] on the same element: `a b` as a `classes:` value.
-  ClassName operator +(ClassName other) =>
-      ClassName.shared('$name ${other.name}');
-
-  @override
-  String toString() => name;
-}
+export 'package:jaspr_class_scope/jaspr_class_scope.dart';
 
 /// Centers the content column: `min(100% - 2.5rem, var(--af-container))`
 /// wide. The one class any component may put on an element of its own.

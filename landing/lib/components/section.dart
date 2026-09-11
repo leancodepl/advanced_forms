@@ -2,12 +2,15 @@ import 'package:advanced_forms_landing/styles.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
+part 'section.scopes.dart';
+
 /// A landing-page section: full-bleed padding, a hairline on top, the content
 /// column, and the shared header of an [Eyebrow], a heading and a [Lead].
 ///
 /// Every section gets an `id` for in-page anchors and an `aria-labelledby`
 /// pointing at its heading, so the outline reads well for crawlers and screen
 /// readers alike.
+@scopedCss
 class Section extends StatelessComponent {
   const Section({
     required String this.id,
@@ -37,7 +40,7 @@ class Section extends StatelessComponent {
   final List<Component> children;
   final String? _labelledBy;
 
-  static const _class = ClassScope<Section>();
+  static const _class = _$sectionScope;
   static final _section = _class('af-section');
   static final _head = _class('af-section-head');
 
@@ -82,12 +85,13 @@ class Section extends StatelessComponent {
 }
 
 /// The small mono line above a heading, with a short accent rule before it.
+@scopedCss
 class Eyebrow extends StatelessComponent {
   const Eyebrow(this.text, {super.key});
 
   final String text;
 
-  static const _class = ClassScope<Eyebrow>();
+  static const _class = _$eyebrowScope;
   static final _eyebrow = _class('af-eyebrow');
 
   @css
@@ -118,12 +122,13 @@ class Eyebrow extends StatelessComponent {
 }
 
 /// The paragraph under a heading that says what the section is about.
+@scopedCss
 class Lead extends StatelessComponent {
   const Lead(this.children, {super.key});
 
   final List<Component> children;
 
-  static const _class = ClassScope<Lead>();
+  static const _class = _$leadScope;
   static final _lead = _class('af-lead');
 
   @css
@@ -140,13 +145,14 @@ class Lead extends StatelessComponent {
 }
 
 /// A "read more" line under a section's content: one link into the docs.
+@scopedCss
 class MoreLink extends StatelessComponent {
   const MoreLink(this.text, {required this.href, super.key});
 
   final String text;
   final String href;
 
-  static const _class = ClassScope<MoreLink>();
+  static const _class = _$moreLinkScope;
   static final _more = _class('af-section-more');
 
   @css
@@ -168,12 +174,13 @@ class MoreLink extends StatelessComponent {
 }
 
 /// Room above a live demo that follows other content in a section.
+@scopedCss
 class DemoSlot extends StatelessComponent {
   const DemoSlot(this.child, {super.key});
 
   final Component child;
 
-  static const _class = ClassScope<DemoSlot>();
+  static const _class = _$demoSlotScope;
   static final _demo = _class('af-section-demo');
 
   @css
@@ -187,13 +194,14 @@ class DemoSlot extends StatelessComponent {
 
 /// The points under a demo, each led by a short accent dash: bold claim first,
 /// then the sentence that backs it.
+@scopedCss
 class Checklist extends StatelessComponent {
   const Checklist(this.items, {super.key});
 
   /// One entry per item; the entry's components become the `<li>`.
   final List<List<Component>> items;
 
-  static const _class = ClassScope<Checklist>();
+  static const _class = _$checklistScope;
   static final _list = _class('af-checklist');
 
   @css

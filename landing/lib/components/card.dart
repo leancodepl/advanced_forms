@@ -3,7 +3,10 @@ import 'package:advanced_forms_landing/styles.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
+part 'card.scopes.dart';
+
 /// A responsive grid of [Card]s: as many 300px columns as fit.
+@scopedCss
 class CardGrid extends StatelessComponent {
   const CardGrid(this.children, {this.className, super.key});
 
@@ -12,7 +15,7 @@ class CardGrid extends StatelessComponent {
   /// A class of the caller's, for its own rules on this grid.
   final ClassName? className;
 
-  static const _class = ClassScope<CardGrid>();
+  static const _class = _$cardGridScope;
   static final _grid = _class('af-card-grid');
 
   @css
@@ -38,6 +41,7 @@ class CardGrid extends StatelessComponent {
 
 /// A bordered surface that lifts a little when hovered, with a heading and a
 /// paragraph or two inside; a [CardGrid] item.
+@scopedCss
 class Card extends StatelessComponent {
   const Card(this.children, {this.className, super.key});
 
@@ -46,7 +50,7 @@ class Card extends StatelessComponent {
   /// A class of the caller's, for its own rules on this card.
   final ClassName? className;
 
-  static const _class = ClassScope<Card>();
+  static const _class = _$cardScope;
   static final _card = _class('af-card');
 
   @css
@@ -84,12 +88,13 @@ class Card extends StatelessComponent {
 }
 
 /// The icon in a card's corner: a rounded accent tile.
+@scopedCss
 class CardIcon extends StatelessComponent {
   const CardIcon(this.icon, {super.key});
 
   final Icon icon;
 
-  static const _class = ClassScope<CardIcon>();
+  static const _class = _$cardIconScope;
   static final _icon = _class('af-card-icon');
 
   @css
