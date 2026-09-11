@@ -140,6 +140,7 @@ test('isEmail', () {
   final validate = isEmail(MyError.invalidEmail);
   expect(validate('ada@example.com'), isNull);
   expect(validate('ada'), MyError.invalidEmail);
+  expect(validate('ada @example.com'), MyError.invalidEmail);
   expect(validate(null), MyError.invalidEmail);
 });
 ```

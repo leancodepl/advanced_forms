@@ -76,8 +76,11 @@ class ProfileFormController extends AdvancedFormController {
   }
 }
 
+/// Pragmatic, not RFC 5322: one `@`, no whitespace, a dot in the domain.
+final emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+
 Validator<String?, E> isEmail<E extends Object>(E error) =>
-    (value) => value != null && value.contains('@') ? null : error;
+    (value) => value != null && emailPattern.hasMatch(value) ? null : error;
 
 String describe(ProfileError error) => switch (error) {
   ProfileError.required => 'Required',
