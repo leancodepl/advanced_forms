@@ -286,7 +286,7 @@ packages:
     description:
       path: "packages/jaspr_class_scope"
       ref: "claude/jaspra-scoped-classnames-kzspx3"
-      resolved-ref: "03bbd406dc487fc09e4d695fd194181d18502d23"
+      resolved-ref: fbd40c01a4e2b0811c31a15e4dbbd2584dfde07f
       url: "https://github.com/leancodepl/flutter_corelibrary"
     source: git
     version: "0.1.0"
@@ -295,7 +295,7 @@ packages:
     description:
       path: "packages/jaspr_class_scope_builder"
       ref: "claude/jaspra-scoped-classnames-kzspx3"
-      resolved-ref: "03bbd406dc487fc09e4d695fd194181d18502d23"
+      resolved-ref: fbd40c01a4e2b0811c31a15e4dbbd2584dfde07f
       url: "https://github.com/leancodepl/flutter_corelibrary"
     source: git
     version: "0.1.0"
