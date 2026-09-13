@@ -17,8 +17,11 @@ String describe(SignupError error) => switch (error) {
   SignupError.mustAccept => 'You have to accept the terms',
 };
 
+/// Pragmatic, not RFC 5322: one `@`, no whitespace, a dot in the domain.
+final emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+
 Validator<String?, E> isEmail<E extends Object>(E error) =>
-    (value) => value != null && value.contains('@') ? null : error;
+    (value) => value != null && emailPattern.hasMatch(value) ? null : error;
 
 class HeroSignupController extends AdvancedFormController {
   HeroSignupController() : super(validationMode: ValidationMode.onUnfocus) {

@@ -8,7 +8,9 @@
 [![test](https://github.com/leancodepl/advanced_forms/actions/workflows/test.yml/badge.svg)](https://github.com/leancodepl/advanced_forms/actions/workflows/test.yml)
 [![License: Apache 2.0][license-badge]][license-badge-link]
 
-Flutter form validation and state management without a framework on top. `advanced_forms` gives you typed field controllers, composable sync and async validation, and form-level state tracking, built on `ChangeNotifier` and `ValueListenable`.
+**Build simple and complicated Flutter forms the same way.** Validation, async server-side checks, cross-field rules, subforms and fields added at runtime come out of the box, so a two-field login and a five-step wizard are wired with the same few lines of code.
+
+`advanced_forms` is Flutter form validation and state management with no framework on top: typed field controllers, composable validators, and form-level state, built on `ChangeNotifier` and `ValueListenable`, so it fits whatever state management your app already uses.
 
 - **Typed field controllers** — text fields, checkboxes and switches, dropdowns and radio groups, and multi-select fields, each with its own value type *and* its own error type.
 - **Validators that compose** — `filled`, `notEmpty`, `notNull`, `mustBeTrue`, `atLeastLength`, `notLongerThan`, `exactly` and numeric checks, combined with `&` and `|`, or any `E? Function(T)` you write yourself.
@@ -45,7 +47,9 @@ Migrating from 0.1.x, the bloc-based version? See [MIGRATION.md](https://github.
 
 ## Your first form
 
-A controller holds the fields and registers them; a widget binds to each field:
+A form is two classes: a **controller** that declares the fields and decides what submit means, and a **widget** that binds each field to an input.
+
+**1. The form controller** — declares the fields, registers them once, and owns `submit`:
 
 ```dart
 class SignupFormController extends AdvancedFormController {
@@ -67,6 +71,8 @@ class SignupFormController extends AdvancedFormController {
   }
 }
 ```
+
+**2. The form widget** — owns the controller, disposes it, and lays the fields out:
 
 ```dart
 class SignupForm extends StatefulWidget {
@@ -98,6 +104,8 @@ class _SignupFormState extends State<SignupForm> {
 }
 ```
 
+**3. The field widget** — one `AdvancedFieldBuilder` per field, so a keystroke rebuilds one subtree:
+
 ```dart
 class _SignupTextField extends StatelessWidget {
   const _SignupTextField({required this.field, required this.label});
@@ -118,7 +126,11 @@ class _SignupTextField extends StatelessWidget {
 }
 ```
 
-Fields stay quiet until the first `validate()`, then give live feedback.
+That is the whole form. Submitted empty, every field says why — the validator's error, rendered by `errorText`:
+
+![The signup form after an empty submit: both fields outlined in red, each with its own message](https://raw.githubusercontent.com/leancodepl/advanced_forms/refs/heads/main/doc/first-form.png)
+
+Fields stay quiet until the first `validate()`, then give live feedback. This form runs in your browser on [advanced-forms.leancode.co][first-form-live], next to the code above.
 
 Two rules to remember:
 
@@ -273,6 +285,10 @@ final email = AdvancedTextFieldController(
 );
 ```
 
+A taken username, caught by the check and reported on the field — [try it live][async-live]:
+
+![A username field rejected by a server-side check, with the form status pill reading invalid](https://raw.githubusercontent.com/leancodepl/advanced_forms/refs/heads/main/doc/async-validation.png)
+
 The pass is debounced, and `await validate()` runs a waiting check at once rather than reporting the field bad for being busy. Changing the value — or `setError`, `clearErrors`, `reset`, `markReadOnly`, `dispose` — kills a live pass, and its later result is dropped. A settled answer is reused while it still describes the value, so a second submit press on an unchanged form makes no calls; a check that depends on state *outside* the value must be invalidated with `clearErrors()`. The status walks `pending` → `validating` → `valid`/`invalid`, so a spinner is one `state.isInProgress` check.
 
 A validator that throws, or a pass that times out, is a *failure* — a technical fault, not a verdict on the value. The field lands on `FieldStatus.failedValidation` (`state.isFailedValidation`) instead of hanging on `validating`, it does not count as valid, and `form.value.hasFailedValidation` drives one banner for the whole form. Failure is not sticky, so the next `await validate()` retries it.
@@ -380,6 +396,10 @@ class BaseFormController extends AdvancedFormController {
 }
 ```
 
+Fields added at runtime, one subform per guest, all validated by the parent's `validate()` — [try it live][subforms-live]:
+
+![A guest list where each guest is a subform with its own name and email fields](https://raw.githubusercontent.com/leancodepl/advanced_forms/refs/heads/main/doc/subforms.png)
+
 `void removeSubform(form)` detaches a subform: it stops validating, notifying and counting towards the parent's state, and can be re-attached later with `addSubform`. It does not dispose it — the parent owns every subform it was ever given and disposes them all in its own `dispose()`, the same way it owns registered fields. So don't dispose subforms yourself; if you do, the parent skips them rather than disposing them twice. Calling `addSubform` with — or on — a disposed controller throws a descriptive `StateError` rather than crashing later, and so do `registerFields`, `setValidationEnabled` and `removeSubform` on one.
 
 Working examples: `DeliveryListFormScreen` (a dynamic list), `ComplexFormScreen` (swapping one subform for another) and `StepFormScreen` (a wizard: one subform per step).
@@ -445,6 +465,9 @@ Licensed under the [Apache License 2.0](./LICENSE).
 
 [banner-img]: https://raw.githubusercontent.com/leancodepl/advanced_forms/refs/heads/main/doc/banner.png
 [website-img]: https://raw.githubusercontent.com/leancodepl/advanced_forms/refs/heads/main/doc/website.svg
+[first-form-live]: https://advanced-forms.leancode.co/docs/first-form?utm_source=github.com&utm_medium=referral&utm_campaign=advanced-forms
+[async-live]: https://advanced-forms.leancode.co/docs/validation/async?utm_source=github.com&utm_medium=referral&utm_campaign=advanced-forms
+[subforms-live]: https://advanced-forms.leancode.co/docs/subforms?utm_source=github.com&utm_medium=referral&utm_campaign=advanced-forms
 [site]: https://advanced-forms.leancode.co/?utm_source=github.com&utm_medium=referral&utm_campaign=advanced-forms
 [license-badge]: https://img.shields.io/github/license/leancodepl/advanced_forms
 [license-badge-link]: https://github.com/leancodepl/advanced_forms/blob/main/LICENSE

@@ -33,6 +33,8 @@ Every guest below is its own `AdvancedFormController`, attached when added and d
 <AdvancedFormsExample preview="GuestListForm" title="guest_list.dart">
 
 ```dart title="guest_list_controller.dart"
+final _emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+
 class GuestController extends AdvancedFormController {
   GuestController() {
     registerFields([name, email]);
@@ -40,7 +42,7 @@ class GuestController extends AdvancedFormController {
 
   final name = AdvancedTextFieldController(validator: filled('Name required'));
   final email = AdvancedTextFieldController(
-    validator: (value) => value.contains('@') ? null : 'Not an email',
+    validator: (value) => _emailPattern.hasMatch(value) ? null : 'Not an email',
   );
 }
 

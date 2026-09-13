@@ -500,8 +500,10 @@ class AccountStepController extends WizardStepController {
 /// A validator of your own is just a function of the value. Write it over
 /// `String?`, like the built-in string validators, so it combines with them
 /// through `&` and `|` — both sides have to take the same type.
+final _emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+
 Validator<String?, E> isEmail<E extends Object>(E message) =>
-    (value) => value != null && value.contains('@') ? null : message;
+    (value) => value != null && _emailPattern.hasMatch(value) ? null : message;
 
 Future<ValidationError?> _checkEmailTaken(String value) async {
   const taken = ['john@email.com', 'jack@email.com'];

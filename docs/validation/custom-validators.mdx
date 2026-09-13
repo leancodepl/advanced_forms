@@ -13,11 +13,14 @@ A factory that takes the error makes a rule reusable across forms with different
 built-ins. Write string rules over `String?` so they combine with `filled` and friends:
 
 ```dart
-Validator<String?, E> isEmail<E extends Object>(E error) =>
-    (value) => value != null && value.contains('@') ? null : error;
-
 Validator<String?, E> matches<E extends Object>(RegExp pattern, E error) =>
     (value) => value != null && pattern.hasMatch(value) ? null : error;
+
+/// Pragmatic, not RFC 5322: one `@`, no whitespace, a dot in the domain.
+final emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+
+Validator<String?, E> isEmail<E extends Object>(E error) =>
+    matches(emailPattern, error);
 
 Validator<DateTime?, E> notInThePast<E extends Object>(E error) =>
     (value) => value != null && value.isBefore(DateTime.now()) ? error : null;

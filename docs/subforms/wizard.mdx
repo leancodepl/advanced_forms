@@ -21,6 +21,8 @@ abstract class WizardStep extends AdvancedFormController {
   String get title;
 }
 
+final _emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+
 class AccountStep extends WizardStep {
   AccountStep() {
     registerFields([email, password]);
@@ -30,7 +32,8 @@ class AccountStep extends WizardStep {
   String get title => 'Account';
 
   final email = AdvancedTextFieldController(
-    validator: (value) => value.contains('@') ? null : 'Enter an email',
+    validator: (value) =>
+        _emailPattern.hasMatch(value) ? null : 'Enter an email',
   );
   final password = AdvancedTextFieldController(
     validator: atLeastLength(8, 'At least 8 characters'),

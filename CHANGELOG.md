@@ -1,3 +1,9 @@
+## 0.2.1+1
+
+* Documentation only, no library changes.
+* The README leads with what the package does for you, labels the three snippets of the first form, and shows screenshots of what they render.
+* Fixed the e-mail validator in the examples: it only looked for an `@`, so the sign-up demo on the website accepted addresses with spaces in them.
+
 ## 0.2.1
 
 * Added `mustBeTrue` validator for boolean fields: rejects `false` and null.
