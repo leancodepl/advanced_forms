@@ -3,35 +3,20 @@
  *   model: Claude Fable 5.1
  *   harness: Claude Code
  *
- * The LeanCode design system as used on ciach.leancode.co — near-black
- * surfaces, one lime accent, Space Grotesk and JetBrains Mono — mapped onto
- * the variables Fumadocs paints with. Dark is the design; light is a paper
- * variant that keeps the same accent as a fill (black ink on lime), the way
- * leancode.co does it.
+ * The LeanCode design system — black surfaces, one CTA yellow, Space Grotesk
+ * and JetBrains Mono — mapped onto the variables Fumadocs paints with. Dark is
+ * the design; light is a paper variant that keeps the same accent as a fill
+ * (black ink on yellow), the way leancode.co does it. The colors themselves
+ * are the `--af-*` variables of af-tokens.css, generated from ../palette.json
+ * and shared with the landing page; this file holds everything else.
  */
 @import "tailwindcss";
 @import "fumadocs-ui/css/preset.css";
+@import "./af-tokens.css";
 
 /* ---------- Tokens ---------- */
 
 :root {
-  --af-bg: #f6f6f2;
-  --af-bg-2: #ffffff;
-  --af-surface: #ffffff;
-  --af-surface-2: #efefe9;
-  --af-border: #e2e2dc;
-  --af-border-2: #cfcfc7;
-  --af-text: #0b0b0d;
-  --af-text-2: #4b4b52;
-  --af-muted: #7d7d84;
-  --af-accent: #edff2f;
-  --af-accent-2: #c9dc00;
-  --af-accent-ink: #0b0c00;
-  /* Accent used *as text* on a light ground has to be darker to read. */
-  --af-accent-text: #5f6e00;
-  --af-accent-soft: rgba(237, 255, 47, 0.45);
-  --af-danger: #d93636;
-  --af-ok: #1f9d55;
   --af-shadow: 0 24px 60px -32px rgba(0, 0, 0, 0.25);
   --af-radius: 14px;
   --af-radius-sm: 8px;
@@ -40,78 +25,43 @@
 }
 
 .dark {
-  --af-bg: #050505;
-  --af-bg-2: #0b0b0d;
-  --af-surface: #101013;
-  --af-surface-2: #16161b;
-  --af-border: #23232b;
-  --af-border-2: #33333e;
-  --af-text: #f4f4f1;
-  --af-text-2: #b7b7b3;
-  --af-muted: #7d7d84;
-  --af-accent: #edff2f;
-  --af-accent-2: #c9dc00;
-  --af-accent-ink: #0b0c00;
-  --af-accent-text: #edff2f;
-  --af-accent-soft: rgba(237, 255, 47, 0.12);
-  --af-danger: #ff5d5d;
-  --af-ok: #58e08a;
   --af-shadow: 0 24px 60px -32px rgba(0, 0, 0, 0.9);
 }
 
-/* Fumadocs paints with these. Light values in @theme so Tailwind emits the
-   utilities; the dark block re-points the same variables. */
-@theme {
-  --color-fd-background: #f6f6f2;
-  --color-fd-foreground: #0b0b0d;
-  --color-fd-muted: #efefe9;
-  --color-fd-muted-foreground: #55555c;
-  --color-fd-popover: #ffffff;
-  --color-fd-popover-foreground: #0b0b0d;
-  --color-fd-card: #ffffff;
-  --color-fd-card-foreground: #0b0b0d;
-  --color-fd-border: #e2e2dc;
-  --color-fd-primary: #0b0b0d;
-  --color-fd-primary-foreground: #edff2f;
-  --color-fd-secondary: #efefe9;
-  --color-fd-secondary-foreground: #0b0b0d;
-  --color-fd-accent: rgba(11, 11, 13, 0.06);
-  --color-fd-accent-foreground: #0b0b0d;
-  --color-fd-ring: #0b0b0d;
-  --color-fd-overlay: rgba(0, 0, 0, 0.3);
+/* Fumadocs paints with these. Inline, so the utilities point at the `--af-*`
+   variables and follow the theme with them; no dark block needed. */
+@theme inline {
+  --color-fd-background: var(--af-bg);
+  --color-fd-foreground: var(--af-text);
+  --color-fd-muted: var(--af-surface-2);
+  --color-fd-muted-foreground: var(--af-muted);
+  --color-fd-popover: var(--af-surface);
+  --color-fd-popover-foreground: var(--af-text);
+  --color-fd-card: var(--af-surface);
+  --color-fd-card-foreground: var(--af-text);
+  --color-fd-border: var(--af-border);
+  --color-fd-primary: var(--af-primary);
+  --color-fd-primary-foreground: var(--af-primary-ink);
+  --color-fd-secondary: var(--af-surface-2);
+  --color-fd-secondary-foreground: var(--af-text);
+  --color-fd-accent: color-mix(in srgb, var(--af-text) 6%, transparent);
+  --color-fd-accent-foreground: var(--af-text);
+  --color-fd-ring: var(--af-primary);
+  --color-fd-overlay: var(--af-overlay);
 }
 
-.dark {
-  --color-fd-background: #050505;
-  --color-fd-foreground: #f4f4f1;
-  --color-fd-muted: #16161b;
-  --color-fd-muted-foreground: #a8a8a4;
-  --color-fd-popover: #101013;
-  --color-fd-popover-foreground: #f4f4f1;
-  --color-fd-card: #101013;
-  --color-fd-card-foreground: #f4f4f1;
-  --color-fd-border: #23232b;
-  --color-fd-primary: #edff2f;
-  --color-fd-primary-foreground: #0b0c00;
-  --color-fd-secondary: #16161b;
-  --color-fd-secondary-foreground: #f4f4f1;
-  --color-fd-accent: rgba(255, 255, 255, 0.06);
-  --color-fd-accent-foreground: #f4f4f1;
-  --color-fd-ring: #edff2f;
-  --color-fd-overlay: rgba(0, 0, 0, 0.6);
-}
-
-@theme static {
+@theme inline static {
+  /* Info and warning are the code palette's blue and amber, not brand colors. */
   --color-fd-info: #82aaff;
   --color-fd-warning: #ffcb6b;
-  --color-fd-error: #ff5d5d;
-  --color-fd-success: #58e08a;
-  --color-fd-idea: #edff2f;
+  --color-fd-error: var(--af-danger);
+  --color-fd-success: var(--af-ok);
+  --color-fd-idea: var(--af-accent);
   /* Diff markers in code blocks; the preset's Shiki styles apply these. */
-  --color-fd-diff-remove: rgba(255, 93, 93, 0.12);
-  --color-fd-diff-remove-symbol: #ff5d5d;
-  --color-fd-diff-add: rgba(88, 224, 138, 0.12);
-  --color-fd-diff-add-symbol: #58e08a;
+  --color-fd-diff-remove: color-mix(in srgb, var(--af-danger) 12%, transparent);
+  --color-fd-diff-remove-symbol: var(--af-danger);
+  --color-fd-diff-add: color-mix(in srgb, var(--af-ok) 12%, transparent);
+  --color-fd-diff-add-symbol: var(--af-ok);
 }
 
 @theme inline {
@@ -247,7 +197,7 @@ kbd {
   content: none;
 }
 
-/* ---------- Code blocks: the ciach window frame ---------- */
+/* ---------- Code blocks: the window frame ---------- */
 
 .prose figure.shiki,
 .af-landing figure.shiki {

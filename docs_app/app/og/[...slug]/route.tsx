@@ -7,16 +7,12 @@ import { getPageImageUrl, source } from "@/lib/source"
 import { notFound } from "next/navigation"
 import { ImageResponse } from "next/og"
 import { LogoMark } from "@/components/logo"
+import { dark, withAlpha } from "@/lib/palette"
 import { appName } from "@/lib/shared"
 
 export const revalidate = false
 
-const ink = "#050505"
-const surface = "#101013"
-const border = "#23232b"
-const text = "#f4f4f1"
-const muted = "#b7b7b3"
-const accent = "#edff2f"
+const { bg: ink, surface, border, text, muted, accent } = dark
 
 export async function GET(_req: Request, { params }: RouteContext<"/og/[...slug]">) {
   const { slug } = await params
@@ -32,7 +28,7 @@ export async function GET(_req: Request, { params }: RouteContext<"/og/[...slug]
         flexDirection: "column",
         justifyContent: "space-between",
         padding: 64,
-        background: `radial-gradient(60% 50% at 85% 10%, rgba(237, 255, 47, 0.18), transparent 65%), ${ink}`,
+        background: `radial-gradient(60% 50% at 85% 10%, ${withAlpha(accent, 0.18)}, transparent 65%), ${ink}`,
         color: text,
         fontFamily: "sans-serif",
       }}>

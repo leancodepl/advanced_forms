@@ -18,7 +18,9 @@
     "examples:format:check": "node scripts/format-snippets.mjs --check",
     "examples:build": "node scripts/flutter-examples.mjs build",
     "examples:serve": "cd flutter && flutter run -d web-server --web-port 5333",
-    "landing:build": "node scripts/landing.mjs"
+    "landing:build": "node scripts/landing.mjs",
+    "palette:generate": "node scripts/palette.mjs generate",
+    "palette:check": "node scripts/palette.mjs check"
   },
   "dependencies": {
     "cnfast": "^0.1.0",
