@@ -20,7 +20,7 @@ class Logo extends StatelessComponent {
 
   static const _logo = ClassName.shared('af-logo');
   static const _large = ClassName.shared('af-logo-large');
-  static const _class = _$logoScope;
+  static const _class = _$LogoScope;
   static final _light = _class('af-logo-light');
   static final _dark = _class('af-logo-dark');
 

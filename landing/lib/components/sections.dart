@@ -139,7 +139,7 @@ class ValidationSection extends StatelessComponent {
 
   final LandingExample example;
 
-  static const _class = _$validationSectionScope;
+  static const _class = _$ValidationSectionScope;
   static final _rulesList = _class('af-rules');
   static final _rule = _class('af-rule');
   static final _modesGrid = _class('af-modes');
@@ -378,7 +378,7 @@ const _features = [
 class Features extends StatelessComponent {
   const Features({super.key});
 
-  static const _class = _$featuresScope;
+  static const _class = _$FeaturesScope;
   static final _feature = _class('af-feature');
 
   /// What a feature card adds to a [Card].
@@ -420,7 +420,7 @@ class Features extends StatelessComponent {
 class SkillBand extends StatelessComponent {
   const SkillBand({super.key});
 
-  static const _class = _$skillBandScope;
+  static const _class = _$SkillBandScope;
   static final _band = _class('af-band');
 
   @css

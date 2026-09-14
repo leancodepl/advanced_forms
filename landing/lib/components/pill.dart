@@ -15,7 +15,7 @@ class Pill extends StatelessComponent {
   final String? href;
   final bool accent;
 
-  static const _class = _$pillScope;
+  static const _class = _$PillScope;
   static final _pill = _class('af-pill');
   static final _accent = _class('af-pill-accent');
 

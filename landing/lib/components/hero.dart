@@ -19,7 +19,7 @@ class Hero extends StatelessComponent {
   final String version;
   final LandingExample demo;
 
-  static const _class = _$heroScope;
+  static const _class = _$HeroScope;
   static final _hero = _class('af-hero');
   static final _bg = _class('af-hero-bg');
   static final _grid = _class('af-hero-grid');

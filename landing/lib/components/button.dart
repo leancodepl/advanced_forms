@@ -42,7 +42,7 @@ class Button extends StatelessComponent {
   final Icon? leading;
   final Icon? trailing;
 
-  static const _class = _$buttonScope;
+  static const _class = _$ButtonScope;
   static final _button = _class('af-button');
 
   /// The class of a [variant].
@@ -120,7 +120,7 @@ class ButtonRow extends StatelessComponent {
   /// Without the gap above it, where the row stands on its own.
   final bool flush;
 
-  static const _class = _$buttonRowScope;
+  static const _class = _$ButtonRowScope;
   static final _row = _class('af-actions');
   static final _center = _class('af-actions-center');
   static final _flush = _class('af-actions-flush');

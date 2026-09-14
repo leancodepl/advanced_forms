@@ -15,7 +15,7 @@ class SiteFooter extends StatelessComponent {
 
   final String version;
 
-  static const _class = _$siteFooterScope;
+  static const _class = _$SiteFooterScope;
   static final _footer = _class('af-footer');
   static final _cta = _class('af-cta');
   static final _ctaInner = _class('af-cta-inner');

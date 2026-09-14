@@ -15,7 +15,7 @@ part 'nav_bar.scopes.dart';
 class NavBar extends StatelessComponent {
   const NavBar({super.key});
 
-  static const _class = _$navBarScope;
+  static const _class = _$NavBarScope;
   static final _header = _class('af-header');
   static final _nav = _class('af-nav');
   static final _brand = _class('af-brand');

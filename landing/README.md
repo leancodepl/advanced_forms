@@ -48,7 +48,7 @@ into `lib/main.server.options.dart` (generated, not committed), and Jaspr render
 
 A component owns the classes it renders, and the stylesheet is global, so class names are locally scoped by
 [`jaspr_class_scope`](https://github.com/leancodepl/flutter_corelibrary/tree/master/packages/jaspr_class_scope). A
-component carries `@scopedCss` and a `part 'hero.scopes.dart'`, and its scope — `_$heroScope`, written by the builder
+component carries `@scopedCss` and a `part 'hero.scopes.dart'`, and its scope — `_$HeroScope`, written by the builder
 into that part file — makes its classes: `_class('af-grid')` renders as `af-grid-<suffix>`, unique to this component.
 Both the selector (`css(_hero.selector)`, `'${_grid.selector} > *'`) and the attribute
 (`classes: _hero.name`, `(container + _grid).name`) are spelled from the constant, so the suffix is never written by

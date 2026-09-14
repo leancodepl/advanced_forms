@@ -54,7 +54,7 @@ class CopyButton extends StatelessComponent {
   /// A tooltip.
   final String? title;
 
-  static const _class = _$copyButtonScope;
+  static const _class = _$CopyButtonScope;
 
   /// The button itself.
   static final className = _class('af-copy-button');

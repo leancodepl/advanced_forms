@@ -15,7 +15,7 @@ class CardGrid extends StatelessComponent {
   /// A class of the caller's, for its own rules on this grid.
   final ClassName? className;
 
-  static const _class = _$cardGridScope;
+  static const _class = _$CardGridScope;
   static final _grid = _class('af-card-grid');
 
   @css
@@ -50,7 +50,7 @@ class Card extends StatelessComponent {
   /// A class of the caller's, for its own rules on this card.
   final ClassName? className;
 
-  static const _class = _$cardScope;
+  static const _class = _$CardScope;
   static final _card = _class('af-card');
 
   @css
@@ -94,7 +94,7 @@ class CardIcon extends StatelessComponent {
 
   final Icon icon;
 
-  static const _class = _$cardIconScope;
+  static const _class = _$CardIconScope;
   static final _icon = _class('af-card-icon');
 
   @css

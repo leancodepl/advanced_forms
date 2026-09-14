@@ -40,7 +40,7 @@ class Section extends StatelessComponent {
   final List<Component> children;
   final String? _labelledBy;
 
-  static const _class = _$sectionScope;
+  static const _class = _$SectionScope;
   static final _section = _class('af-section');
   static final _head = _class('af-section-head');
 
@@ -91,7 +91,7 @@ class Eyebrow extends StatelessComponent {
 
   final String text;
 
-  static const _class = _$eyebrowScope;
+  static const _class = _$EyebrowScope;
   static final _eyebrow = _class('af-eyebrow');
 
   @css
@@ -128,7 +128,7 @@ class Lead extends StatelessComponent {
 
   final List<Component> children;
 
-  static const _class = _$leadScope;
+  static const _class = _$LeadScope;
   static final _lead = _class('af-lead');
 
   @css
@@ -152,7 +152,7 @@ class MoreLink extends StatelessComponent {
   final String text;
   final String href;
 
-  static const _class = _$moreLinkScope;
+  static const _class = _$MoreLinkScope;
   static final _more = _class('af-section-more');
 
   @css
@@ -180,7 +180,7 @@ class DemoSlot extends StatelessComponent {
 
   final Component child;
 
-  static const _class = _$demoSlotScope;
+  static const _class = _$DemoSlotScope;
   static final _demo = _class('af-section-demo');
 
   @css
@@ -201,7 +201,7 @@ class Checklist extends StatelessComponent {
   /// One entry per item; the entry's components become the `<li>`.
   final List<List<Component>> items;
 
-  static const _class = _$checklistScope;
+  static const _class = _$ChecklistScope;
   static final _list = _class('af-checklist');
 
   @css
