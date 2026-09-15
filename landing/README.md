@@ -46,22 +46,11 @@ docs' — the reset, the `af-container` column and the reduced-motion rule. `jas
 into `lib/main.server.options.dart` (generated, not committed), and Jaspr renders them as one `<style>` in the `<head>`
 — global rules first, then components in file order — so nothing render-blocking is fetched.
 
-A component owns the classes it renders, and the stylesheet is global, so class names are locally scoped by
-[`jaspr_class_scope`](https://pub.dev/packages/jaspr_class_scope). A
-component carries `@scopedCss` and a `part 'hero.scopes.dart'`, and its scope — `_$HeroScope`, written by the builder
-into that part file — makes its classes: `_class('af-grid')` renders as `af-grid-<suffix>`, unique to this component.
-Both the selector (`css(_hero.selector)`, `'${_grid.selector} > *'`) and the attribute
-(`classes: _hero.name`, `(container + _grid).name`) are spelled from the constant, so the suffix is never written by
-hand, a rename cannot miss a use, and two components may pick the same local name without meeting in the stylesheet.
-Nothing styles or renders another component's class
-by string: a piece two places need is its own component — `CopyButton`, `Logo`, `ButtonRow`, the `Card` family, the
-`Section` vocabulary (`Eyebrow`, `Lead`, `Checklist`, `MoreLink`, `DemoSlot`) — and where a parent has to reach into a
-child, the child exports the constant (`CopyButton.labelClassName`, hidden by the hero's install line on narrow
-screens). Variants are enum values carrying their class (`ButtonVariant`, `CopyButtonVariant`), and `Card`/`CardGrid`
-take a caller's `className` for the caller's own rules on them. `ClassName.shared` renders a name as written, for the
-classes that are a contract with another file: the ones `web/landing.js` looks up (`af-example*`, `af-tab-input`,
-`af-code-panel`), the ones the docs' `global.css` uses for the same example frame and logo, `af-landing`, and the
-`af-container` utility.
+Each component owns the classes it renders and keeps them as `ClassName` constants, scoped to it by
+[`jaspr_class_scope`](https://pub.dev/packages/jaspr_class_scope) (`@scopedCss` plus a generated `*.scopes.dart` part
+file). Selectors and `classes:` attributes are both spelled from the constant, so no component styles another's class
+by string. `ClassName.shared` keeps a name as written, for the classes `web/landing.js` and the docs' `global.css`
+know: the example frame, the logo, `af-landing` and `af-container`.
 
 Jaspr's typed properties cover most of it; what they cannot say (`color-mix()`, `:has()`, `counter()`, an `infinite`
 animation, a `@font-face` with a weight range) goes into the `raw` map of the same rule. Where two files style the same
