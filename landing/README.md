@@ -47,7 +47,7 @@ into `lib/main.server.options.dart` (generated, not committed), and Jaspr render
 — global rules first, then components in file order — so nothing render-blocking is fetched.
 
 A component owns the classes it renders, and the stylesheet is global, so class names are locally scoped by
-[`jaspr_class_scope`](https://github.com/leancodepl/flutter_corelibrary/tree/master/packages/jaspr_class_scope). A
+[`jaspr_class_scope`](https://pub.dev/packages/jaspr_class_scope). A
 component carries `@scopedCss` and a `part 'hero.scopes.dart'`, and its scope — `_$HeroScope`, written by the builder
 into that part file — makes its classes: `_class('af-grid')` renders as `af-grid-<suffix>`, unique to this component.
 Both the selector (`css(_hero.selector)`, `'${_grid.selector} > *'`) and the attribute
