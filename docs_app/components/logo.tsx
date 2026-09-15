@@ -30,26 +30,29 @@ export function Logo({ large = false, className }: { large?: boolean; className?
  */
 export function LogoMark({ size = 56 }: { size?: number }) {
   return (
-    <svg viewBox="107.2 50.3 372 372" height={size} width={size} fill="none" aria-hidden="true">
-      <rect x="107.2" y="50.3" width="372" height="372" rx="72" fill="black" />
-      <rect
-        x="266.423"
-        y="183.133"
-        width="147.277"
-        height="42.2665"
-        rx="21.1333"
-        transform="rotate(120 266.423 183.133)"
-        fill="white"
+    <svg viewBox="109 4 364 364" height={size} width={size} fill="none" aria-hidden="true">
+      <rect x="109" y="4" width="364" height="364" rx="72" fill="black" />
+      <path
+        d="M173 244.296L239.253 128.587L304.748 244.296"
+        stroke="white"
+        strokeWidth="37.8058"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
-      <rect
-        width="142.634"
-        height="42.2727"
-        rx="21.1364"
-        transform="matrix(0.5 0.866025 0.866025 -0.5 209.527 183.354)"
-        fill="white"
+      <path
+        d="M304.748 128.587H409"
+        stroke="#F9FF07"
+        strokeWidth="37.8058"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
-      <rect x="282.922" y="171.48" width="147.351" height="31.4026" rx="15.7013" fill="#F9FF07" />
-      <rect x="317.948" y="221" width="112.325" height="31.4026" rx="15.7013" fill="#F9FF07" />
+      <path
+        d="M336.825 185.869L409 185.869"
+        stroke="#F9FF07"
+        strokeWidth="37.8058"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   )
 }
