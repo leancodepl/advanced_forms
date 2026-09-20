@@ -29,7 +29,7 @@
 > mkdir -p .claude/skills/advanced_forms && curl -fsSL https://advanced-forms.leancode.co/skill.md -o .claude/skills/advanced_forms/SKILL.md
 > ```
 >
-> Or copy the file from [the docs](https://advanced-forms.leancode.co/docs/agent-skill) and paste it into `.claude/skills/advanced_forms/SKILL.md`.
+> Or copy the file from [the docs](https://advanced-forms.leancode.co/docs/agent-skill) and paste it into `.claude/skills/advanced_forms/SKILL.md`. Then say *"build me a sign-up form"* — the agent adds the package if it is missing and writes the form.
 
 ## Website: interactive examples and docs
 

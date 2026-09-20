@@ -14,6 +14,9 @@ The package ships an [Agent Skill](https://agentskills.io): a single Markdown fi
 a task looks like form work, so it generates fields, validation, cross-field logic and subforms the way these docs
 describe them rather than the way a generic Flutter tutorial would.
 
+Copy the file into your project and say *"build me a sign-up form"*. The agent adds the package to `pubspec.yaml` if
+it is not there yet, writes the controller and the widgets, and wires the validation — you do not open the docs.
+
 <SkillCopy />
 
 <Callout title="Why a skill and not just the README?">
@@ -76,8 +79,10 @@ subforms, so it triggers on a request like *"add a shipping address section to t
 
 ### Ask for a form
 
-The skill is enough on its own: the agent does not need the docs, the README or the package source in context. It
-knows the two rules that prevent most bugs — call `registerFields` once with every field, and bind text widgets to
+*"Build me a sign-up form with email, password and terms."* That is the whole prompt: if `advanced_forms` is not in
+`pubspec.yaml` yet, the agent runs `flutter pub add advanced_forms` first, then writes the controller, the widgets and
+the validation. The skill is enough on its own: the agent does not need the docs, the README or the package source in
+context. It knows the two rules that prevent most bugs — call `registerFields` once with every field, and bind text widgets to
 `field.textController` — and it knows the API surface well enough not to invent parameters.
 
 </Step>

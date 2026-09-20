@@ -365,7 +365,8 @@ class SkillBand extends StatelessComponent {
                   'Code — or any agent that supports skills — the full '
                   '`advanced_forms` API, so it generates fields, validation, '
                   'cross-field logic and subforms idiomatically. One file, '
-                  'one copy, and it is in your project.',
+                  'one copy — then say "build me a sign-up form" and it adds '
+                  'the package and writes the form.',
                 ),
               ),
             ]),
