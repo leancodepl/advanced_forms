@@ -85,6 +85,8 @@ knows the two rules that prevent most bugs — call `registerFields` once with e
 
 ## What it teaches
 
+- Setup: if `pubspec.yaml` does not list `advanced_forms`, the agent runs `flutter pub add advanced_forms` before
+  writing a line — so the skill works in a fresh project, not only in one that already depends on the package.
 - The model: a form controller owns typed field controllers; `E` is your error type; widgets subscribe with
   `AdvancedFieldBuilder`.
 - Every field controller with its constructor, and when to construct `AdvancedFieldController<T, E>` directly for a
