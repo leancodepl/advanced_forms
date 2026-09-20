@@ -773,14 +773,27 @@ void main() {
 
       tearDown(() => form.dispose());
 
-      test('is applied at once', () {
+      test('a false condition leaves the section detached, but owned', () {
+        final section = AdvancedFormController();
+        final parent = AdvancedFormController()
+          ..addSubform(section, enabled: () => false);
+
+        expect(parent.value.subforms, isEmpty);
+
+        parent.dispose();
+
+        expect(section.isDisposed, true);
+      });
+
+      test('a true condition attaches at once', () {
+        needsInvoice.setValue(true);
+
         form.addSubform(subform, enabled: () => needsInvoice.fieldValue);
 
         expect(form.value.subforms, {subform});
-        expect(subform.value.validationEnabled, false);
       });
 
-      test('follows the fields it reads from then on', () {
+      test('attaches and detaches as the fields it reads change', () {
         form.addSubform(
           subform,
           enabled: () =>
@@ -788,28 +801,40 @@ void main() {
         );
 
         needsInvoice.setValue(true);
-        expect(subform.value.validationEnabled, true);
+        expect(form.value.subforms, {subform});
 
         needsInvoice.setValue(false);
-        expect(subform.value.validationEnabled, false);
+        expect(form.value.subforms, isEmpty);
 
         customerType.setValue('company');
-        expect(subform.value.validationEnabled, true);
+        expect(form.value.subforms, {subform});
       });
 
-      test(
-          'a change that leaves the result the same does not touch the '
-          'section', () {
+      test('the values of a detached section survive and come back', () {
+        needsInvoice.setValue(true);
         form.addSubform(subform, enabled: () => needsInvoice.fieldValue);
-        final emissions = _record<AdvancedFormState>(subform);
+        subformField.setValue(42);
+
+        needsInvoice.setValue(false);
+        expect(form.getFieldValues(), isNot(contains(42)));
+        expect(subformField.fieldValue, 42);
+
+        needsInvoice.setValue(true);
+        expect(form.value.allFields, contains(subformField));
+        expect(subformField.fieldValue, 42);
+      });
+
+      test('a change that leaves the result the same does nothing', () {
+        form.addSubform(subform, enabled: () => needsInvoice.fieldValue);
+        final emissions = _record<AdvancedFormState>(form);
 
         field1.setValue('other');
         needsInvoice.setError(_Error1.valueRequired);
 
-        expect(emissions, isEmpty);
+        expect(emissions.map((e) => e.subforms), everyElement(isEmpty));
       });
 
-      test('a value change inside a subform re-evaluates too', () {
+      test('a value change inside another subform re-evaluates too', () {
         final inner = AdvancedBooleanFieldController<_Error1>();
         final innerForm = AdvancedFormController()..registerFields([inner]);
         form
@@ -818,11 +843,10 @@ void main() {
 
         inner.setValue(true);
 
-        expect(subform.value.validationEnabled, true);
+        expect(form.value.subforms, {innerForm, subform});
       });
 
-      test('switched off, the section validates nothing and leaves canSubmit',
-          () async {
+      test('a detached section is out of validate() and canSubmit', () async {
         final sectionField = AdvancedFieldController<int, _Error2>(
           initialValue: 0,
           validator: (_) => _Error2.malformed,
@@ -840,48 +864,86 @@ void main() {
         expect(sectionField.value.error, _Error2.malformed);
       });
 
+      test('the parent mode reaches a section that is attached later', () {
+        form
+          ..setValidationMode(ValidationMode.onUserInteraction)
+          ..addSubform(subform, enabled: () => needsInvoice.fieldValue);
+
+        needsInvoice.setValue(true);
+
+        expect(
+          subform.value.validationMode,
+          ValidationMode.onUserInteraction,
+        );
+      });
+
       test('resetAll brings the section back in step with the field', () {
         form.addSubform(subform, enabled: () => needsInvoice.fieldValue);
         needsInvoice.setValue(true);
-        expect(subform.value.validationEnabled, true);
+        expect(form.value.subforms, {subform});
 
         form.resetAll();
 
-        expect(subform.value.validationEnabled, false);
+        expect(form.value.subforms, isEmpty);
       });
 
       test('removeSubform drops the condition', () {
+        needsInvoice.setValue(true);
         form
           ..addSubform(subform, enabled: () => needsInvoice.fieldValue)
           ..removeSubform(subform);
-        subform.setValidationEnabled(true);
 
         needsInvoice
-          ..setValue(true)
-          ..setValue(false);
+          ..setValue(false)
+          ..setValue(true);
 
-        expect(subform.value.validationEnabled, true);
+        expect(form.value.subforms, isEmpty);
       });
 
-      test('re-attaching without a condition leaves the section as it is', () {
+      test('removeSubform on a section the condition detached drops it too',
+          () {
+        form
+          ..addSubform(subform, enabled: () => needsInvoice.fieldValue)
+          ..removeSubform(subform);
+
+        needsInvoice.setValue(true);
+
+        expect(form.value.subforms, isEmpty);
+      });
+
+      test('re-attaching without a condition attaches for good', () {
         form
           ..addSubform(subform, enabled: () => needsInvoice.fieldValue)
           ..removeSubform(subform)
           ..addSubform(subform);
 
-        expect(subform.value.validationEnabled, false);
+        needsInvoice
+          ..setValue(true)
+          ..setValue(false);
+
+        expect(form.value.subforms, {subform});
+      });
+
+      test('a condition given again replaces the previous one', () {
+        form
+          ..addSubform(subform, enabled: () => needsInvoice.fieldValue)
+          ..addSubform(subform, enabled: () => !needsInvoice.fieldValue);
+
+        expect(form.value.subforms, {subform});
 
         needsInvoice.setValue(true);
 
-        expect(subform.value.validationEnabled, false);
+        expect(form.value.subforms, isEmpty);
       });
 
-      test('is a noop on an already attached subform', () {
-        form
-          ..addSubform(subform)
-          ..addSubform(subform, enabled: () => needsInvoice.fieldValue);
+      test('a plain addSubform of an attached section stays a noop', () {
+        needsInvoice.setValue(true);
+        form.addSubform(subform, enabled: () => needsInvoice.fieldValue);
+        final emissions = _record<AdvancedFormState>(form);
 
-        expect(subform.value.validationEnabled, true);
+        form.addSubform(subform);
+
+        expect(emissions, isEmpty);
       });
 
       test(
@@ -890,13 +952,12 @@ void main() {
         final outside = AdvancedBooleanFieldController<_Error1>();
         addTearDown(outside.dispose);
         form.addSubform(subform, enabled: () => outside.fieldValue);
-        expect(subform.value.validationEnabled, false);
 
         outside.setValue(true);
-        expect(subform.value.validationEnabled, false);
+        expect(form.value.subforms, isEmpty);
 
         field1.setValue('any change in the form re-evaluates');
-        expect(subform.value.validationEnabled, true);
+        expect(form.value.subforms, {subform});
       });
     });
 

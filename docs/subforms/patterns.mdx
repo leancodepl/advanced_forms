@@ -9,10 +9,10 @@ AI-Provenance:
   harness: Claude Code
 */}
 
-## Detach, or switch validation off?
+## A section behind a switch
 
-A section that is *visible but not applicable* — invoice details behind an unchecked "I need an invoice" switch — is
-better kept attached and switched off. `addSubform` takes the condition:
+Invoice details behind an "I need an invoice" checkbox, a shipping address unless "same as billing" is on: hand the
+condition to `addSubform`.
 
 ```dart
 CheckoutFormController() {
@@ -21,22 +21,36 @@ CheckoutFormController() {
 }
 ```
 
-The closure is evaluated when the section is attached and again whenever a value anywhere in the form changes, and
-its result drives the section's `validationEnabled`. Switched off:
+The closure is evaluated at `addSubform` and again whenever a value anywhere in the form changes. While it is true the
+section is attached; when it turns false the section is detached, exactly as `removeSubform` would: its fields leave
+`validate()`, `canSubmit`, `getFieldValues()` and `allFields`, so the payload you build from the form has no invoice
+in it. The form owns the section either way, so **the values stay in its fields** and are there again when the
+checkbox goes back on — and the section is disposed with the form.
+
+Any expression works: `() => type.fieldValue == CustomerType.company`, `() => !sameAsBilling.fieldValue`, a condition
+over two fields. Because the form re-evaluates it after `resetAll()` too, a reset checkbox takes the section with it.
+A condition that depends on something *outside* the form — a service, a route argument — is not re-evaluated for that;
+attach and detach by hand then. `removeSubform` drops the condition.
+
+## Or keep it attached and switch validation off
+
+Detached, the section is out of reach of `resetAll`, `markReadOnly`, `clearErrors` and `setValidationMode`, and its
+values are not part of the form's. When you want those to keep reaching a section that merely does not apply right
+now, keep it attached and use `setValidationEnabled(false)` instead:
 
 - its errors are cleared and its fields leave `canSubmit`, `validating`, `hasFailedValidation` and `validationErrors`;
 - its `validate()` returns `true` without running;
-- everything else — `resetAll`, `markReadOnly`, `clearErrors`, disposal — still reaches it;
-- switching back on re-runs the sync validators at once, and the values are still there.
+- everything else — `resetAll`, `markReadOnly`, `clearErrors`, disposal — still reaches it, and its values stay in
+  `getFieldValues()`;
+- switching back on re-runs the sync validators at once.
 
-Any expression works: `() => type.fieldValue == CustomerType.company`, `() => !sameAsBilling.fieldValue`, a condition
-over two fields. Because the form re-evaluates it after `resetAll()` too, a reset checkbox brings the section back in
-step by itself. A condition that depends on something *outside* the form — a service, a route argument — is not
-re-evaluated for that; call `setValidationEnabled` on the section yourself when it changes.
+```dart
+addSubform(invoice);
+addRelation(needsInvoice, (on) => on, invoice.setValidationEnabled);
+invoice.setValidationEnabled(needsInvoice.fieldValue); // relations fire on change only
+```
 
-Detach with `removeSubform` when the section genuinely leaves the screen and its values should not take part in
-anything. A detached subform is still owned — and disposed — by the parent, and can be re-attached later.
-`removeSubform` drops the condition; re-attach with a new one if it still applies.
+`resetAll()` does not touch `validationEnabled`, so seed it again wherever you reset.
 
 ## Swapping one section for another
 

@@ -18,9 +18,9 @@ import 'package:provider/provider.dart';
 ///   would dispose it.
 /// * **Next** validates the current page's subform only.
 /// * **Submit** validates the parent, which reaches every attached subform.
-/// * A **skipped page** stays attached, switched off through `addSubform`'s
-///   `enabled:`: the navigation walks past it and its fields stop counting
-///   towards the parent.
+/// * A **skipped page** is detached through `addSubform`'s `enabled:`: the
+///   navigation walks past it and its fields stop counting towards the parent,
+///   while the wizard still owns it and its values.
 class StepFormScreen extends StatelessWidget {
   const StepFormScreen({super.key});
 
@@ -369,15 +369,15 @@ class StepFormController extends AdvancedFormController {
   StepFormController() {
     addSubform(account);
     addSubform(address);
-    // The Invoice step is conditional: it stays attached, so its values, its
-    // fields and its disposal stay with the wizard, and it validates and counts
-    // only while the switch on the Address step is on. The form re-evaluates
-    // the condition itself whenever a value in it changes.
+    // The Invoice step is conditional: attached while the switch on the
+    // Address step is on, detached otherwise. The wizard owns it either way,
+    // so its values survive a skip and it is disposed with the wizard. The
+    // form re-evaluates the condition itself whenever a value in it changes.
     addSubform(invoice, enabled: () => address.needsInvoice.fieldValue);
     addSubform(confirm);
 
-    // Navigation follows the flag: the flow is the steps that are switched on.
-    invoice.addListener(_syncActiveSteps);
+    // Navigation follows: the flow is the steps that are attached right now.
+    addListener(_syncActiveSteps);
     _syncActiveSteps();
   }
 
@@ -388,9 +388,9 @@ class StepFormController extends AdvancedFormController {
 
   late final steps = <WizardStepController>[account, address, invoice, confirm];
 
-  /// The steps the user actually walks through. A step switched off is out of
-  /// the flow *and* out of `validate()`, `canSubmit` and `validating`, so that
-  /// one flag is the whole condition.
+  /// The steps the user actually walks through. A detached step is out of
+  /// the flow *and* out of `validate()`, `canSubmit` and `validating`, so
+  /// membership is the whole condition.
   List<WizardStepController> get activeSteps => _activeSteps;
   var _activeSteps = <WizardStepController>[];
 
@@ -465,7 +465,7 @@ class StepFormController extends AdvancedFormController {
   void _syncActiveSteps() {
     final active = [
       for (final step in steps)
-        if (step.value.validationEnabled) step,
+        if (value.subforms.contains(step)) step,
     ];
     if (listEquals(active, _activeSteps)) {
       return;

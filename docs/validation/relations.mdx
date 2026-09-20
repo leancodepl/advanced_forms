@@ -111,9 +111,9 @@ cannot loop. Three details matter in practice:
 - **Destructive relations are safe.** `addRelation(country, (c) => c, (_) => city.reset())` clears the city when the
   country changes and nothing else can wipe the user's choice; the [wizard](../subforms/wizard.mdx) does exactly that.
 
-Attaching and detaching subforms from `onChange` is supported too — that is how a type selector swaps one section for
-another. A section that only needs switching on and off does not need a relation at all:
-`addSubform(section, enabled: () => …)` keeps the condition itself, see [Patterns](../subforms/patterns.mdx).
+Attaching and detaching subforms, or calling `setValidationEnabled`, from `onChange` is supported too — that is how a
+type selector swaps one section for another. A section that only comes and goes with a switch does not need a relation
+at all: `addSubform(section, enabled: () => …)` keeps the condition itself, see [Patterns](../subforms/patterns.mdx).
 
 ## Which one do I want?
 
@@ -124,5 +124,5 @@ another. A section that only needs switching on and off does not need a relation
 | re-check every rule because something *outside* the form changed | `form.revalidateSync()` |
 | set B's value when A changes | `addRelation(A, select, (a) => B.setValue(…))` |
 | forget B's async verdict when A changes | `addRelation(A, select, (_) => B.clearErrors())` |
-| switch a section on and off with A | `addSubform(section, enabled: () => A.fieldValue …)` |
+| attach and detach a section with A | `addSubform(section, enabled: () => A.fieldValue …)` |
 | react to A outside the form (analytics, a service) | `A.addListener(…)`, comparing values yourself |
