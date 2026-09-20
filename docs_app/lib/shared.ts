@@ -25,6 +25,10 @@ export const siteUrl = process.env.SITE_URL
 export const docsRoute = "/docs"
 export const docsImageRoute = "/og"
 export const docsContentRoute = "/llms.mdx"
+/** The Agent Skill, served raw so one `curl` (or an agent) can fetch it. */
+export const skillRoute = "/skill.md"
+/** Where the skill goes in a project; `~/` in front makes it global. */
+export const skillInstallPath = ".claude/skills/advanced_forms/SKILL.md"
 
 export const gitConfig = {
   user: "leancodepl",

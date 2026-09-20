@@ -361,19 +361,16 @@ class SkillBand extends StatelessComponent {
               p(
                 classes: 'af-lead',
                 rich(
-                  'The repository ships an Agent Skill that teaches Claude '
+                  'The package ships an Agent Skill that teaches Claude '
                   'Code — or any agent that supports skills — the full '
                   '`advanced_forms` API, so it generates fields, validation, '
-                  'cross-field logic and subforms idiomatically.',
+                  'cross-field logic and subforms idiomatically. One file, '
+                  'one copy, and it is in your project.',
                 ),
               ),
             ]),
             const div(classes: 'af-hero-actions', [
-              Button(
-                'Install the skill',
-                href: '$docsPath/agent-skill',
-                leading: .bot,
-              ),
+              Button('Get the skill', href: skillDocsPath, leading: .bot),
               Button(
                 'Read SKILL.md',
                 href: skillUrl,

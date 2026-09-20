@@ -341,6 +341,26 @@ h3 code {
   padding: 0.5rem;
 }
 
+/* The Agent skill link: the one nav item in the accent fill, so it reads as
+   the thing to click rather than one more place to go. */
+.af-nav-links a.af-nav-cta {
+  margin-left: 0.25rem;
+  padding: 0.5rem 0.95rem 0.5rem 0.75rem;
+  background: var(--af-accent);
+  color: var(--af-accent-ink);
+  font-weight: 600;
+  box-shadow: 0 0 0 4px var(--af-accent-soft);
+}
+
+.af-nav-links a.af-nav-cta:hover {
+  background: #f6ff6b;
+  color: var(--af-accent-ink);
+}
+
+.dark .af-nav-links a.af-nav-cta {
+  box-shadow: 0 0 0 4px rgba(237, 255, 47, 0.18);
+}
+
 .af-theme-moon {
   display: none;
 }
@@ -1306,6 +1326,16 @@ a.af-pill-accent:hover {
   /* Examples is reachable from the docs; the row has to fit next to the logo. */
   .af-nav-secondary {
     display: none;
+  }
+
+  /* The skill link keeps its icon and fill; the label would not fit. */
+  .af-nav-cta-label {
+    display: none;
+  }
+
+  .af-nav-links a.af-nav-cta {
+    padding: 0.5rem;
+    box-shadow: none;
   }
 
   .af-logo img {
