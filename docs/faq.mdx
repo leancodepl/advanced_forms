@@ -35,6 +35,10 @@ Two gates sit in front of it: the dependent field must be in a mode other than `
 it at least once. Under `manual` the mismatch shows up on submit instead. Also check that the *value* of a watched
 field changed — a status-only change never fires it. See [Cross-field logic](./validation/cross-field.mdx).
 
+If the dependent field was prefilled and really has to react before anyone touches it, call `validate()` on it from a
+listener on the watched field: `validate()` ignores both gates. Keep the rule in the validator; the listener only
+decides when it runs.
+
 </Accordion>
 <Accordion title="The error disappears while I type and comes back a moment later.">
 

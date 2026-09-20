@@ -475,6 +475,29 @@ children.subscribeToFields([adults]);
   only `adults` lights up live — `children` shows its half at the first `validate()`. Both
   showing simultaneously before submit is not something the modes can give you; render the
   pair's message once, from the form, if the design needs it.
+- **When a prefilled field MUST react anyway** — the instructor came from the server, the user
+  switches the aircraft, and the instructor must show "not rated" although nobody touched that
+  field — `subscribeToFields` cannot do it (rule 2). Do not reach for `setError` to hand-write
+  the error next to the validator. Call `validate()` on the dependent field from a listener on
+  the watched field: `validate()` ignores the gate and the mode, so it reaches an untouched
+  field, and the sync result lands synchronously. Compare the value yourself, because a listener
+  also fires on status changes:
+
+  ```dart
+  // In the form constructor, after registerFields. The rule itself stays in the
+  // instructor's validator; this only decides WHEN it runs.
+  var lastAircraft = aircraft.fieldValue;
+  aircraft.addListener(() {
+    if (aircraft.fieldValue == lastAircraft) return;
+    lastAircraft = aircraft.fieldValue;
+    instructor.validate(); // fire-and-forget; also runs the async validator, if any
+  });
+  ```
+
+  Two traps: a `validate()` already in flight is shared, so a second call before it finishes
+  gets the first round's result — one value change per event-loop turn is fine, a synchronous
+  loop of writes is not; and `validate()` also runs `asyncValidation`, so a field with a server
+  check will hit the server on every change of the watched field.
 
 **Value depends on another field** ("when B changes, set A" — totals, mirroring, clearing a
 dependent selection). Use the form's `addRelation(source, select, onChange)`, in the
