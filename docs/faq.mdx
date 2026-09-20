@@ -90,6 +90,14 @@ over `String?` like the built-ins. See [Validators](./validation/validators.mdx#
 is for `List`, so a rule on a multi-select is a one-line closure: `(chosen) => chosen.isEmpty ? MyError.pickOne : null`.
 
 </Accordion>
+<Accordion title="My select's options depend on another field.">
+
+Call `setOptions(newList)` on the select when the other field changes, for instance from a listener on it. A selected
+value that is not on the new list is cleared without counting as a user edit, and the dropdown rebuilds. Watch out for
+`==`: an option deserialized from the server is not the option on your list unless `V` is a value type. See
+[Single select](./fields/index.mdx#single-select).
+
+</Accordion>
 <Accordion title="DropdownButtonFormField complains about value / initialValue.">
 
 That is Flutter, not the package: the selected-value parameter is `value:` up to Flutter 3.33 and `initialValue:` from

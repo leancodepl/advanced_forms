@@ -101,6 +101,102 @@ void main() {
       expect(checked, ['a', 'b']);
       expect(asyncField.error, _Error.taken);
     });
+
+    group('setOptions', () {
+      test('replaces the list and notifies with the value unchanged', () {
+        field.select('b');
+        final notifications = _countCalls(field);
+
+        field.setOptions(['b', 'x']);
+
+        expect(field.options, ['b', 'x']);
+        expect(field.fieldValue, 'b');
+        expect(notifications(), 1);
+      });
+
+      test('clears a value that is not on the new list', () {
+        field
+          ..select('b')
+          ..setOptions(['a', 'c']);
+
+        expect(field.fieldValue, null);
+      });
+
+      test('clearing does not count as a user edit', () {
+        final validated = <String?>[];
+        final untouched = AdvancedSingleSelectFieldController<String, _Error>(
+          initialValue: 'b',
+          options: _options,
+          validator: (value) {
+            validated.add(value);
+            return value == null ? _Error.valueRequired : null;
+          },
+        )..setValidationMode(ValidationMode.onUserInteraction);
+        addTearDown(untouched.dispose);
+
+        untouched.setOptions(['a']);
+
+        expect(untouched.fieldValue, null);
+        expect(untouched.error, null);
+        expect(validated, isEmpty);
+      });
+
+      test('on an edited field the sync validator reports the vanished choice',
+          () {
+        final edited = AdvancedSingleSelectFieldController<String, _Error>(
+          initialValue: null,
+          options: _options,
+          validator: (value) => value == null ? _Error.valueRequired : null,
+        )..setValidationMode(ValidationMode.onUserInteraction);
+        addTearDown(edited.dispose);
+
+        edited
+          ..select('b')
+          ..setOptions(['a']);
+
+        expect(edited.error, _Error.valueRequired);
+      });
+
+      test('clears a read-only field too', () {
+        field
+          ..select('b')
+          ..markReadOnly()
+          ..setOptions(['a']);
+
+        expect(field.fieldValue, null);
+      });
+
+      test('the new list is a copy', () {
+        final callersOptions = ['a'];
+        field.setOptions(callersOptions);
+
+        callersOptions.add('b');
+
+        expect(field.options, ['a']);
+      });
+
+      test('throws StateError when the field has been disposed', () {
+        final disposed = AdvancedSingleSelectFieldController<String, _Error>(
+          initialValue: null,
+          options: _options,
+        )..dispose();
+
+        expect(() => disposed.setOptions(['a']), throwsStateError);
+      });
+    });
+
+    test("mutating the caller's options does not reach the field", () {
+      final callersOptions = ['a'];
+      final field = AdvancedSingleSelectFieldController<String, _Error>(
+        initialValue: null,
+        options: callersOptions,
+      );
+      addTearDown(field.dispose);
+
+      callersOptions.add('b');
+
+      expect(field.options, ['a']);
+    });
   });
 
   group('AdvancedMultiSelectFieldController', () {
@@ -231,6 +327,65 @@ void main() {
       callersOptions.add('b');
 
       expect(field.options, ['a']);
+    });
+
+    group('setOptions', () {
+      test('replaces the list and notifies with the value unchanged', () {
+        field.addValue('a');
+        final notifications = _countCalls(field);
+
+        field.setOptions(['a', 'x']);
+
+        expect(field.options, ['a', 'x']);
+        expect(field.fieldValue, {'a'});
+        expect(notifications(), 1);
+      });
+
+      test('drops the selected values that are not on the new list', () {
+        field
+          ..addValue('a')
+          ..addValue('b')
+          ..setOptions(['b', 'c']);
+
+        expect(field.fieldValue, {'b'});
+      });
+
+      test('dropping does not count as a user edit', () {
+        final validated = <Set<String>>[];
+        final untouched = AdvancedMultiSelectFieldController<String, _Error>(
+          initialValue: const {'a'},
+          options: _options,
+          validator: (value) {
+            validated.add(value);
+            return value.isEmpty ? _Error.valueRequired : null;
+          },
+        )..setValidationMode(ValidationMode.onUserInteraction);
+        addTearDown(untouched.dispose);
+
+        untouched.setOptions(['b']);
+
+        expect(untouched.fieldValue, isEmpty);
+        expect(untouched.error, null);
+        expect(validated, isEmpty);
+      });
+
+      test('prunes a read-only field too', () {
+        field
+          ..addValue('a')
+          ..markReadOnly()
+          ..setOptions(['b']);
+
+        expect(field.fieldValue, isEmpty);
+      });
+
+      test('throws StateError when the field has been disposed', () {
+        final disposed = AdvancedMultiSelectFieldController<String, _Error>(
+          initialValue: const <String>{},
+          options: _options,
+        )..dispose();
+
+        expect(() => disposed.setOptions(['a']), throwsStateError);
+      });
     });
   });
 }

@@ -1,3 +1,8 @@
+## Unreleased
+
+* `setOptions(List<V>)` on `AdvancedSingleSelectFieldController` and `AdvancedMultiSelectFieldController`: the list of options can change while the form is open. A selected value that is not on the new list is cleared as a program write (no user edit, no error on an untouched field); widgets rebuild even when the value stayed the same.
+* The single-select controller now copies the `options` you pass, as the multi-select always did. `options` is an unmodifiable list on both.
+
 ## 0.2.1+1
 
 * Documentation only, no library changes.

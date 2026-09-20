@@ -118,8 +118,8 @@ Two rules prevent most bugs:
 | --- | --- | --- |
 | `AdvancedTextFieldController<E>` | `String` | `{initialValue = '', validator, asyncValidation, focusNode, name}`; owns `textController` |
 | `AdvancedBooleanFieldController<E>` | `bool` | `{initialValue = false, validator, asyncValidation, focusNode, name}` |
-| `AdvancedSingleSelectFieldController<V, E>` | `V?` | `{required V? initialValue, required List<V> options, validator, asyncValidation, focusNode, name}`; set with `select(V?)`, `null` clears |
-| `AdvancedMultiSelectFieldController<V, E>` | `Set<V>` | `{required Set<V> initialValue, required List<V> options, validator, asyncValidation, focusNode, name}`; set with `toggleElement` / `addValue` / `removeValue` |
+| `AdvancedSingleSelectFieldController<V, E>` | `V?` | `{required V? initialValue, required List<V> options, validator, asyncValidation, focusNode, name}`; set with `select(V?)`, `null` clears; `setOptions(List<V>)` swaps the list |
+| `AdvancedMultiSelectFieldController<V, E>` | `Set<V>` | `{required Set<V> initialValue, required List<V> options, validator, asyncValidation, focusNode, name}`; set with `toggleElement` / `addValue` / `removeValue`; `setOptions(List<V>)` swaps the list |
 
 All support `reset()`, `prefill()`, `markReadOnly()` / `unmarkReadOnly()`, `setError()`,
 `clearErrors()`, `setValidationMode()`, `validate()`, `subscribeToFields()`,
@@ -140,8 +140,15 @@ getters `fieldValue`, `error`, `name`, `lastFailure`, `isDisposed`.
   `initialValue: null` plus `validator: notNull(MyError.required)`.
 - `select` and `addValue` **assert** the argument is one of `options` — and so does
   `toggleElement` when it adds. `prefill` does not assert, so check server-supplied values.
-- The multi-select copies the set and list you pass, so mutating them later never reaches the
-  field. `const {}` is a **Map**: an empty initial selection is `const <Topping>{}`.
+- Both selects copy the `options` (and the multi-select the set) you pass, so mutating them later
+  never reaches the field. `const {}` is a **Map**: an empty initial selection is `const <Topping>{}`.
+- **Options that depend on another field or on a request:** `field.setOptions(newList)`, e.g. from
+  `aircraft.addListener(() => instructor.setOptions(instructorsFor(aircraft.fieldValue)))`. A
+  selected value not on the new list is cleared (dropped, on the multi-select) as a *program*
+  write, like `prefill`: an untouched field stays untouched, an edited one shows its `notNull`
+  error at once; read-only fields are cleared too. Widgets rebuild even if the value stayed.
+  Membership is `==` — a server copy of an option is not the option on the list, so use value
+  types or resolve by id.
 - With no `validator`, `E` infers to its bound `Object`. That compiles and then breaks every
   `switch` on your error enum, so spell it out: `AdvancedTextFieldController<MyError>()`.
 - `AdvancedFieldController<T, E>` is **concrete** — construct it directly for any value with no

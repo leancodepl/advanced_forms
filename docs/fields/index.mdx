@@ -13,8 +13,8 @@ AI-Provenance:
 | --- | --- | --- | --- |
 | `AdvancedTextFieldController<E>` | `String` | `{initialValue = '', validator, asyncValidation, focusNode, name}` | typing into `textController`, `setValue` |
 | `AdvancedBooleanFieldController<E>` | `bool` | `{initialValue = false, validator, asyncValidation, focusNode, name}` | `setValue` |
-| `AdvancedSingleSelectFieldController<V, E>` | `V?` | `{required V? initialValue, required List<V> options, validator, asyncValidation, focusNode, name}` | `select(V? option)`; `null` clears |
-| `AdvancedMultiSelectFieldController<V, E>` | `Set<V>` | `{required Set<V> initialValue, required List<V> options, validator, asyncValidation, focusNode, name}` | `toggleElement`, `addValue`, `removeValue` |
+| `AdvancedSingleSelectFieldController<V, E>` | `V?` | `{required V? initialValue, required List<V> options, validator, asyncValidation, focusNode, name}` | `select(V? option)`; `null` clears; `setOptions(List<V>)` |
+| `AdvancedMultiSelectFieldController<V, E>` | `Set<V>` | `{required Set<V> initialValue, required List<V> options, validator, asyncValidation, focusNode, name}` | `toggleElement`, `addValue`, `removeValue`, `setOptions(List<V>)` |
 
 All of them support `reset()`, `markReadOnly()` / `unmarkReadOnly()`, `setError()`, `clearErrors()`,
 `setValidationMode()`, `subscribeToFields()`, `validate()`, `getValueSetter()`, `focus()`, and both sync and async
@@ -133,11 +133,30 @@ Holds a `V?` and a non-nullable `List<V> options`. A required dropdown is `initi
 `select(null)` clears and is always allowed. `initialValue` is never checked, so an off-list initial value is the way
 to represent "unknown".
 
+The list can change while the form is open — instructors filtered by the chosen aircraft, cities loaded once the
+country is known. `setOptions(newList)` replaces it and clears a selected value that is not on the new list. The
+clearing is the program's doing, like `prefill`: an untouched field stays untouched and shows no error until
+`validate()`, while a field the user had picked from shows its `notNull` error at once. A read-only field is cleared
+too, since a value that is not on the list cannot be shown. Widgets rebuild even when the value stayed the same.
+
+```dart
+aircraft.addListener(() {
+  instructor.setOptions(instructorsFor(aircraft.fieldValue));
+});
+```
+
+<Callout type="warn" title="Membership is ==">
+  `select`, `addValue` and `setOptions` compare with `==`. A `Pilot` deserialized from the server is a different object
+  from the `Pilot` on the list, so with the default identity `==` every refresh clears the selection. Make `V` a value
+  type (`Equatable`, a record, an enum) or select by id and resolve to the instance that is on the list.
+</Callout>
+
 ## Multi select
 
 Holds a `Set<V>`. `toggleElement(v)` adds or removes; `addValue` asserts membership in `options`, `removeValue` stays
-silent for an off-list value. The controller copies the `initialValue` set and the `options` list, so mutating what you
-passed in never reaches the field.
+silent for an off-list value. `setOptions(newList)` replaces the list and drops the selected values that are not on it,
+with the same rules as on the single select. Both controllers copy the `initialValue` and the `options` you pass, so
+mutating them later never reaches the field.
 
 ## Reading a field
 
