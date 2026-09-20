@@ -131,7 +131,8 @@ Defaults to `false`. The one rule a boolean usually needs is built in: `validato
 Holds a `V?` and a non-nullable `List<V> options`. A required dropdown is `initialValue: null` plus
 `validator: notNull(MyError.required)`. `select(option)` asserts in debug builds that the option is one of `options`;
 `select(null)` clears and is always allowed. `initialValue` is never checked, so an off-list initial value is the way
-to represent "unknown".
+to represent "unknown". The list is `final`; for options that change while the form is open, see
+[A select whose options change](./custom.mdx#a-select-whose-options-change).
 
 ## Multi select
 

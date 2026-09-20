@@ -142,6 +142,10 @@ getters `fieldValue`, `error`, `name`, `lastFailure`, `isDisposed`.
   `toggleElement` when it adds. `prefill` does not assert, so check server-supplied values.
 - The multi-select copies the set and list you pass, so mutating them later never reaches the
   field. `const {}` is a **Map**: an empty initial selection is `const <Topping>{}`.
+- `options` is **final** on both selects: the choices are fixed for the life of the field. For a
+  list that depends on another field or on a request, do not fight the built-in select — extend
+  `AdvancedFieldController<V?, E>` with a mutable list (below, "Select with changing options").
+  Membership is `==`: a server copy of an option is not the option on the list.
 - With no `validator`, `E` infers to its bound `Object`. That compiles and then breaks every
   `switch` on your error enum, so spell it out: `AdvancedTextFieldController<MyError>()`.
 - `AdvancedFieldController<T, E>` is **concrete** — construct it directly for any value with no
@@ -172,6 +176,56 @@ class PhoneFieldController<E extends Object>
       super.setValue(_digits(newValue), force: force);
 }
 ```
+
+**Select with changing options.** The built-in select's `options` is `final`. When the list
+depends on another field (instructors for the chosen aircraft) or arrives from the server, build
+the select on the concrete base class — keep the package's model, add the one mutable list:
+
+```dart
+class DependentSelectController<V, E extends Object>
+    extends AdvancedFieldController<V?, E> {
+  DependentSelectController({
+    required super.initialValue,
+    required List<V> options,
+    super.validator,
+    super.asyncValidation,
+    super.focusNode,
+    super.name,
+  }) : _options = List.unmodifiable(options);
+
+  List<V> _options;
+
+  /// The options to show right now. Replaced as a whole by [setOptions].
+  List<V> get options => _options;
+
+  /// Swaps the list. A selected value that is no longer on it is cleared
+  /// with `prefill`, so this counts as the program's doing, not the user's.
+  void setOptions(List<V> options) {
+    _options = List.unmodifiable(options);
+    final current = fieldValue;
+    if (current != null && !_options.contains(current)) {
+      prefill(null);
+    }
+    revalidateSync(); // "required" shows up at once — if the user had edited the field
+    notifyListeners(); // the options are not part of the state, so rebuild by hand
+  }
+
+  void select(V? option) {
+    assert(
+      option == null || _options.contains(option),
+      'Option $option is not one of the options of this field.',
+    );
+    setValue(option);
+  }
+}
+```
+
+`prefill`, not `setValue`, does the clearing: an untouched field stays untouched (rule 2 below).
+`revalidateSync()` obeys the gate, so a field the user *had* picked from shows "required" at once.
+`notifyListeners()` is needed because options are not in `AdvancedFieldState`, so a list change
+alone rebuilds nothing. Drive it with `aircraft.addListener(() => instructor.setOptions(...))`.
+Bind with `AdvancedFieldBuilder<V?, E>` and a `DropdownButton` over `field.options`, as for the
+built-in select.
 
 Every write to `textController` — keystroke, paste, programmatic `.text =` — goes through the
 public `setValue`, so the override always runs and the transformed value is written back with

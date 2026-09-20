@@ -68,6 +68,72 @@ class PhoneFieldController extends AdvancedTextFieldController<MyError> {
 Normalise `initialValue` before it reaches `super`, as above: `reset()` returns to *that* value without passing
 through `setValue`.
 
+## A select whose options change
+
+`AdvancedSingleSelectFieldController` carries its `options` as a `final` list: the choices are fixed for the life of
+the field. When they are not — instructors filtered by the chosen aircraft, cities loaded once the country is known —
+build the select yourself on the concrete base class. It is a short class, and it keeps the value and the list in one
+place:
+
+```dart
+class DependentSelectController<V, E extends Object>
+    extends AdvancedFieldController<V?, E> {
+  DependentSelectController({
+    required super.initialValue,
+    required List<V> options,
+    super.validator,
+    super.asyncValidation,
+    super.focusNode,
+    super.name,
+  }) : _options = List.unmodifiable(options);
+
+  List<V> _options;
+
+  /// The options to show right now. Replaced as a whole by [setOptions].
+  List<V> get options => _options;
+
+  /// Swaps the list. A selected value that is no longer on it is cleared
+  /// with `prefill`, so this counts as the program's doing, not the user's.
+  void setOptions(List<V> options) {
+    _options = List.unmodifiable(options);
+    final current = fieldValue;
+    if (current != null && !_options.contains(current)) {
+      prefill(null);
+    }
+    revalidateSync(); // "required" shows up at once — if the user had edited the field
+    notifyListeners(); // the options are not part of the state, so rebuild by hand
+  }
+
+  void select(V? option) {
+    assert(
+      option == null || _options.contains(option),
+      'Option $option is not one of the options of this field.',
+    );
+    setValue(option);
+  }
+}
+```
+
+`setOptions` clears with `prefill`, not `setValue`, so a field the user never touched stays untouched and shows no
+error until `validate()`, as the [validation model](../validation/modes.mdx) has it. `revalidateSync()` obeys the same
+gate: on a field the user *had* picked from, the `notNull` rule runs right away and "required" appears the moment the
+old choice vanished. The `notifyListeners()` call is what makes `AdvancedFieldBuilder` rebuild when only the list
+changed: the options are not part of `AdvancedFieldState`, and a state that did not change does not notify.
+
+Wire the list change to whatever drives it — a subscription on the other field or the completion of a request:
+
+```dart
+aircraft.addListener(() {
+  instructor.setOptions(instructorsFor(aircraft.fieldValue));
+});
+```
+
+<Callout type="warn" title="Membership is ==">
+  `contains` compares with `==`. A `Pilot` deserialized from the server is a different object from the `Pilot` you
+  put on the list, so with the default identity `==` the value is cleared every time the list is refreshed. Make `V`
+  a value type (`Equatable`, a record, an enum) or select by id and resolve to the instance that is on the list.
+</Callout>
+
 ## A list as the error type
 
 The example app's
