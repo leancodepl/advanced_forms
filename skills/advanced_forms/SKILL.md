@@ -293,7 +293,9 @@ typedef Validator<T, E extends Object> = E? Function(T);
    form; it reaches every field and subform, including ones registered or attached later.
 2. **A field the user has never edited validates nothing on its own** — in every mode. Only
    `setValue` (a user edit) marks a field as edited; `prefill` does not, and `reset()` makes it
-   count as untouched again.
+   count as untouched again. `markInteracted()` marks it by hand and re-runs the sync validator
+   under the mode — for a prefilled field that should react to its dependencies; `hasInteracted`
+   reads the flag.
 3. **A round runs the sync validator first, and the async validator only if sync passed.**
 
 | `ValidationMode` | on user edit | on unfocus | when a dependency changes |
@@ -452,6 +454,7 @@ late final repeatPassword = AdvancedTextFieldController<MyError>(
 
 Async validators are not re-run (this field's own value did not change, so no network call is
 owed), and nothing happens while this field is in `manual` mode or the user has never edited
+it — a prefilled dependent field needs one `markInteracted()` before the subscription reaches
 it. A second `subscribeToFields` call **replaces** the previous subscription.
 
 **Two fields watching each other** — one rule spanning a pair, either side able to break or fix
@@ -621,6 +624,8 @@ field.setError(null);               // clear it — status follows
 field.clearErrors();                // forget everything, incl. the async verdict
 field.markReadOnly();               // setValue becomes a no-op; validate() still works
 field.prefill(value);               // programmatic write: no validation, does not count as an edit
+field.markInteracted();             // count as edited without a value change; re-runs the sync
+                                    // validator under the mode (nothing in manual). hasInteracted reads it
 field.reset();                      // back to initialValue; clears both errors, the async verdict
                                     // and lastFailure, and makes the field untouched again.
                                     // Works read-only (that guard is in setValue); keeps

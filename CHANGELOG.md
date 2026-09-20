@@ -1,3 +1,7 @@
+## Unreleased
+
+* Added `markInteracted()` on field controllers: makes a field count as edited without a value change and re-runs its sync validator under the mode, so a prefilled field starts reacting to the fields it `subscribeToFields` to. `hasInteracted` exposes the flag.
+
 ## 0.2.1+1
 
 * Documentation only, no library changes.

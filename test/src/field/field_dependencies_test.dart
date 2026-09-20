@@ -137,4 +137,109 @@ void main() {
       expect(field1.value.isValid, isTrue);
     });
   });
+
+  group('markInteracted', () {
+    late TestField dependency;
+    late TestField dependent;
+
+    setUp(() {
+      dependency = AdvancedFieldController<int, TestError>(initialValue: 0);
+      dependent = AdvancedFieldController<int, TestError>(
+        initialValue: 0,
+        validator: validator,
+      )
+        ..setValidationMode(ValidationMode.onUserInteraction)
+        ..subscribeToFields([dependency]);
+      validator.validationResult = TestError.malformed;
+    });
+
+    tearDown(() {
+      dependent.dispose();
+      dependency.dispose();
+    });
+
+    test('a dependency change never reaches an untouched field', () async {
+      dependency.setValue(10);
+      await pumpEventQueue();
+
+      expect(dependent.hasInteracted, isFalse);
+      expect(dependent.value.error, isNull);
+    });
+
+    test('after it, a dependency change reaches the field', () async {
+      dependent.markInteracted();
+      validator.validationResult = TestError.valueRequired;
+
+      dependency.setValue(10);
+      await pumpEventQueue();
+
+      expect(dependent.value.error, TestError.valueRequired);
+    });
+
+    test('runs the sync validator at once, keeping the value', () {
+      dependent
+        ..prefill(7)
+        ..markInteracted();
+
+      expect(dependent.hasInteracted, isTrue);
+      expect(dependent.fieldValue, 7);
+      expect(dependent.value.error, TestError.malformed);
+    });
+
+    test('does not start an async round: the value did not change', () async {
+      final (:field, :validated) = makeAsyncField();
+      addTearDown(field.dispose);
+
+      field.markInteracted();
+      await pumpEventQueue();
+
+      expect(field.hasInteracted, isTrue);
+      expect(validated, isEmpty);
+    });
+
+    test('marks the field but validates nothing in manual mode', () async {
+      dependent
+        ..setValidationMode(ValidationMode.manual)
+        ..markInteracted();
+      dependency.setValue(10);
+      await pumpEventQueue();
+
+      expect(dependent.hasInteracted, isTrue);
+      expect(dependent.value.error, isNull);
+    });
+
+    test('reset makes the field untouched again', () async {
+      dependent
+        ..markInteracted()
+        ..reset();
+
+      dependency.setValue(10);
+      await pumpEventQueue();
+
+      expect(dependent.hasInteracted, isFalse);
+      expect(dependent.value.error, isNull);
+    });
+
+    test('throws StateError when the field has been disposed', () {
+      final disposed = AdvancedFieldController<int, TestError>(initialValue: 0)
+        ..dispose();
+
+      expect(disposed.markInteracted, throwsStateError);
+    });
+  });
+
+  group('hasInteracted', () {
+    test('follows setValue and reset, and ignores prefill', () {
+      expect(field.hasInteracted, isFalse);
+
+      field.prefill(1);
+      expect(field.hasInteracted, isFalse);
+
+      field.setValue(2);
+      expect(field.hasInteracted, isTrue);
+
+      field.reset();
+      expect(field.hasInteracted, isFalse);
+    });
+  });
 }

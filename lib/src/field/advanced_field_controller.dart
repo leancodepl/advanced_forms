@@ -295,6 +295,35 @@ class AdvancedFieldController<T, E extends Object>
     _clearTo(_value.value);
   }
 
+  /// Whether the user has edited this field: true after a [setValue], false
+  /// after [reset]. [prefill] does not count. See [markInteracted] for the
+  /// programmatic way to make it true.
+  bool get hasInteracted => _hasInteracted;
+
+  /// Makes the field count as edited by the user without changing its value,
+  /// then re-runs the sync validator under the field's mode — what a
+  /// dependency change does on a field the user has typed in.
+  ///
+  /// The escape hatch from the rule that an untouched field validates nothing
+  /// on its own: a value the program wrote with [prefill] is never reached by
+  /// a change in a field it [subscribeToFields] to, so an instructor loaded
+  /// from the server keeps looking fine after the user switches to an aircraft
+  /// they may not fly. Call this on such a field when it should start
+  /// reacting. Under [ValidationMode.manual] nothing runs, as for any edit;
+  /// [validate] is the call that checks everything. [reset] makes the field
+  /// untouched again.
+  ///
+  /// Throws a [StateError] if this field has already been disposed.
+  void markInteracted() {
+    if (_isDisposed) {
+      throw StateError(
+        'Cannot mark a disposed AdvancedFieldController as interacted.',
+      );
+    }
+    _hasInteracted = true;
+    revalidateSync();
+  }
+
   /// Resets the field to its initial value, clearing both errors, the status,
   /// the verdict and [lastFailure]. Keeps [AdvancedFieldState.validationMode]
   /// and [AdvancedFieldState.readOnly].

@@ -15,7 +15,9 @@ A validator is a function: value in, error out, `null` means valid. *When* it ru
 1. **The mode decides which events make a field validate itself.** Set it once on the form; it reaches every field and
    subform, including ones registered or attached later.
 2. **A field the user has never edited validates nothing on its own**, in every mode. `validate()` is what checks
-   those, so a prefilled form does not greet the user with errors.
+   those, so a prefilled form does not greet the user with errors. `field.markInteracted()` is the deliberate way
+   out: it makes one field count as edited without a value change, for the prefilled field that should start reacting
+   to its [dependencies](./cross-field.mdx).
 3. **A round runs the sync validator first, and the async validator only if sync passed.**
 
 `validate()` obeys none of them: it ignores the mode, never changes it, and runs every field — touched or not.

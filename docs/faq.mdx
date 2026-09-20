@@ -32,8 +32,10 @@ in every mode a field the user has never edited stays quiet on its own. See [Val
 <Accordion title="My subscribeToFields dependency does not re-validate.">
 
 Two gates sit in front of it: the dependent field must be in a mode other than `manual`, and the user must have edited
-it at least once. Under `manual` the mismatch shows up on submit instead. Also check that the *value* of a watched
-field changed — a status-only change never fires it. See [Cross-field logic](./validation/cross-field.mdx).
+it at least once. Under `manual` the mismatch shows up on submit instead. If the dependent field was prefilled and the
+user never touched it, `markInteracted()` on that field makes it count as edited, and the subscription reaches it from
+then on. Also check that the *value* of a watched field changed — a status-only change never fires it. See
+[Cross-field logic](./validation/cross-field.mdx).
 
 </Accordion>
 <Accordion title="The error disappears while I type and comes back a moment later.">
