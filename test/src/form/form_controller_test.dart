@@ -760,6 +760,146 @@ void main() {
       });
     });
 
+    group('addSubform with enabled', () {
+      late AdvancedBooleanFieldController<_Error1> needsInvoice;
+      late AdvancedFieldController<String, _Error1> customerType;
+
+      setUp(() {
+        needsInvoice = AdvancedBooleanFieldController<_Error1>();
+        customerType = AdvancedFieldController(initialValue: 'person');
+        subform.registerFields([subformField]);
+        form.registerFields([field1, field2, needsInvoice, customerType]);
+      });
+
+      tearDown(() => form.dispose());
+
+      test('is applied at once', () {
+        form.addSubform(subform, enabled: () => needsInvoice.fieldValue);
+
+        expect(form.value.subforms, {subform});
+        expect(subform.value.validationEnabled, false);
+      });
+
+      test('follows the fields it reads from then on', () {
+        form.addSubform(
+          subform,
+          enabled: () =>
+              needsInvoice.fieldValue || customerType.fieldValue == 'company',
+        );
+
+        needsInvoice.setValue(true);
+        expect(subform.value.validationEnabled, true);
+
+        needsInvoice.setValue(false);
+        expect(subform.value.validationEnabled, false);
+
+        customerType.setValue('company');
+        expect(subform.value.validationEnabled, true);
+      });
+
+      test(
+          'a change that leaves the result the same does not touch the '
+          'section', () {
+        form.addSubform(subform, enabled: () => needsInvoice.fieldValue);
+        final emissions = _record<AdvancedFormState>(subform);
+
+        field1.setValue('other');
+        needsInvoice.setError(_Error1.valueRequired);
+
+        expect(emissions, isEmpty);
+      });
+
+      test('a value change inside a subform re-evaluates too', () {
+        final inner = AdvancedBooleanFieldController<_Error1>();
+        final innerForm = AdvancedFormController()..registerFields([inner]);
+        form
+          ..addSubform(innerForm)
+          ..addSubform(subform, enabled: () => inner.fieldValue);
+
+        inner.setValue(true);
+
+        expect(subform.value.validationEnabled, true);
+      });
+
+      test('switched off, the section validates nothing and leaves canSubmit',
+          () async {
+        final sectionField = AdvancedFieldController<int, _Error2>(
+          initialValue: 0,
+          validator: (_) => _Error2.malformed,
+        );
+        final section = AdvancedFormController()
+          ..registerFields([sectionField]);
+        form.addSubform(section, enabled: () => needsInvoice.fieldValue);
+
+        expect(await form.validate(), true);
+        expect(sectionField.value.error, null);
+
+        needsInvoice.setValue(true);
+
+        expect(await form.validate(), false);
+        expect(sectionField.value.error, _Error2.malformed);
+      });
+
+      test('resetAll brings the section back in step with the field', () {
+        form.addSubform(subform, enabled: () => needsInvoice.fieldValue);
+        needsInvoice.setValue(true);
+        expect(subform.value.validationEnabled, true);
+
+        form.resetAll();
+
+        expect(subform.value.validationEnabled, false);
+      });
+
+      test('removeSubform drops the condition', () {
+        form
+          ..addSubform(subform, enabled: () => needsInvoice.fieldValue)
+          ..removeSubform(subform);
+        subform.setValidationEnabled(true);
+
+        needsInvoice
+          ..setValue(true)
+          ..setValue(false);
+
+        expect(subform.value.validationEnabled, true);
+      });
+
+      test('re-attaching without a condition leaves the section as it is', () {
+        form
+          ..addSubform(subform, enabled: () => needsInvoice.fieldValue)
+          ..removeSubform(subform)
+          ..addSubform(subform);
+
+        expect(subform.value.validationEnabled, false);
+
+        needsInvoice.setValue(true);
+
+        expect(subform.value.validationEnabled, false);
+      });
+
+      test('is a noop on an already attached subform', () {
+        form
+          ..addSubform(subform)
+          ..addSubform(subform, enabled: () => needsInvoice.fieldValue);
+
+        expect(subform.value.validationEnabled, true);
+      });
+
+      test(
+          'a condition can read an unregistered field, but does not follow '
+          'it', () {
+        final outside = AdvancedBooleanFieldController<_Error1>();
+        addTearDown(outside.dispose);
+        form.addSubform(subform, enabled: () => outside.fieldValue);
+        expect(subform.value.validationEnabled, false);
+
+        outside.setValue(true);
+        expect(subform.value.validationEnabled, false);
+
+        field1.setValue('any change in the form re-evaluates');
+        expect(subform.value.validationEnabled, true);
+      });
+    });
+
     group('validateAll', () {
       late AdvancedFormController validateAllForm;
 

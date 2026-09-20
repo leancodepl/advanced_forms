@@ -239,7 +239,7 @@ Three decisions in that code are worth keeping:
 - **Escalate the failed step, not the whole form.** After a failed `next()`, the step gets
   `ValidationMode.onUserInteraction` so it corrects itself as the user types. Because a subform's own mode wins over the
   parent's, the steps ahead stay in `manual` and never flag an untouched field.
-- **A conditional step stays attached with `setValidationEnabled(false)`.** The example app's *Step Form* screen has an
-  invoice step that a switch on the address step adds or drops through `addRelation`. Switched off, the step leaves
-  the flow *and* `validate()`, `canSubmit` and `validating`, so one flag is the whole condition — and its values survive
-  in case the user flips the switch back.
+- **A conditional step stays attached, switched off.** The example app's *Step Form* screen attaches its invoice step
+  with `addSubform(invoice, enabled: () => address.needsInvoice.fieldValue)`. Switched off, the step leaves the flow
+  *and* `validate()`, `canSubmit` and `validating`, so one flag is the whole condition — and its values survive in case
+  the user flips the switch back.

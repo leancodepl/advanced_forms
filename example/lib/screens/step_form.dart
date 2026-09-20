@@ -5,6 +5,7 @@ import 'package:advanced_forms_example/widgets/form_dropdown_field.dart';
 import 'package:advanced_forms_example/widgets/form_switch_field.dart';
 import 'package:advanced_forms_example/widgets/form_text_field.dart';
 import 'package:advanced_forms_example/widgets/screen_description.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -17,8 +18,9 @@ import 'package:provider/provider.dart';
 ///   would dispose it.
 /// * **Next** validates the current page's subform only.
 /// * **Submit** validates the parent, which reaches every attached subform.
-/// * A **skipped page** stays attached with `setValidationEnabled(false)`: the
-///   navigation walks past it and its fields stop counting towards the parent.
+/// * A **skipped page** stays attached, switched off through `addSubform`'s
+///   `enabled:`: the navigation walks past it and its fields stop counting
+///   towards the parent.
 class StepFormScreen extends StatelessWidget {
   const StepFormScreen({super.key});
 
@@ -92,9 +94,11 @@ class _StepFormState extends State<StepForm> {
             code('john@email.com'),
             plain('. The '),
             bold('Invoice'),
-            plain(' page is conditional: with the switch on Address off, '),
-            code('setValidationEnabled(false)'),
-            plain(' takes it out of the flow and out of '),
+            plain(' page is conditional: attached with '),
+            code('enabled: () => needsInvoice.fieldValue'),
+            plain(
+              ', so with the switch on Address off it leaves the flow and ',
+            ),
             code('validate()'),
             plain('.'),
           ]),
@@ -278,7 +282,7 @@ class _AddressStep extends StatelessWidget {
           hintText: 'Enter your city',
         ),
         // The decision that adds or drops the Invoice page — an ordinary field
-        // the wizard watches with `addRelation`.
+        // the wizard's `addSubform(invoice, enabled: …)` reads.
         FormSwitchField(
           field: controller.needsInvoice,
           labelText: 'I need a VAT invoice',
@@ -363,14 +367,18 @@ abstract class WizardStepController extends AdvancedFormController {
 /// fields with `notifyListeners()`; only [next], [back] and [submit] move it.
 class StepFormController extends AdvancedFormController {
   StepFormController() {
-    steps.forEach(addSubform);
+    addSubform(account);
+    addSubform(address);
+    // The Invoice step is conditional: it stays attached, so its values, its
+    // fields and its disposal stay with the wizard, and it validates and counts
+    // only while the switch on the Address step is on. The form re-evaluates
+    // the condition itself whenever a value in it changes.
+    addSubform(invoice, enabled: () => address.needsInvoice.fieldValue);
+    addSubform(confirm);
 
-    // Keeping the Invoice step attached and only switching its validation off
-    // is what makes the skip reversible: its values, its fields and its
-    // disposal stay with the wizard. `addRelation` fires on change only, so the
-    // initial state is seeded right after.
-    addRelation(address.needsInvoice, (value) => value, _setInvoiceEnabled);
-    _setInvoiceEnabled(address.needsInvoice.fieldValue);
+    // Navigation follows the flag: the flow is the steps that are switched on.
+    invoice.addListener(_syncActiveSteps);
+    _syncActiveSteps();
   }
 
   final account = AccountStepController();
@@ -454,13 +462,16 @@ class StepFormController extends AdvancedFormController {
     }
   }
 
-  void _setInvoiceEnabled(bool enabled) {
-    final current = _activeSteps.isEmpty ? null : currentStep;
-    invoice.setValidationEnabled(enabled);
-    _activeSteps = [
+  void _syncActiveSteps() {
+    final active = [
       for (final step in steps)
         if (step.value.validationEnabled) step,
     ];
+    if (listEquals(active, _activeSteps)) {
+      return;
+    }
+    final current = _activeSteps.isEmpty ? null : currentStep;
+    _activeSteps = active;
     // The user is never standing on a step as it leaves the flow — the switch
     // is on an earlier one — but clamp rather than trust that.
     _currentIndex = _activeSteps
@@ -512,8 +523,8 @@ Future<ValidationError?> _checkEmailTaken(String value) async {
 }
 
 /// Step 2. Picking another country clears the city, through the form's
-/// `addRelation` — "when B changes, set A". The wizard reads the invoice switch
-/// the same way, one level up.
+/// `addRelation` — "when B changes, set A". The invoice switch needs no
+/// relation: the wizard hands it to `addSubform` as the step's `enabled`.
 class AddressStepController extends WizardStepController {
   AddressStepController() {
     registerFields([country, city, needsInvoice]);

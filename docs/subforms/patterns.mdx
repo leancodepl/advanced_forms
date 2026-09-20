@@ -12,24 +12,31 @@ AI-Provenance:
 ## Detach, or switch validation off?
 
 A section that is *visible but not applicable* — invoice details behind an unchecked "I need an invoice" switch — is
-better kept attached with `setValidationEnabled(false)`:
+better kept attached and switched off. `addSubform` takes the condition:
+
+```dart
+CheckoutFormController() {
+  registerFields([email, needsInvoice]);
+  addSubform(invoice, enabled: () => needsInvoice.fieldValue);
+}
+```
+
+The closure is evaluated when the section is attached and again whenever a value anywhere in the form changes, and
+its result drives the section's `validationEnabled`. Switched off:
 
 - its errors are cleared and its fields leave `canSubmit`, `validating`, `hasFailedValidation` and `validationErrors`;
 - its `validate()` returns `true` without running;
 - everything else — `resetAll`, `markReadOnly`, `clearErrors`, disposal — still reaches it;
 - switching back on re-runs the sync validators at once, and the values are still there.
 
+Any expression works: `() => type.fieldValue == CustomerType.company`, `() => !sameAsBilling.fieldValue`, a condition
+over two fields. Because the form re-evaluates it after `resetAll()` too, a reset checkbox brings the section back in
+step by itself. A condition that depends on something *outside* the form — a service, a route argument — is not
+re-evaluated for that; call `setValidationEnabled` on the section yourself when it changes.
+
 Detach with `removeSubform` when the section genuinely leaves the screen and its values should not take part in
 anything. A detached subform is still owned — and disposed — by the parent, and can be re-attached later.
-
-```dart
-CheckoutFormController() {
-  registerFields([email, needsInvoice]);
-  addSubform(invoice);
-  addRelation(needsInvoice, (on) => on, invoice.setValidationEnabled);
-  invoice.setValidationEnabled(needsInvoice.fieldValue); // relations fire on change only
-}
-```
+`removeSubform` drops the condition; re-attach with a new one if it still applies.
 
 ## Swapping one section for another
 

@@ -185,6 +185,9 @@ class _GuestCard extends StatelessWidget {
 
 - **`addSubform(form)`** attaches. A no-op if already attached. The parent applies its validation mode to the subform
   at once — unless the subform has a mode of its own.
+- **`addSubform(form, enabled: () => …)`** attaches a conditional section: the closure decides, now and after every
+  value change in the form, whether the section validates and counts. See
+  [Patterns](./patterns.mdx#detach-or-switch-validation-off).
 - **`removeSubform(form)`** detaches: the subform stops validating, notifying and counting towards the parent's state,
   and can be re-attached later. It does **not** dispose it.
 - **The parent owns every subform it was ever given** and disposes them all in its own `dispose()`, attached or

@@ -550,8 +550,8 @@ MyForm() {
 - The form removes the listener in its own `dispose()`. Throws a `StateError` if the form or
   `source` is already disposed.
 - A *destructive* relation — `city.reset()` when `country` changes — is safe: `validate()`
-  changes no values, so it cannot wipe the user's choice. Attaching or detaching subforms and
-  calling `setValidationEnabled` from `onChange` is supported.
+  changes no values, so it cannot wipe the user's choice. Attaching or detaching subforms from
+  `onChange` is supported; switching a section on and off is `addSubform(…, enabled:)` instead.
 - Raw `addListener` + `setValue` is right only when the target is not a form field at all — a
   plain `ValueNotifier`, a service callback — and there you do the `==` comparison yourself,
   because `addListener` fires on **any** state change.
@@ -672,6 +672,7 @@ field.reset();                      // back to initialValue; clears both errors,
                                     // readOnly + validationMode — those are configuration
 form.markReadOnly(); form.clearErrors(); form.resetAll(); // whole tree
 form.setValidationEnabled(false);   // this subtree stops validating and stops counting
+form.addSubform(section, enabled: () => flag.fieldValue); // …kept in step with a field
 ```
 
 Push server errors **after** the `await`, never before: `validate()` and anything else that
@@ -742,16 +743,13 @@ Split big forms, or attach sections that appear dynamically. Subform fields join
 
 Prefer this. The subform stays in the tree, so `resetAll`, `markReadOnly`, `clearErrors`,
 `setValidationMode` and `dispose()` all still reach it, and no ownership changes hands.
+`addSubform` takes the condition as a closure:
 
 ```dart
 class CheckoutFormController extends AdvancedFormController {
   CheckoutFormController() {
     registerFields([email, sameAsBilling]);
-    addSubform(shipping);
-    // addRelation fires on change only, so seed the initial state right after.
-    addRelation(sameAsBilling, (value) => value,
-        (same) => shipping.setValidationEnabled(!same));
-    shipping.setValidationEnabled(!sameAsBilling.fieldValue);
+    addSubform(shipping, enabled: () => !sameAsBilling.fieldValue);
   }
 
   final email = AdvancedTextFieldController(validator: filled(MyError.required));
@@ -759,6 +757,14 @@ class CheckoutFormController extends AdvancedFormController {
   final shipping = ShippingFormController(); // another AdvancedFormController
 }
 ```
+
+The closure runs at `addSubform` and again after every value change anywhere in this form's
+tree; when its result flips, the form calls `setValidationEnabled` on the section. Any
+expression goes — `() => type.fieldValue == CustomerType.company`, a condition over two
+fields. Do **not** write the old `addRelation` + `setValidationEnabled` + manual seed for
+this; `enabled:` is that pattern with the seeding and the `resetAll()` re-sync built in. A
+condition on something *outside* the form (a service, a route argument) is not re-evaluated
+for that — call `setValidationEnabled` on the section yourself then.
 
 A switched-off subtree **stops counting entirely**: it validates nothing, its `validate()`
 returns `true` unrun, and its fields leave `canSubmit`, `validating`, `hasFailedValidation` and
@@ -769,8 +775,9 @@ back on re-runs the sync validators, still subject to the three rules — so a f
 never edited stays quiet and a re-appearing section does not paint itself red.
 
 `validationEnabled` starts `true` and only `setValidationEnabled` writes it — `resetAll()`
-leaves it alone, so seed it at construction and again in whatever method calls `resetAll()`.
-It composes with a parent's switch by AND, so a section that opted out stays out.
+leaves it alone. With `enabled:` that is no concern: the reset values re-trigger the closure.
+With a hand-written `setValidationEnabled`, seed it at construction and again after
+`resetAll()`. It composes with a parent's switch by AND, so a section that opted out stays out.
 (`wasModified` is the exception: a switched-off subform still reports its modifications.)
 
 ### A section that genuinely appears and disappears — attach and detach
@@ -791,8 +798,8 @@ void disableGift() => removeSubform(gift); // detaches only — `gift` is NOT di
 - A subform attached *after* the first `validate()` behaves exactly like one attached at build
   time — the mode is broadcast on attach and `validate()` changes nothing. No fix-up needed.
 - A subform with its own `validationMode:` keeps it and stops following the parent's.
-- `addSubform` is a no-op when already attached, `removeSubform` when not — a toggle needs no
-  bookkeeping flag.
+- `addSubform` is a no-op when already attached (also with a new `enabled:`), `removeSubform`
+  when not — a toggle needs no bookkeeping flag. `removeSubform` drops the condition.
 
 ### A wizard, validated step by step
 
