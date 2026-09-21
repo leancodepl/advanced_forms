@@ -14,15 +14,9 @@ The package ships an [Agent Skill](https://agentskills.io): a single Markdown fi
 a task looks like form work, so it generates fields, validation, cross-field logic and subforms the way these docs
 describe them rather than the way a generic Flutter tutorial would.
 
-It ships inside the package. With `advanced_forms` in your `pubspec.yaml`, one command installs it into the folder your
-agent reads:
-
-```sh title="In your project"
-dart run skills@ get
-```
-
-Then say *"build me a sign-up form"*. The agent writes the controller and the widgets and wires the validation — you do
-not open the docs. Not using the package yet? Copy the file instead; the skill adds the dependency itself.
+Copy the file below into your project, or install it with one command — then say *"build me a sign-up form"*. The
+agent adds the package to `pubspec.yaml` if it is not there yet, writes the controller and the widgets, and wires the
+validation — you do not open the docs.
 
 <SkillCopy />
 
@@ -32,85 +26,71 @@ not open the docs. Not using the package yet? Copy the file instead; the skill a
   hardened by having agents generate real forms from it alone, compiling those forms, and feeding every defect back.
 </Callout>
 
-## Install it
+<SkillBanner>Get this skill with one command line</SkillBanner>
+
+The skill ships inside the package, so Dart's [skills CLI](https://dart.dev/tools/pub/package-skills) can install it —
+and every other skill your dependencies carry — into the folder your agent reads.
 
 <Steps>
 <Step>
 
-### Create the file
+### Have the package in your project
 
-<Tabs items={["dart run skills@ get", "Copy and paste", "One command"]}>
-<Tab value="dart run skills@ get">
+The CLI reads `pubspec.yaml`, so `advanced_forms` has to be a dependency first:
 
-The skill ships inside the package, so once `advanced_forms` is in your `pubspec.yaml`,
-[Dart's skills CLI](https://dart.dev/tools/pub/package-skills) installs it — and every other skill your dependencies
-carry — into the folder your agent reads:
+```sh
+flutter pub add advanced_forms
+```
+
+</Step>
+<Step>
+
+### Run the skills CLI
 
 ```sh
 dart run skills@ get
 ```
 
-It detects the agent from the project (`.claude/skills/` for Claude Code, `.cursor/skills/`, `.github/skills/`,
-`.agents/skills/` for the rest; `--agent claude` to force one) and asks which skills to install; `--all` skips the
-question. After a package upgrade, run it again and it offers to update the skill. `dart run skills@ list` shows what
-is installed, `dart run skills@ prune` removes skills of dependencies you dropped.
-
-</Tab>
-<Tab value="Copy and paste">
-
-Press **Copy SKILL.md** above, create this file in your project and paste:
-
-```text
-.claude/skills/advanced_forms-forms/SKILL.md
-```
-
-Commit it, and every contributor's agent picks it up. To have it in every project you work on instead, put the same
-file under `~/.claude/skills/advanced_forms-forms/SKILL.md`.
-
-</Tab>
-<Tab value="One command">
-
-The file is served raw at [`/skill.md`](/skill.md), so the terminal can fetch it into place:
-
-```sh title="Into the project"
-mkdir -p .claude/skills/advanced_forms-forms && curl -fsSL https://advanced-forms.leancode.co/skill.md -o .claude/skills/advanced_forms-forms/SKILL.md
-```
-
-```sh title="For every project you work on"
-mkdir -p ~/.claude/skills/advanced_forms-forms && curl -fsSL https://advanced-forms.leancode.co/skill.md -o ~/.claude/skills/advanced_forms-forms/SKILL.md
-```
-
-Run it again whenever you upgrade the package: the URL always serves the skill for the current release.
-
-</Tab>
-</Tabs>
-
-The skills CLI is the one that keeps up with releases; the other two are for reading the skill before you add the
-package, or for an agent the CLI does not know. `.claude/skills/` is where Claude Code looks; other agents read the same
-file from their own skills folder.
+`skills@` runs the CLI straight from pub.dev — nothing to install, nothing added to your pubspec. It detects the agent
+from the project (`.claude/skills/` for Claude Code, `.cursor/skills/`, `.github/skills/` for Copilot, `.agents/skills/`
+for the rest; `--agent claude` to force one) and asks which skills to install; `--all` skips the question.
 
 </Step>
 <Step>
 
 ### Check it is loaded
 
-In Claude Code, `/skills` lists the skills in scope. The skill's description mentions forms, fields, validation and
-subforms, so it triggers on a request like *"add a shipping address section to the checkout"* even when the word
-"form" never appears.
+`dart run skills@ list` shows what the CLI manages. In Claude Code, `/skills` lists the skills in scope. The skill's
+description mentions forms, fields, validation and subforms, so it triggers on a request like *"add a shipping address
+section to the checkout"* even when the word "form" never appears.
 
 </Step>
 <Step>
 
 ### Ask for a form
 
-*"Build me a sign-up form with email, password and terms."* That is the whole prompt: if `advanced_forms` is not in
-`pubspec.yaml` yet, the agent runs `flutter pub add advanced_forms` first, then writes the controller, the widgets and
-the validation. The skill is enough on its own: the agent does not need the docs, the README or the package source in
-context. It knows the two rules that prevent most bugs — call `registerFields` once with every field, and bind text widgets to
-`field.textController` — and it knows the API surface well enough not to invent parameters.
+*"Build me a sign-up form with email, password and terms."* That is the whole prompt. The skill is enough on its own:
+the agent does not need the docs, the README or the package source in context. It knows the two rules that prevent
+most bugs — call `registerFields` once with every field, and bind text widgets to `field.textController` — and it knows
+the API surface well enough not to invent parameters.
+
+</Step>
+<Step>
+
+### Keep it current
+
+After a package upgrade, run `dart run skills@ get` again: it offers to update the skill to the one the new version
+ships. `dart run skills@ prune` removes skills of dependencies you dropped.
 
 </Step>
 </Steps>
+
+<Callout title="No CLI? No problem.">
+  The file is the skill. Paste what **Copy SKILL.md** gives you into `.claude/skills/advanced_forms-forms/SKILL.md`
+  (or `~/.claude/skills/…` for every project), or fetch it raw:
+  `curl -fsSL https://advanced-forms.leancode.co/skill.md -o .claude/skills/advanced_forms-forms/SKILL.md`. Other agents
+  read the same file from their own skills folder.
+</Callout>
 
 ## What it teaches
 

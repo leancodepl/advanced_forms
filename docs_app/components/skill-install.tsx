@@ -4,7 +4,8 @@
  *   harness: Claude Code
  */
 import { CodeBlock, Pre } from "fumadocs-ui/components/codeblock"
-import { ExternalLink, FileText } from "lucide-react"
+import { ExternalLink, FileText, Terminal } from "lucide-react"
+import type { ReactNode } from "react"
 import { CopySkillButton } from "./copy-skill-button"
 import { readSkill } from "@/lib/skill"
 import { skillRoute, urls } from "@/lib/shared"
@@ -59,5 +60,20 @@ export function SkillSource() {
         <code>{skill.text}</code>
       </Pre>
     </CodeBlock>
+  )
+}
+
+/**
+ * The loud title over the install steps: the accent fill, so the one-command
+ * path is the first thing the eye lands on after the copy card.
+ */
+export function SkillBanner({ children }: { children: ReactNode }) {
+  return (
+    <div
+      className="not-prose mt-12 mb-6 flex items-center gap-4 rounded-xl px-6 py-5"
+      style={{ background: "var(--af-accent)", color: "var(--af-accent-ink)" }}>
+      <Terminal className="size-9 shrink-0" strokeWidth={2.25} aria-hidden />
+      <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">{children}</h2>
+    </div>
   )
 }
