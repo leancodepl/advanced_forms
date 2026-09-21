@@ -82,7 +82,10 @@ class _PasswordFormState extends State<PasswordForm> {
 - It re-runs **this** field's **sync** validator. It does not copy or derive values, and it does not re-run the async
   validator — this field's own value did not change, so its verdict still stands.
 - It obeys the [gate](./modes.mdx): nothing happens while this field is in `ValidationMode.manual`, and nothing on a
-  field the user has never edited. Under `manual` the mismatch shows up on submit instead.
+  field the user has never edited. Under `manual` the mismatch shows up on submit instead. When a prefilled field has to react
+  before anyone touches it — an instructor loaded from the server, an aircraft they may not fly — call `validate()` on
+  it from a listener on the watched field; `validate()` ignores the gate. Compare the watched value yourself, since a
+  listener also fires on status changes, and remember that `validate()` runs the async validator too.
 - It fires when a watched **value** changes, never on a status-only change of the sibling, so it cannot loop.
 - A second call replaces the previous subscription; the subscription is dropped on `dispose`.
 - A code pushed with `setError` gives way to whatever the validator now returns, like any other re-run.
