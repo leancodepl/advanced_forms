@@ -23,7 +23,13 @@
 - **Granular rebuilds** — one builder per field, so a keystroke rebuilds one subtree and nothing else.
 
 > [!TIP]
-> **Using Claude Code (or another agent that supports Agent Skills)?** This repo ships an [Agent Skill](https://github.com/leancodepl/advanced_forms/blob/main/skills/advanced_forms/SKILL.md) that teaches your agent the full API, so it generates fields, validation, cross-field logic, and subforms idiomatically. To enable it, copy `skills/advanced_forms/` into your app's `.claude/skills/`, or into your global `~/.claude/skills/`.
+> **Using Claude Code (or another agent that supports Agent Skills)?** This package ships an [Agent Skill](https://advanced-forms.leancode.co/docs/agent-skill) that teaches your agent the full API, so it generates fields, validation, cross-field logic, and subforms idiomatically. Installing it is one command:
+>
+> ```sh
+> mkdir -p .claude/skills/advanced_forms && curl -fsSL https://advanced-forms.leancode.co/skill.md -o .claude/skills/advanced_forms/SKILL.md
+> ```
+>
+> Or copy the file from [the docs](https://advanced-forms.leancode.co/docs/agent-skill) and paste it into `.claude/skills/advanced_forms/SKILL.md`. Then say *"build me a sign-up form"* — the agent adds the package if it is missing and writes the form.
 
 ## Website: interactive examples and docs
 
@@ -144,7 +150,7 @@ Own the controller wherever you like — it's a `ChangeNotifier`, so any DI pack
 - [MIGRATION.md](https://github.com/leancodepl/advanced_forms/blob/main/MIGRATION.md) — coming from 0.1.x.
 - `example/` — a runnable app where every pattern in these docs has a working screen. See [example/example.md](https://github.com/leancodepl/advanced_forms/blob/main/example/example.md) for the screen guide.
 - [API reference](https://pub.dev/documentation/advanced_forms/latest/) — the generated dartdoc, for every member and its edge cases.
-- [`skills/advanced_forms/`](https://github.com/leancodepl/advanced_forms/blob/main/skills/advanced_forms/SKILL.md) — an Agent Skill that teaches your agent the full API, so it generates fields, validation, cross-field logic, and subforms idiomatically. To enable it, copy the folder into your app's `.claude/skills/`, or into your global `~/.claude/skills/`.
+- [Agent Skill](https://advanced-forms.leancode.co/docs/agent-skill) — `skills/advanced_forms/SKILL.md`, a skill that teaches your agent the full API, so it generates fields, validation, cross-field logic, and subforms idiomatically. One `curl` or one copy-paste puts it into your project's `.claude/skills/`.
 
 ## Rendering fields
 

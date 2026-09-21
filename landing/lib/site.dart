@@ -48,6 +48,9 @@ const migrationUrl = '$repoUrl/blob/main/MIGRATION.md';
 const issuesUrl = '$repoUrl/issues';
 const skillUrl = '$repoUrl/blob/main/skills/advanced_forms/SKILL.md';
 
+/// The docs page that installs the Agent Skill: one copy, one file.
+const skillDocsPath = '$docsPath/agent-skill';
+
 const _utm =
     'utm_source=advanced-forms-docs&utm_medium=referral&utm_campaign=advanced-forms';
 const leancodeUrl = 'https://leancode.co/?$_utm';

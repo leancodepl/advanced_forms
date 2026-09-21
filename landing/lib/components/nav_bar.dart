@@ -31,6 +31,25 @@ class NavBar extends StatelessComponent {
             const li(classes: 'af-nav-secondary', [
               a(href: '$docsPath/example-app', [.text('Examples')]),
             ]),
+            // The one item drawn in the accent: the skill is the fastest way
+            // to a working form, and a plain link would not say so. The label
+            // goes on narrow screens; the icon and the fill stay.
+            li([
+              a(
+                href: skillDocsPath,
+                classes: 'af-nav-cta',
+                attributes: const {
+                  'aria-label': 'Agent skill: install it in one copy',
+                  'title': 'Agent skill',
+                },
+                [
+                  Icon.bot.build(size: 18),
+                  const span(classes: 'af-nav-cta-label', [
+                    .text('Agent skill'),
+                  ]),
+                ],
+              ),
+            ]),
             li([
               externalLink(pubUrl, label: '$siteName on pub.dev', [
                 Icon.package.build(size: 18),
