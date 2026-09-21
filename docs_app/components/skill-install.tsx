@@ -64,16 +64,17 @@ export function SkillSource() {
 }
 
 /**
- * The loud title over the install steps: the accent fill, so the one-command
- * path is the first thing the eye lands on after the copy card.
+ * The title over the install steps. A quiet accent — a soft tint and a rule
+ * in the accent colour — so the one-command path reads as the main road
+ * without shouting over the copy card above it.
  */
 export function SkillBanner({ children }: { children: ReactNode }) {
   return (
     <div
-      className="not-prose mt-12 mb-6 flex items-center gap-4 rounded-xl px-6 py-5"
-      style={{ background: "var(--af-accent)", color: "var(--af-accent-ink)" }}>
-      <Terminal className="size-9 shrink-0" strokeWidth={2.25} aria-hidden />
-      <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">{children}</h2>
+      className="not-prose text-fd-foreground mt-12 mb-6 flex items-center gap-4 rounded-r-xl px-5 py-4"
+      style={{ background: "var(--af-accent-soft)", borderLeft: "4px solid var(--af-accent)" }}>
+      <Terminal className="size-6 shrink-0" style={{ color: "var(--af-accent-text)" }} aria-hidden />
+      <h2 className="m-0 text-xl font-semibold tracking-tight sm:text-2xl">{children}</h2>
     </div>
   )
 }
