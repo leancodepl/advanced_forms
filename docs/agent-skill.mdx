@@ -14,8 +14,9 @@ The package ships an [Agent Skill](https://agentskills.io): a single Markdown fi
 a task looks like form work, so it generates fields, validation, cross-field logic and subforms the way these docs
 describe them rather than the way a generic Flutter tutorial would.
 
-Copy the file into your project and say *"build me a sign-up form"*. The agent adds the package to `pubspec.yaml` if
-it is not there yet, writes the controller and the widgets, and wires the validation — you do not open the docs.
+Run `dart run skills@ get` in your project — or copy the file — and say *"build me a sign-up form"*. The agent adds the
+package to `pubspec.yaml` if it is not there yet, writes the controller and the widgets, and wires the validation — you
+do not open the docs.
 
 <SkillCopy />
 
@@ -32,17 +33,33 @@ it is not there yet, writes the controller and the widgets, and wires the valida
 
 ### Create the file
 
-<Tabs items={["Copy and paste", "One command"]}>
+<Tabs items={["dart run skills@ get", "Copy and paste", "One command"]}>
+<Tab value="dart run skills@ get">
+
+The skill ships inside the package, so once `advanced_forms` is in your `pubspec.yaml`,
+[Dart's skills CLI](https://dart.dev/tools/pub/package-skills) installs it — and every other skill your dependencies
+carry — into the folder your agent reads:
+
+```sh
+dart run skills@ get
+```
+
+It detects the agent from the project (`.claude/skills/` for Claude Code, `.cursor/skills/`, `.github/skills/`,
+`.agents/skills/` for the rest; `--agent claude` to force one) and asks which skills to install; `--all` skips the
+question. After a package upgrade, run it again and it offers to update the skill. `dart run skills@ list` shows what
+is installed, `dart run skills@ prune` removes skills of dependencies you dropped.
+
+</Tab>
 <Tab value="Copy and paste">
 
 Press **Copy SKILL.md** above, create this file in your project and paste:
 
 ```text
-.claude/skills/advanced_forms/SKILL.md
+.claude/skills/advanced_forms-forms/SKILL.md
 ```
 
 Commit it, and every contributor's agent picks it up. To have it in every project you work on instead, put the same
-file under `~/.claude/skills/advanced_forms/SKILL.md`.
+file under `~/.claude/skills/advanced_forms-forms/SKILL.md`.
 
 </Tab>
 <Tab value="One command">
@@ -50,11 +67,11 @@ file under `~/.claude/skills/advanced_forms/SKILL.md`.
 The file is served raw at [`/skill.md`](/skill.md), so the terminal can fetch it into place:
 
 ```sh title="Into the project"
-mkdir -p .claude/skills/advanced_forms && curl -fsSL https://advanced-forms.leancode.co/skill.md -o .claude/skills/advanced_forms/SKILL.md
+mkdir -p .claude/skills/advanced_forms-forms && curl -fsSL https://advanced-forms.leancode.co/skill.md -o .claude/skills/advanced_forms-forms/SKILL.md
 ```
 
 ```sh title="For every project you work on"
-mkdir -p ~/.claude/skills/advanced_forms && curl -fsSL https://advanced-forms.leancode.co/skill.md -o ~/.claude/skills/advanced_forms/SKILL.md
+mkdir -p ~/.claude/skills/advanced_forms-forms && curl -fsSL https://advanced-forms.leancode.co/skill.md -o ~/.claude/skills/advanced_forms-forms/SKILL.md
 ```
 
 Run it again whenever you upgrade the package: the URL always serves the skill for the current release.
@@ -62,8 +79,9 @@ Run it again whenever you upgrade the package: the URL always serves the skill f
 </Tab>
 </Tabs>
 
-`.claude/skills/` is where Claude Code looks. Other agents that support Agent Skills read the same file from their own
-skills folder — check the agent's docs for the path.
+The skills CLI is the one that keeps up with releases; the other two are for reading the skill before you add the
+package, or for an agent the CLI does not know. `.claude/skills/` is where Claude Code looks; other agents read the same
+file from their own skills folder.
 
 </Step>
 <Step>
@@ -108,7 +126,7 @@ context. It knows the two rules that prevent most bugs — call `registerFields`
 ## The file
 
 This is the skill, whole — the same bytes the copy button and `/skill.md` give you. It lives in the repository at
-[`skills/advanced_forms/SKILL.md`](https://github.com/leancodepl/advanced_forms/blob/main/skills/advanced_forms/SKILL.md)
+[`skills/advanced_forms-forms/SKILL.md`](https://github.com/leancodepl/advanced_forms/blob/main/skills/advanced_forms-forms/SKILL.md)
 and this page is built from it, so what you read here is what ships.
 
 <SkillSource />
