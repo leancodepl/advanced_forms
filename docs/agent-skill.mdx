@@ -14,9 +14,15 @@ The package ships an [Agent Skill](https://agentskills.io): a single Markdown fi
 a task looks like form work, so it generates fields, validation, cross-field logic and subforms the way these docs
 describe them rather than the way a generic Flutter tutorial would.
 
-Run `dart run skills@ get` in your project — or copy the file — and say *"build me a sign-up form"*. The agent adds the
-package to `pubspec.yaml` if it is not there yet, writes the controller and the widgets, and wires the validation — you
-do not open the docs.
+It ships inside the package. With `advanced_forms` in your `pubspec.yaml`, one command installs it into the folder your
+agent reads:
+
+```sh title="In your project"
+dart run skills@ get
+```
+
+Then say *"build me a sign-up form"*. The agent writes the controller and the widgets and wires the validation — you do
+not open the docs. Not using the package yet? Copy the file instead; the skill adds the dependency itself.
 
 <SkillCopy />
 
