@@ -154,7 +154,9 @@ class _SelectInputDemoState extends State<SelectInputDemo> {
 
 `field.select(option)` and `field.toggleElement(option)` are the setters; both are no-ops while read-only, which is why
 the widgets null their callbacks on `state.readOnly` rather than calling `getValueSetter()`. `select` asserts in debug
-builds that the option is one of `options`; `select(null)` clears and is always allowed.
+builds that the option is one of `options`; `select(null)` clears and is always allowed. When the list itself
+changes — say, plans available in the chosen country — `setOptions(newList)` replaces it, clears a value that is no
+longer on it and rebuilds the dropdown; see [Single select](../fields/index.mdx#single-select).
 
 <Callout type="info" title="DropdownButtonFormField and Flutter versions">
   Its selected-value parameter is `value:` up to Flutter 3.33 and `initialValue:` from 3.35 on. `DropdownButton` inside
