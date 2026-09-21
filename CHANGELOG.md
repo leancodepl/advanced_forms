@@ -1,9 +1,11 @@
-## Unreleased
+## 0.2.2
 
-* `setOptions(List<V>)` on `AdvancedSingleSelectFieldController` and `AdvancedMultiSelectFieldController`: the list of options can change while the form is open. A selected value that is not on the new list is cleared as a program write (no user edit, no error on an untouched field); widgets rebuild even when the value stayed the same.
-* The single-select controller now copies the `options` you pass, as the multi-select always did. `options` is an unmodifiable list on both.
-* The Agent Skill is a [package skill](https://dart.dev/tools/pub/package-skills): `dart run skills@ get` installs it into your agent's skills folder. The folder moved from `skills/advanced_forms/` to `skills/advanced_forms-build-forms/`, the name the CLI requires; the skill now adds the package with `flutter pub add advanced_forms` when the project lacks it.
-* Added `enabled` to `addSubform`: the section is attached only while the closure returns true, and keeps its values when it is not.
+* Conditional sections in one line: `addSubform(invoice, enabled: () => needsInvoice.fieldValue)` attaches and detaches the section as the checkbox flips, and its values survive.
+* Added `setOptions` to both select controllers, so the list of options can change while the form is open.
+* The single-select controller now copies the `options` you pass, as the multi-select always did.
+* The agent skill is a Dart package skill: `dart run skills@ get` installs it.
+* Documented how a prefilled field can react to another field before the user touches it.
+* The new logo on the website, the favicon and the README.
 
 ## 0.2.1+1
 
