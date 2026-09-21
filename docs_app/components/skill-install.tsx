@@ -74,7 +74,10 @@ export function SkillBanner({ children }: { children: ReactNode }) {
       className="not-prose text-fd-foreground mt-12 mb-6 flex items-center gap-4 rounded-r-xl px-5 py-4"
       style={{ background: "var(--af-accent-soft)", borderLeft: "4px solid var(--af-accent)" }}>
       <Terminal className="size-6 shrink-0" style={{ color: "var(--af-accent-text)" }} aria-hidden />
-      <h2 className="m-0 text-xl font-semibold tracking-tight sm:text-2xl">{children}</h2>
+      {/* The docs' heading rules add a top margin and padding to every h2; this one sits in a box. */}
+      <h2 className="text-xl font-semibold tracking-tight sm:text-2xl" style={{ margin: 0, padding: 0 }}>
+        {children}
+      </h2>
     </div>
   )
 }
