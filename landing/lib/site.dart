@@ -61,6 +61,9 @@ const patrolUrl = 'https://patrol.leancode.co/?$_utm';
 
 const installCommand = 'flutter pub add advanced_forms';
 
+/// Installs the package's Agent Skill into the agent's skills folder.
+const skillInstallCommand = 'dart run skills@ get';
+
 /// The package version, read from the repository's own pubspec so the site
 /// can never announce a stale number. The build number is not shown.
 String packageVersion() {

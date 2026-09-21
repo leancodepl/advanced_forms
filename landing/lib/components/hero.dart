@@ -1,6 +1,6 @@
 import 'package:advanced_forms_landing/components/button.dart';
 import 'package:advanced_forms_landing/components/example_frame.dart';
-import 'package:advanced_forms_landing/components/icons.dart';
+import 'package:advanced_forms_landing/components/install_command.dart';
 import 'package:advanced_forms_landing/components/pill.dart';
 import 'package:advanced_forms_landing/components/section.dart';
 import 'package:advanced_forms_landing/examples.dart';
@@ -51,28 +51,7 @@ class Hero extends StatelessComponent {
               .text(' your app already uses.'),
             ]),
             div(classes: 'af-install', [
-              div(classes: 'af-install-command', [
-                const span(
-                  classes: 'af-prompt',
-                  attributes: {'aria-hidden': 'true'},
-                  [.text(r'$')],
-                ),
-                const code([.text(installCommand)]),
-                button(
-                  classes: 'af-copy-button',
-                  attributes: const {
-                    'type': 'button',
-                    'data-copy-text': installCommand,
-                    'aria-label': 'Copy to clipboard',
-                    'aria-live': 'polite',
-                  },
-                  [
-                    span(classes: 'af-copy-idle', [Icon.copy.build(size: 15)]),
-                    span(classes: 'af-copy-done', [Icon.check.build(size: 15)]),
-                    const span(classes: 'af-copy-label', [.text('Copy')]),
-                  ],
-                ),
-              ]),
+              const InstallCommand(installCommand),
               p(classes: 'af-install-alt', [
                 const .text('Coming from '),
                 const code([.text('leancode_forms')]),
