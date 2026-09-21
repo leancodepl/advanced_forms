@@ -7,11 +7,11 @@ import { readFileSync, statSync } from "node:fs"
 import path from "node:path"
 
 /**
- * The Agent Skill is one Markdown file in the repo root (`skills/advanced_forms-forms/`),
+ * The Agent Skill is one Markdown file in the repo root (`skills/advanced_forms-build-forms/`),
  * the same one the package ships. Read at build time, like `../docs`, so the
  * site can never serve a stale copy of it.
  */
-const skillFile = path.join(process.cwd(), "..", "skills", "advanced_forms-forms", "SKILL.md")
+const skillFile = path.join(process.cwd(), "..", "skills", "advanced_forms-build-forms", "SKILL.md")
 
 export interface Skill {
   /** The file, verbatim. */

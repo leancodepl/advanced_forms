@@ -29,7 +29,7 @@
 > dart run skills@ get
 > ```
 >
-> Not using the package yet? Copy the file from [the docs](https://advanced-forms.leancode.co/docs/agent-skill) into `.claude/skills/advanced_forms-forms/SKILL.md`, then say *"build me a sign-up form"* — the agent adds the package and writes the form.
+> Not using the package yet? Copy the file from [the docs](https://advanced-forms.leancode.co/docs/agent-skill) into `.claude/skills/advanced_forms-build-forms/SKILL.md`, then say *"build me a sign-up form"* — the agent adds the package and writes the form.
 
 ## Website: interactive examples and docs
 
@@ -150,7 +150,7 @@ Own the controller wherever you like — it's a `ChangeNotifier`, so any DI pack
 - [MIGRATION.md](https://github.com/leancodepl/advanced_forms/blob/main/MIGRATION.md) — coming from 0.1.x.
 - `example/` — a runnable app where every pattern in these docs has a working screen. See [example/example.md](https://github.com/leancodepl/advanced_forms/blob/main/example/example.md) for the screen guide.
 - [API reference](https://pub.dev/documentation/advanced_forms/latest/) — the generated dartdoc, for every member and its edge cases.
-- [Agent Skill](https://advanced-forms.leancode.co/docs/agent-skill) — `skills/advanced_forms-forms/SKILL.md`, a skill that teaches your agent the full API, so it generates fields, validation, cross-field logic, and subforms idiomatically. `dart run skills@ get` installs it into your project's agent skills folder.
+- [Agent Skill](https://advanced-forms.leancode.co/docs/agent-skill) — `skills/advanced_forms-build-forms/SKILL.md`, a skill that teaches your agent the full API, so it generates fields, validation, cross-field logic, and subforms idiomatically. `dart run skills@ get` installs it into your project's agent skills folder.
 
 ## Rendering fields
 
