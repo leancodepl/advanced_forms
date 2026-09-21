@@ -25,11 +25,13 @@ class App extends StatelessComponent {
         classes: 'af-landing',
         children: [
           Hero(version: version, demo: loadExample('hero')),
+          // Right under the fold: the fastest way to a working form comes
+          // before the explanation of how forms work.
+          const SkillBand(),
           ModelSection(example: loadExample('signup')),
           ValidationSection(example: loadExample('modes')),
           AsyncSection(example: loadExample('async')),
           const Features(),
-          const SkillBand(),
         ],
       ),
       SiteFooter(version: version),

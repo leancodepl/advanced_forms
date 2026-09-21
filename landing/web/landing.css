@@ -857,6 +857,10 @@ a.af-pill-accent:hover {
   margin-top: 0;
 }
 
+.af-band .af-install-command + .af-hero-actions {
+  margin-top: 1rem;
+}
+
 /* ---------- Footer ---------- */
 
 .af-footer {

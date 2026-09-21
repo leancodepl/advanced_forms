@@ -1,6 +1,7 @@
 import 'package:advanced_forms_landing/components/button.dart';
 import 'package:advanced_forms_landing/components/example_frame.dart';
 import 'package:advanced_forms_landing/components/icons.dart';
+import 'package:advanced_forms_landing/components/install_command.dart';
 import 'package:advanced_forms_landing/components/pill.dart';
 import 'package:advanced_forms_landing/components/section.dart';
 import 'package:advanced_forms_landing/examples.dart';
@@ -364,21 +365,24 @@ class SkillBand extends StatelessComponent {
                   'The package ships an Agent Skill that teaches Claude '
                   'Code — or any agent that supports skills — the full '
                   '`advanced_forms` API, so it generates fields, validation, '
-                  'cross-field logic and subforms idiomatically. One file, '
-                  'one copy — then say "build me a sign-up form" and it adds '
-                  'the package and writes the form.',
+                  'cross-field logic and subforms idiomatically. It ships '
+                  "in the package: one command puts it into your agent's "
+                  'skills folder, then say "build me a sign-up form".',
                 ),
               ),
             ]),
-            const div(classes: 'af-hero-actions', [
-              Button('Get the skill', href: skillDocsPath, leading: .bot),
-              Button(
-                'Read SKILL.md',
-                href: skillUrl,
-                variant: .secondary,
-                external: true,
-                trailing: .arrowRight,
-              ),
+            const div([
+              InstallCommand(skillInstallCommand),
+              div(classes: 'af-hero-actions', [
+                Button('How it works', href: skillDocsPath, leading: .bot),
+                Button(
+                  'Read SKILL.md',
+                  href: skillUrl,
+                  variant: .secondary,
+                  external: true,
+                  trailing: .arrowRight,
+                ),
+              ]),
             ]),
           ]),
         ]),

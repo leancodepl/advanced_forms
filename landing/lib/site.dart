@@ -46,7 +46,8 @@ const apiReferenceUrl = 'https://pub.dev/documentation/advanced_forms/latest/';
 const changelogUrl = '$repoUrl/blob/main/CHANGELOG.md';
 const migrationUrl = '$repoUrl/blob/main/MIGRATION.md';
 const issuesUrl = '$repoUrl/issues';
-const skillUrl = '$repoUrl/blob/main/skills/advanced_forms/SKILL.md';
+const skillUrl =
+    '$repoUrl/blob/main/skills/advanced_forms-build-forms/SKILL.md';
 
 /// The docs page that installs the Agent Skill: one copy, one file.
 const skillDocsPath = '$docsPath/agent-skill';
@@ -60,6 +61,9 @@ const leancodePackagesUrl =
 const patrolUrl = 'https://patrol.leancode.co/?$_utm';
 
 const installCommand = 'flutter pub add advanced_forms';
+
+/// Installs the package's Agent Skill into the agent's skills folder.
+const skillInstallCommand = 'dart run skills@ get';
 
 /// The package version, read from the repository's own pubspec so the site
 /// can never announce a stale number. The build number is not shown.
