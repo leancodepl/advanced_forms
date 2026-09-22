@@ -204,7 +204,8 @@ class AdvancedFormController
   /// Ownership outlives [removeSubform]: a detached subform is still disposed
   /// with this form, the same way a deregistered field is.
   ///
-  /// [enabled] makes the section conditional:
+  /// [enabled] is a shortcut over calling this and [removeSubform] yourself,
+  /// for a section that follows a value in the form:
   ///
   /// ```dart
   /// addSubform(invoice, enabled: () => needsInvoice.fieldValue);
@@ -217,9 +218,15 @@ class AdvancedFormController
   /// `validate`, `canSubmit`, `getFieldValues` and every other broadcast. This
   /// form owns the section either way, so its values stay in its fields and
   /// are there again when it comes back — and it is disposed with this form.
-  /// A condition that depends on something outside the form is not
-  /// re-evaluated for it; attach and detach by hand in that case.
-  /// [removeSubform] drops the condition.
+  ///
+  /// Which to use: [enabled] when the decision is a function of the form's
+  /// own values; the two calls by hand when it comes from outside the form —
+  /// a route argument, a service — because the condition is not re-evaluated
+  /// for those. The two do not fight: the last call by hand wins. A manual
+  /// [removeSubform] detaches the section *and drops the condition*, so the
+  /// section stays out until the next [addSubform]; a plain [addSubform]
+  /// attaches it for good; [addSubform] with a new [enabled] replaces the
+  /// condition.
   ///
   /// Throws a [StateError] if either controller has already been disposed —
   /// disposed controllers cannot be reused.

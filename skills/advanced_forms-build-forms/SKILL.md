@@ -763,7 +763,13 @@ and it is disposed with the form. Any expression goes — `() => type.fieldValue
 CustomerType.company`, a condition over two fields. `resetAll()` re-triggers it, so a reset
 switch takes the section with it. Do **not** write `addRelation` + `addSubform`/`removeSubform`
 for this. A condition on something *outside* the form (a service, a route argument) is not
-re-evaluated for that — attach and detach by hand then. `removeSubform` drops the condition.
+re-evaluated for that — attach and detach by hand then.
+
+**Which to use:** `enabled:` when the decision is a function of the form's own values; the two
+calls by hand when it comes from outside the form. They do not fight — **the last call by hand
+wins**: a manual `removeSubform` detaches the section *and drops the condition* (the section
+stays out until the next `addSubform`), a plain `addSubform` attaches it for good, `addSubform`
+with a new `enabled:` replaces the condition.
 
 ### Or keep it attached and switch validation off
 
@@ -810,7 +816,7 @@ void disableGift() => removeSubform(gift); // detaches only — `gift` is NOT di
 - A subform with its own `validationMode:` keeps it and stops following the parent's.
 - `addSubform` is a no-op when already attached, `removeSubform` when not — a toggle needs no
   bookkeeping flag. `addSubform` with `enabled:` is the exception: given again, it replaces
-  the condition. `removeSubform` drops the condition.
+  the condition. `removeSubform` drops the condition — the last call by hand wins.
 
 ### A wizard, validated step by step
 

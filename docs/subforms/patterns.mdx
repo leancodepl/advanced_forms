@@ -30,7 +30,12 @@ checkbox goes back on — and the section is disposed with the form.
 Any expression works: `() => type.fieldValue == CustomerType.company`, `() => !sameAsBilling.fieldValue`, a condition
 over two fields. Because the form re-evaluates it after `resetAll()` too, a reset checkbox takes the section with it.
 A condition that depends on something *outside* the form — a service, a route argument — is not re-evaluated for that;
-attach and detach by hand then. `removeSubform` drops the condition.
+attach and detach by hand then.
+
+**Which to use.** `enabled:` when the decision is a function of the form's own values; `addSubform` and
+`removeSubform` by hand when it comes from outside the form. The two do not fight, the last call by hand wins: a manual
+`removeSubform` detaches the section *and drops the condition*, so the section stays out until the next `addSubform`;
+a plain `addSubform` attaches it for good; `addSubform` with a new `enabled:` replaces the condition.
 
 ## Or keep it attached and switch validation off
 
