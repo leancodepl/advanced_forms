@@ -253,7 +253,7 @@ class AdvancedFormController
     _subformConditions.remove(form);
     _ownedSubforms.add(form);
     final result = enabled();
-    _subformConditions[form] = _SubformCondition(enabled, result);
+    _subformConditions[form] = (enabled: enabled, last: result);
     if (result) {
       if (!value.subforms.contains(form)) {
         _attach(form);
@@ -282,17 +282,18 @@ class AdvancedFormController
 
   @override
   void _applySubformConditions() {
-    for (final entry in _subformConditions.entries) {
-      final condition = entry.value;
-      final next = condition.enabled();
-      if (next == condition.last) {
+    // A copy: the map is written while it is walked.
+    for (final MapEntry(key: form, value: (:enabled, :last))
+        in _subformConditions.entries.toList()) {
+      final next = enabled();
+      if (next == last) {
         continue;
       }
-      condition.last = next;
+      _subformConditions[form] = (enabled: enabled, last: next);
       if (next) {
-        _attach(entry.key);
+        _attach(form);
       } else {
-        _detach(entry.key);
+        _detach(form);
       }
     }
   }
@@ -428,9 +429,5 @@ class AdvancedFormController
   }
 }
 
-class _SubformCondition {
-  _SubformCondition(this.enabled, this.last);
-
-  final bool Function() enabled;
-  bool last;
-}
+/// The `enabled` closure of a conditional subform and its last result.
+typedef _SubformCondition = ({bool Function() enabled, bool last});

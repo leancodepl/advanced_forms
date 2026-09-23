@@ -759,9 +759,8 @@ The closure runs at `addSubform` and again after every value change anywhere in 
 tree. True → the section is attached; false → detached, exactly like `removeSubform`: out of
 `validate`, `canSubmit`, `getFieldValues`, `allFields` and every broadcast. **The form owns
 the section either way**, so its values stay in its fields and are back when the switch flips,
-and it is disposed with the form. Any expression goes — `() => type.fieldValue ==
-CustomerType.company`, a condition over two fields. `resetAll()` re-triggers it, so a reset
-switch takes the section with it. Do **not** write `addRelation` + `addSubform`/`removeSubform`
+and it is disposed with the form. The closure can be any boolean expression over the fields'
+values. `resetAll()` re-triggers it, so a reset switch takes the section with it. Do **not** write `addRelation` + `addSubform`/`removeSubform`
 for this. A condition on something *outside* the form (a service, a route argument) is not
 re-evaluated for that — attach and detach by hand then.
 

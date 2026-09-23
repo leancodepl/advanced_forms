@@ -27,8 +27,8 @@ section is attached; when it turns false the section is detached, exactly as `re
 in it. The form owns the section either way, so **the values stay in its fields** and are there again when the
 checkbox goes back on — and the section is disposed with the form.
 
-Any expression works: `() => type.fieldValue == CustomerType.company`, `() => !sameAsBilling.fieldValue`, a condition
-over two fields. Because the form re-evaluates it after `resetAll()` too, a reset checkbox takes the section with it.
+The closure can be any boolean expression over the fields' values. Because the form re-evaluates it after `resetAll()`
+too, a reset checkbox takes the section with it.
 A condition that depends on something *outside* the form — a service, a route argument — is not re-evaluated for that;
 attach and detach by hand then.
 
