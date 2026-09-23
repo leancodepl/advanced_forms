@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:advanced_forms/src/field/advanced_field_state.dart';
-import 'package:advanced_forms/src/utils/shared_call.dart';
 import 'package:advanced_forms/src/validation_mode.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -90,7 +89,6 @@ class AdvancedFieldController<T, E extends Object>
   final T _initialValue;
   final Validator<T, E> _validator;
   final AsyncValidation<T, E>? _asyncValidation;
-  final _validateCall = SharedCall<bool>();
   VoidCallback? _fieldsSubscriptionCleanup;
   _ValidationRound<T, E>? _currentRound;
   AsyncValidationFailure? _lastFailure;
@@ -224,12 +222,14 @@ class AdvancedFieldController<T, E extends Object>
   /// 4. Otherwise a round runs immediately — which is also how a failed round
   ///    is retried.
   ///
-  /// Calling this again before the first call finishes gives you the same
-  /// result; it does not start a second round. A field disposed mid-round
-  /// completes `false`.
-  Future<bool> validate() => _isDisposed
-      ? Future.value(false)
-      : _validateCall.run(_rounds.runValidate);
+  /// Every call runs the sync validator again on the current value, and its
+  /// result lands before this returns — so a call made right after a field it
+  /// depends on changed sees that change. Only the async round is shared:
+  /// calling this again while one is in flight for the same value awaits it,
+  /// it does not start a second one. A field disposed mid-round completes
+  /// `false`.
+  Future<bool> validate() =>
+      _isDisposed ? Future.value(false) : _rounds.runValidate();
 
   /// Gives this field its own validation mode, ignoring the form's from now on.
   /// Cannot be undone — the field no longer follows form mode changes.

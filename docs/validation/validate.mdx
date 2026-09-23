@@ -26,8 +26,9 @@ Future<void> submit() async {
 - **Await it.** The result is the only thing that says the values were actually checked. `canSubmit` is a snapshot of
   *known* errors and is `true` on a form nobody has checked yet. A bare `validate();` statement compiles and silently
   ignores the result.
-- **Concurrent calls coalesce.** Calling `validate()` again before the first call finishes returns the same future, so
-  a double-tapped submit button runs one pass.
+- **Async checks are shared, sync ones are not.** Every call re-runs the sync validators against the current values,
+  so a call made right after another field changed sees the change. A second call while async checks are in flight
+  awaits them instead of starting new ones, so a double-tapped submit button makes one set of server calls.
 - **The errors stay on the fields.** The form-level result is just a `bool` — "may this submit proceed?". The widgets
   showing errors are already subscribed to their fields.
 

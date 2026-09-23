@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:advanced_forms/src/field/advanced_field_controller.dart';
 import 'package:advanced_forms/src/form/advanced_form_state.dart';
-import 'package:advanced_forms/src/utils/shared_call.dart';
 import 'package:advanced_forms/src/validation_mode.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
@@ -63,7 +62,6 @@ class AdvancedFormController
   // Conditional sections: the `enabled` closure and its last result.
   // Re-evaluated whenever a value in this tree changes; attaches and detaches.
   final Map<AdvancedFormController, _SubformCondition> _subformConditions = {};
-  final _validateCall = SharedCall<bool>();
 
   // null: follow the parent form's mode. Non-null: this form manages its own.
   ValidationMode? _ownMode;
@@ -135,17 +133,11 @@ class AdvancedFormController
   /// subtree with [AdvancedFormState.validationEnabled] false, `false` once
   /// disposed.
   ///
-  /// Calling this again before the first call finishes returns the same
-  /// result; it does not start a second validation run.
-  Future<bool> validate() {
-    // Check in-flight first — callers mid-disposal still get the running
-    // validate() result.
-    if (_validateCall.inFlight case final inFlight?) {
-      return inFlight;
-    }
-
-    return isDisposed ? Future.value(false) : _validateCall.run(_runValidate);
-  }
+  /// Every call runs each field's sync validator again on its current value.
+  /// Calling this again while async validators are in flight does not start
+  /// them a second time — each field awaits its own round, so a double-tapped
+  /// submit button makes one set of async calls.
+  Future<bool> validate() => isDisposed ? Future.value(false) : _runValidate();
 
   /// Re-runs the **sync** validator on every leaf field in the tree that its
   /// mode and the interaction guarantee allow.
@@ -382,8 +374,6 @@ class AdvancedFormController
     final enabledChanged = enabled != value.validationEnabled;
 
     if (mode != value.validationMode || enabledChanged) {
-      // Settings changed — drop any validate() still running under the old ones.
-      _validateCall.invalidate();
       _setState(
         value.copyWith(validationMode: mode, validationEnabled: enabled),
       );
