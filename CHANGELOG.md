@@ -1,3 +1,7 @@
+## Unreleased
+
+* Fixed `validate()` returning a stale answer when called twice in the same turn: the second call joined the first and never re-ran the sync validator, so a field whose rule reads another field missed a change made in between — e.g. calling `validate()` on a dependent field from a listener, as the skill recommends, after an eager `validate()`. Every call now re-runs the sync validators; only an async check already in flight is shared, so a double-tapped submit still makes one set of server calls.
+
 ## 0.2.2
 
 * Conditional sections in one line: `addSubform(invoice, enabled: () => needsInvoice.fieldValue)` attaches and detaches the section as the checkbox flips, and its values survive.

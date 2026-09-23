@@ -72,7 +72,7 @@ Future<void> submit() async {       // 0.2.0
 }
 ```
 
-Calling it again before the first call finishes gives you the same result, so a double-tapped submit button runs one pass. For a synchronous "can I enable the button?" read, use `form.value.canSubmit` — a snapshot of *known* errors, true on a form nobody has checked yet.
+Calling it again while async checks are in flight awaits them instead of starting new ones, so a double-tapped submit button makes one set of server calls; the sync validators run again on every call, so the answer is never stale. For a synchronous "can I enable the button?" read, use `form.value.canSubmit` — a snapshot of *known* errors, true on a form nobody has checked yet.
 
 ### `autovalidate` is replaced by `ValidationMode`
 
