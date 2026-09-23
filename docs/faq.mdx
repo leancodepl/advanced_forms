@@ -63,7 +63,8 @@ state-model change; see [Under the hood](./internals/decisions.mdx#deliberate-re
 </Accordion>
 <Accordion title="Can a submit be double-tapped?">
 
-Not into two validation passes: concurrent `validate()` calls share one future. Your *save request* is another
+Not into two rounds of server checks: a second `validate()` awaits the async checks already in flight (the cheap sync
+validators run again, so the answer is current). Your *save request* is another
 matter — the package knows nothing about it. Keep a flag on the controller and set it before the first `await`. See
 [Form-level state](./form-state/submit-button.mdx).
 

@@ -427,7 +427,7 @@ void main() {
         subformField.dispose();
       });
 
-      test('concurrent calls coalesce into one pass', () async {
+      test('concurrent calls share one async round', () async {
         var calls = 0;
         final asyncField = AdvancedTextFieldController<_Error1>(
           initialValue: _initialValue1,
@@ -449,13 +449,37 @@ void main() {
         final first = form.validate();
         final second = form.validate();
 
-        expect(identical(first, second), isTrue);
         expect(await first, true);
         expect(await second, true);
         expect(calls, 1);
       });
 
-      test('a disabled form does not occupy the coalescing slot', () async {
+      test('a second call in the same turn sees a value changed in between',
+          () async {
+        final source = AdvancedFieldController<int, _Error2>(initialValue: 0);
+        final dependent = AdvancedFieldController<int, _Error2>(
+          initialValue: 0,
+          validator: (_) => source.fieldValue == 0 ? null : _Error2.malformed,
+        );
+        final dependentForm = AdvancedFormController()
+          ..registerFields([source, dependent]);
+        addTearDown(dependentForm.dispose);
+        addTearDown(form.dispose);
+        addTearDown(field1.dispose);
+        addTearDown(field2.dispose);
+        addTearDown(subform.dispose);
+        addTearDown(subformField.dispose);
+
+        final first = dependentForm.validate();
+        source.setValue(1);
+        final second = dependentForm.validate();
+
+        expect(dependent.value.error, _Error2.malformed);
+        expect(await first, isTrue);
+        expect(await second, isFalse);
+      });
+
+      test('a call on a disabled form does not answer a later one', () async {
         form.registerFields([field1]);
         addTearDown(form.dispose);
         addTearDown(field2.dispose);
@@ -465,15 +489,15 @@ void main() {
 
         form.setValidationEnabled(false);
         // Fire and forget, as a UI handler would. This returns `true` without
-        // validating anything, so it must not become the run a later call
-        // coalesces onto.
+        // validating anything, so it must not become the answer to a later
+        // call.
         form.validate().ignore();
 
         form.setValidationEnabled(true);
         expect(await form.validate(), isFalse);
       });
 
-      test('a disposed form with a call in flight returns that call', () async {
+      test('a disposed form with a call in flight completes false', () async {
         final asyncField = AdvancedTextFieldController<_Error1>(
           initialValue: _initialValue1,
           asyncValidation: AsyncValidation(
@@ -492,8 +516,8 @@ void main() {
         final first = form.validate();
         form.dispose();
 
-        expect(identical(form.validate(), first), isTrue);
-        await first;
+        expect(await form.validate(), isFalse);
+        expect(await first, isFalse);
         // `first` resolves at dispose, so drain the validator before the next
         // test starts — this suite runs on wall-clock delays.
         await Future<void>.delayed(const Duration(milliseconds: 80));

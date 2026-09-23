@@ -1,6 +1,8 @@
 ## Unreleased
 
 * A section detached by its `enabled:` condition has its errors cleared, so it does not come back red.
+* Fixed `validate()` returning a stale answer when called twice in the same turn; every call now re-runs the sync validators and only an async check in flight is shared.
+* Added `revalidateUntouched` to `subscribeToFields`, so a prefilled field can react to a dependency before the user touches it.
 
 ## 0.2.2
 

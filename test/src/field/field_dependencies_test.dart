@@ -137,4 +137,73 @@ void main() {
       expect(field1.value.isValid, isTrue);
     });
   });
+
+  // A prefilled field the user never touched, which must still react when a
+  // field it depends on changes — the pattern the skill documents.
+  group('validate on an untouched dependent', () {
+    test('sees a dependency changed in the same turn', () async {
+      final form = _EligibilityForm();
+      addTearDown(form.dispose);
+
+      // An eager check, e.g. in the form constructor.
+      form.instructor.validate().ignore();
+      form.aircraft.select('B');
+      form.instructor.validate().ignore();
+
+      expect(form.instructor.error, 'not eligible');
+    });
+
+    test('sees it when a turn went by in between', () async {
+      final form = _EligibilityForm();
+      addTearDown(form.dispose);
+
+      form.instructor.validate().ignore();
+      await pumpEventQueue();
+      form.aircraft.select('B');
+      form.instructor.validate().ignore();
+
+      expect(form.instructor.error, 'not eligible');
+    });
+
+    test('reacts from a listener on the watched field', () async {
+      final form = _EligibilityForm(validateOnAircraftChange: true);
+      addTearDown(form.dispose);
+
+      form.aircraft.select('B');
+
+      expect(form.instructor.error, 'not eligible');
+    });
+  });
+}
+
+class _EligibilityForm extends AdvancedFormController {
+  _EligibilityForm({bool validateOnAircraftChange = false})
+      : super(validationMode: ValidationMode.onUserInteraction) {
+    registerFields([aircraft, instructor]);
+    instructor.subscribeToFields([aircraft]);
+
+    if (validateOnAircraftChange) {
+      instructor.validate().ignore();
+      var lastAircraft = aircraft.fieldValue;
+      aircraft.addListener(() {
+        if (aircraft.fieldValue == lastAircraft) {
+          return;
+        }
+        lastAircraft = aircraft.fieldValue;
+        instructor.validate().ignore();
+      });
+    }
+  }
+
+  final aircraft = AdvancedSingleSelectFieldController<String, String>(
+    initialValue: 'A',
+    options: const ['A', 'B'],
+  );
+
+  late final instructor = AdvancedSingleSelectFieldController<String, String>(
+    initialValue: 'rated-on-A',
+    options: const ['rated-on-A'],
+    validator: (value) =>
+        value != null && aircraft.fieldValue != 'A' ? 'not eligible' : null,
+  );
 }

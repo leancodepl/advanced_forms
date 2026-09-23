@@ -246,7 +246,7 @@ The field makes and owns that `focusNode`. Pass `focusNode:` to the constructor 
 
 To write a value the user did not type — prefilling from a profile fetch, for instance — use `field.prefill(value)`. It stores the value and clears the errors without making the field count as edited.
 
-`validate()` is asynchronous because it may have to wait on the server. **Await it** — the result is the only thing that says the values were actually checked. Calling it again before the first call finishes gives you the same result, so a double-tapped submit button runs one pass.
+`validate()` is asynchronous because it may have to wait on the server. **Await it** — the result is the only thing that says the values were actually checked. Calling it again while async checks are in flight awaits them instead of starting new ones, so a double-tapped submit button makes one set of server calls; the sync validators run again on every call, so the answer is never stale.
 
 ```dart
 Future<void> submit() async {
