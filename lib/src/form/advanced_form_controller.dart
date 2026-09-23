@@ -60,6 +60,9 @@ class AdvancedFormController
   // Explicit type — inference would widen the error type from dynamic to Object.
   final Set<AdvancedFieldController<dynamic, dynamic>> _ownedFields = {};
   final Set<AdvancedFormController> _ownedSubforms = {};
+  // Conditional sections: the `enabled` closure and its last result.
+  // Re-evaluated whenever a value in this tree changes; attaches and detaches.
+  final Map<AdvancedFormController, _SubformCondition> _subformConditions = {};
   final _validateCall = SharedCall<bool>();
 
   // null: follow the parent form's mode. Non-null: this form manages its own.
@@ -201,9 +204,33 @@ class AdvancedFormController
   /// Ownership outlives [removeSubform]: a detached subform is still disposed
   /// with this form, the same way a deregistered field is.
   ///
+  /// [enabled] is a shortcut over calling this and [removeSubform] yourself,
+  /// for a section that follows a value in the form:
+  ///
+  /// ```dart
+  /// addSubform(invoice, enabled: () => needsInvoice.fieldValue);
+  /// addSubform(company, enabled: () => type.fieldValue == CustomerType.company);
+  /// ```
+  ///
+  /// It is evaluated now and again whenever a value anywhere in this form's
+  /// tree changes. While it is true the section is attached; when it turns
+  /// false the section is detached, as with [removeSubform]: it leaves
+  /// `validate`, `canSubmit`, `getFieldValues` and every other broadcast. This
+  /// form owns the section either way, so its values stay in its fields and
+  /// are there again when it comes back — and it is disposed with this form.
+  ///
+  /// Which to use: [enabled] when the decision is a function of the form's
+  /// own values; the two calls by hand when it comes from outside the form —
+  /// a route argument, a service — because the condition is not re-evaluated
+  /// for those. The two do not fight: the last call by hand wins. A manual
+  /// [removeSubform] detaches the section *and drops the condition*, so the
+  /// section stays out until the next [addSubform]; a plain [addSubform]
+  /// attaches it for good; [addSubform] with a new [enabled] replaces the
+  /// condition.
+  ///
   /// Throws a [StateError] if either controller has already been disposed —
   /// disposed controllers cannot be reused.
-  void addSubform(AdvancedFormController form) {
+  void addSubform(AdvancedFormController form, {bool Function()? enabled}) {
     if (isDisposed) {
       throw StateError(
         'Cannot add a subform to a disposed AdvancedFormController.',
@@ -214,10 +241,29 @@ class AdvancedFormController
         'Cannot add a disposed AdvancedFormController as a subform.',
       );
     }
-    if (value.subforms.contains(form)) {
+    if (enabled == null) {
+      if (value.subforms.contains(form)) {
+        return;
+      }
+      _attach(form);
       return;
     }
 
+    // A condition given again replaces the previous one.
+    _subformConditions.remove(form);
+    _ownedSubforms.add(form);
+    final result = enabled();
+    _subformConditions[form] = (enabled: enabled, last: result);
+    if (result) {
+      if (!value.subforms.contains(form)) {
+        _attach(form);
+      }
+    } else if (value.subforms.contains(form)) {
+      _detach(form);
+    }
+  }
+
+  void _attach(AdvancedFormController form) {
     _runChildCleanups();
     // value.subforms is what participates; _ownedSubforms is what gets disposed.
     _setState(value.copyWith(subforms: {...value.subforms, form}));
@@ -227,8 +273,34 @@ class AdvancedFormController
     _recomputeWasModified();
   }
 
+  void _detach(AdvancedFormController form) {
+    _runChildCleanups();
+    _setState(value.copyWith(subforms: {...value.subforms}..remove(form)));
+    _wireChildren();
+    _recomputeWasModified();
+  }
+
+  @override
+  void _applySubformConditions() {
+    // A copy: the map is written while it is walked.
+    for (final MapEntry(key: form, value: (:enabled, :last))
+        in _subformConditions.entries.toList()) {
+      final next = enabled();
+      if (next == last) {
+        continue;
+      }
+      _subformConditions[form] = (enabled: enabled, last: next);
+      if (next) {
+        _attach(form);
+      } else {
+        _detach(form);
+      }
+    }
+  }
+
   /// Detaches an owned subform: it stops validating, notifying and counting
-  /// towards this form's state. A noop if [form] was not a subform.
+  /// towards this form's state. A noop if [form] was not a subform. Drops the
+  /// `enabled` condition [form] was attached with, if any.
   ///
   /// Does not dispose [form] — this form still owns it and disposes it in
   /// [dispose], so a detached subform can be re-attached with [addSubform].
@@ -241,14 +313,11 @@ class AdvancedFormController
         'Cannot remove a subform from a disposed AdvancedFormController.',
       );
     }
+    _subformConditions.remove(form);
     if (!value.subforms.contains(form)) {
       return;
     }
-
-    _runChildCleanups();
-    _setState(value.copyWith(subforms: {...value.subforms}..remove(form)));
-    _wireChildren();
-    _recomputeWasModified();
+    _detach(form);
   }
 
   /// Turns validation for this whole subtree on or off — above every mode.
@@ -274,6 +343,7 @@ class AdvancedFormController
     _isDisposed = true;
     _runChildCleanups();
     _runRelationCleanups();
+    _subformConditions.clear();
     for (final field in _ownedFields) {
       field.dispose();
     }
@@ -358,3 +428,6 @@ class AdvancedFormController
     notifyListeners();
   }
 }
+
+/// The `enabled` closure of a conditional subform and its last result.
+typedef _SubformCondition = ({bool Function() enabled, bool last});

@@ -16,6 +16,9 @@ mixin _ChildWiring on ChangeNotifier {
 
   void _setState(AdvancedFormState newValue);
 
+  /// Re-evaluates the `enabled` conditions of conditional subforms.
+  void _applySubformConditions();
+
   final _onValuesChanged = ChangeNotifier();
 
   /// Fires when any leaf field's value changes (recursively through subforms),
@@ -76,6 +79,7 @@ mixin _ChildWiring on ChangeNotifier {
     if (validateAll) {
       revalidateSync();
     }
+    _applySubformConditions();
     _recomputeWasModified();
     _onValuesChanged.notifyListeners();
   }
