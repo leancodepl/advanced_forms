@@ -19,6 +19,9 @@
 8. Replace form-level stream subscriptions with listeners ([section 6](#6-form-listenables-instead-of-streams)).
 9. Rewire custom cubit-stream patterns ([section 9](#9-migrating-a-custom-field)).
 10. Check the behavior changes in [section 3](#3-behavior-changes-that-are-not-renames) against your code — they compile but behave differently.
+11. On edit screens, review every `subscribeToFields` on a field filled from the server: it no longer reaches a field the user has not edited ([details](#subscribetofields-no-longer-reaches-a-field-the-user-has-not-edited)).
+12. Wherever you `resetAll()`, remember it keeps `readOnly` and the validation mode: unlock and switch the mode yourself ([details](#reset-keeps-the-validation-mode-and-readonly)).
+13. Guard writes that land after a screen closed — `await api(); field.setValue(result);` — with `isDisposed`, because a disposed controller now throws ([details](#a-disposed-controller-throws-from-every-mutator)).
 
 ---
 
@@ -84,7 +87,7 @@ In 0.1.x `setValue` ran the async validator whether or not autovalidate was on, 
 
 ### Only a field the user has edited validates itself
 
-In every mode, a field nobody has typed into stays quiet until `validate()` reaches it — including when a sibling changes and including when it was prefilled with a bad value. Write programmatic values with the new `prefill(value)` rather than `setValue`, so a profile fetch does not arm the field.
+In every mode, a field nobody has typed into stays quiet until `validate()` reaches it — including when a sibling changes and including when it was prefilled with a bad value. Write programmatic values with the new `prefill(value)` rather than `setValue`, so a profile fetch does not arm the field. For the sibling case on an edit screen, see [`subscribeToFields` no longer reaches a field the user has not edited](#subscribetofields-no-longer-reaches-a-field-the-user-has-not-edited).
 
 ### A throwing async validator no longer hangs the field
 
@@ -130,7 +133,29 @@ field.reset();               // 0.2.0: value and errors only; flags survive
 
 ### `subscribeToFields` re-runs the sync validator only
 
-The dependent field's own value did not change, so its last async answer still stands and no async check is owed. It does nothing while that field is in `ValidationMode.manual`, and nothing on a field the user has never edited. Otherwise `validationError` is rewritten, so a code you pushed there with `setError` gives way to whatever the validator now returns — as in 0.1.x. The same goes for `revalidateSync()` (renamed from `validateWithAutovalidate()`) and `validateAll: true`, which reach every field in the tree rather than the dependencies you named.
+The dependent field's own value did not change, so its last async answer still stands and no async check is owed. It does nothing while that field is in `ValidationMode.manual`. Otherwise `validationError` is rewritten, so a code you pushed there with `setError` gives way to whatever the validator now returns — as in 0.1.x. The same goes for `revalidateSync()` (renamed from `validateWithAutovalidate()`) and `validateAll: true`, which reach every field in the tree rather than the dependencies you named.
+
+### `subscribeToFields` no longer reaches a field the user has not edited
+
+*This is the one change that breaks an edit screen quietly: no exception, no analyzer hint, the field just stops going red.*
+
+0.1.x revalidated the dependent field whenever a watched field changed, as long as autovalidate was on — prefilled or not. 0.2.x keeps every untouched field quiet, and that includes a field loaded from the server whose dependency the user just changed:
+
+```dart
+// An edit screen: instructor and aircraft both come from the server.
+instructor.subscribeToFields([aircraft]);
+
+aircraft.select(pa28);   // 0.1.x: instructor revalidates, "not rated on PA-28"
+                         // 0.2.x: nothing — nobody has edited the instructor field
+```
+
+Pass `revalidateUntouched: true` where the dependent field must react anyway. It opens the gate for that one subscription; the mode still rules, so nothing happens under `manual`, and the async validator does not run:
+
+```dart
+instructor.subscribeToFields([aircraft], revalidateUntouched: true);
+```
+
+Two things to know: the whole validator runs, so an empty prefilled field with a `notNull` rule shows "required" the moment its dependency moves; and `validate()` on submit checks every field regardless, so a form that only needs the error at submit time needs nothing at all.
 
 ### `subscribeToFields` fires more eagerly
 
@@ -148,9 +173,19 @@ The keys are unchanged — the map is still keyed by field controller. Each entr
 
 It raises a `StateError` if either the parent or the subform has already been disposed.
 
-### A disposed form also throws on `registerFields`, `setValidationEnabled` and `removeSubform`
+### A disposed controller throws from every mutator
 
-All three raise a `StateError` instead of touching a disposed controller. `registerFields` and `subscribeToFields` also throw when handed a *disposed field*, where 0.1.x accepted it and failed later inside the form's own wiring. Code that tore a form down and then called one of them was already broken; it now says so at the call site.
+*0.1.x ignored a write to a closed cubit. Now it is a `StateError`, and the usual place to meet one is an `await` that lands after the screen closed.*
+
+On a field: `setValue` and `subscribeToFields`. On a form: `registerFields`, `addSubform`, `removeSubform`, `setValidationEnabled` and `addRelation`. `registerFields` and `subscribeToFields` also throw when handed a *disposed field*, where 0.1.x accepted it and failed later inside the form's own wiring. `prefill`, `setError`, `clearErrors`, `markReadOnly`, `reset` and `setValidationMode` stay silent no-ops, and `validate()` completes `false`.
+
+Code that tore a form down and then called one of them was already broken; it now says so at the call site. The one legitimate case is a result arriving late:
+
+```dart
+final result = await api.load();
+if (field.isDisposed) return;      // the screen is gone; nobody is looking
+field.setValue(result);
+```
 
 ### `removeSubform` only detaches, and returns `void`
 
@@ -164,6 +199,13 @@ removeSubform(subform);                  // 0.2.0
 ```
 
 Detach a subform to take it out of `validate()`, `canSubmit` and the parent's state; re-attach it later with `addSubform`. To take a subtree out of validation while keeping it visible, prefer `setValidationEnabled(false)`.
+
+A dynamic list — questions the user deletes, sections rebuilt per type — would otherwise pile up detached controllers until the parent dies. Dispose the one that is gone for good yourself; the parent skips it later rather than disposing it twice:
+
+```dart
+removeSubform(question);
+question.dispose();
+```
 
 ### `validate()` on a form with `validationEnabled: false` leaves the gates alone
 
@@ -282,6 +324,13 @@ Two consequences:
 
 - `removeListener` needs the same callback instance that was passed to `addListener`, so a listener you intend to remove has to be a named function or a stored closure, not an inline one.
 - `onStatusChanged` carries no payload, where `onStatusChangedStream` emitted the changed `FieldStatus`. Read the status off the field, or `form.value.validating` for the aggregate (now derived on read).
+
+A *field* stream is a different story. `field.stream.distinct().listen(...)` compared whole states, so it also fired on a `markReadOnly()` or a validation change — a common source of bugs, like a dependent selection wiped on the first `validate()`. The port that keeps the intent is `addRelation`, which compares the value you pick and fires on nothing else; a raw `addListener` fires on every state change, so keep it for listeners outside a form and do the comparison yourself:
+
+```dart
+countryField.stream.distinct().listen((state) => city.reset());       // 0.1.x
+addRelation(countryField, (value) => value, (_) => city.reset());     // 0.2.0
+```
 
 To rebuild on form state, `AdvancedFormController` is itself a `ValueListenable<AdvancedFormState>`:
 
@@ -404,22 +453,17 @@ Two differences to plan for. Each call notifies, so listeners see an intermediat
 
 **Field B revalidates when field A changes** — `subscribeToFields([fieldA])`, as in 0.1.x, but note the timing change in [`subscribeToFields` fires more eagerly](#subscribetofields-fires-more-eagerly).
 
-**React to part of a field's value changing** — `subscribeToFields` fires on any value change, so compare the part yourself in a listener and call `revalidateSync()`, which re-runs the field's sync validator when its gate is open:
+**React to part of a field's value changing** — `subscribeToFields` fires on any value change, so pick the part with the form's `addRelation`, which fires only when that part changes and is cleaned up with the form:
 
 ```dart
-var lastProductId = productField.fieldValue.productId;
-
-void onProductChanged() {
-  final productId = productField.fieldValue.productId;
-  if (productId == lastProductId) {
-    return;
-  }
-  lastProductId = productId;
-  priceField.revalidateSync();   // the price rule reads the selected product
-}
-
-productField.addListener(onProductChanged);   // removeListener in dispose()
+addRelation(
+  productField,
+  (product) => product.productId,
+  (_) => priceField.revalidateSync(),   // the price rule reads the selected product
+);
 ```
+
+Outside a form, a raw listener works the same way with the comparison written by hand and a `removeListener` in `dispose()`.
 
 **Code that composes streams** — rxdart operators, `await for`, merging fields into a pipeline. The deprecated `stream` extension bridges a field to a broadcast stream so helpers written against `FieldCubit.stream` keep compiling:
 

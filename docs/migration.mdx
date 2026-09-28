@@ -58,6 +58,13 @@ favour of `controller: field.textController`.
 **Replace stream subscriptions** — `onValuesChangedStream.listen` becomes `onValuesChanged.addListener`.
 </Step>
 <Step>
+**Review `subscribeToFields` on edit screens.** A field filled from the server no longer reacts to its dependencies
+until the user edits it; pass `revalidateUntouched: true` where it must.
+</Step>
+<Step>
+**Guard late writes with `isDisposed`.** A result that lands after the screen closed now throws from `setValue`.
+</Step>
+<Step>
 **Read the behaviour changes** below against your code. They compile, and behave differently.
 </Step>
 </Steps>
@@ -104,10 +111,14 @@ These compile after the renames and behave differently, so nothing points you at
 - **`setError(null)` clears instead of marking the field invalid**, and `setError` leaves `asyncError` alone.
 - **`reset()` keeps the validation mode and `readOnly`.** `form.resetAll()` no longer unlocks fields you locked.
 - **`subscribeToFields` re-runs the sync validator only**, fires on the first value change to any watched field, and
-  never on a status-only change.
+  never on a status-only change. It does not reach a field the user has not edited: on an edit screen, subscribe with
+  `revalidateUntouched: true`.
 - **`removeSubform` only detaches.** The parent owns every subform it was given and disposes them all.
 - **A disposed controller throws** a `StateError` from `registerFields`, `addSubform`, `removeSubform`,
-  `setValidationEnabled`, `subscribeToFields` and `setValue`.
+  `setValidationEnabled`, `addRelation`, `subscribeToFields` and `setValue`. Check `isDisposed` before a write that
+  lands after an `await`.
+- **A field stream ported to `addListener` fires on every state change.** `addRelation` compares the value you pick,
+  as `stream.distinct()` on a value did, and is the port to reach for first.
 - **Form state settles synchronously**, in the same call stack as the field change — no microtask hop.
 - **`setValue` clears both errors in `manual` mode**, and the error goes blank while an async check runs.
 - **The select controllers assert** that `select` and `addValue` are given one of `options`, in debug builds.
