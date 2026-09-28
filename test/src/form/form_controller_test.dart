@@ -824,6 +824,17 @@ void main() {
         expect(subformField.fieldValue, 42);
       });
 
+      test('a section detached by its condition has its errors cleared', () {
+        needsInvoice.setValue(true);
+        form.addSubform(subform, enabled: () => needsInvoice.fieldValue);
+        subformField.setError(_Error2.malformed);
+
+        needsInvoice.setValue(false);
+
+        expect(subformField.value.error, isNull);
+        expect(subformField.fieldValue, _initialValue2);
+      });
+
       test('a change that leaves the result the same does nothing', () {
         form.addSubform(subform, enabled: () => needsInvoice.fieldValue);
         final emissions = _record<AdvancedFormState>(form);

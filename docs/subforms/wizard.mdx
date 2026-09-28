@@ -242,4 +242,4 @@ Three decisions in that code are worth keeping:
 - **A conditional step comes and goes with its switch.** The example app's *Step Form* screen attaches its invoice step
   with `addSubform(invoice, enabled: () => address.needsInvoice.fieldValue)`. Detached, the step leaves the flow *and*
   `validate()`, `canSubmit` and `validating`, so membership is the whole condition — and the wizard still owns it, so
-  its values survive in case the user flips the switch back.
+  its values survive in case the user flips the switch back, with its errors cleared.

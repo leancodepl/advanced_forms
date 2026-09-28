@@ -217,7 +217,8 @@ class AdvancedFormController
   /// false the section is detached, as with [removeSubform]: it leaves
   /// `validate`, `canSubmit`, `getFieldValues` and every other broadcast. This
   /// form owns the section either way, so its values stay in its fields and
-  /// are there again when it comes back — and it is disposed with this form.
+  /// are there again when it comes back, while its errors are cleared on the
+  /// way out — and it is disposed with this form.
   ///
   /// Which to use: [enabled] when the decision is a function of the form's
   /// own values; the two calls by hand when it comes from outside the form —
@@ -293,7 +294,10 @@ class AdvancedFormController
       if (next) {
         _attach(form);
       } else {
+        // The section left because its switch went off: keep the values for
+        // its return, but not the red marks of a section that no longer applies.
         _detach(form);
+        form.clearErrors();
       }
     }
   }
