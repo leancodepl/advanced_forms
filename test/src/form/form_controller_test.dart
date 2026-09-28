@@ -454,7 +454,8 @@ void main() {
         expect(calls, 1);
       });
 
-      test('a second call in the same turn sees a value changed in between',
+      test(
+          'a second call before the first finished sees a value changed in between',
           () async {
         final source = AdvancedFieldController<int, _Error2>(initialValue: 0);
         final dependent = AdvancedFieldController<int, _Error2>(

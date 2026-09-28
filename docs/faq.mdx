@@ -37,7 +37,8 @@ field changed — a status-only change never fires it. See [Cross-field logic](.
 
 If the dependent field was prefilled and really has to react before anyone touches it, call `validate()` on it from a
 listener on the watched field: `validate()` ignores both gates. Keep the rule in the validator; the listener only
-decides when it runs.
+decides when it runs. Mind that the whole validator runs, so an empty field with a `notNull` rule shows "required" as
+soon as its dependency moves, on a fresh form too.
 
 </Accordion>
 <Accordion title="The error disappears while I type and comes back a moment later.">

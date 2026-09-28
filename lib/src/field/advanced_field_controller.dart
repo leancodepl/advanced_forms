@@ -227,7 +227,8 @@ class AdvancedFieldController<T, E extends Object>
   /// depends on changed sees that change. Only the async round is shared:
   /// calling this again while one is in flight for the same value awaits it,
   /// it does not start a second one. A field disposed mid-round completes
-  /// `false`.
+  /// `false`. A validator must not call this on its own field: nothing stops
+  /// the recursion.
   Future<bool> validate() =>
       _isDisposed ? Future.value(false) : _rounds.runValidate();
 

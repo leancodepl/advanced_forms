@@ -141,7 +141,7 @@ void main() {
   // A prefilled field the user never touched, which must still react when a
   // field it depends on changes — the pattern the skill documents.
   group('validate on an untouched dependent', () {
-    test('sees a dependency changed in the same turn', () async {
+    test('sees a dependency changed before the first call finished', () async {
       final form = _EligibilityForm();
       addTearDown(form.dispose);
 
@@ -153,7 +153,7 @@ void main() {
       expect(form.instructor.error, 'not eligible');
     });
 
-    test('sees it when a turn went by in between', () async {
+    test('sees it when the first call had finished in between', () async {
       final form = _EligibilityForm();
       addTearDown(form.dispose);
 
