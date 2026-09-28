@@ -46,6 +46,10 @@ jobs:
       - name: Run tests
         run: flutter test
 
+      - name: Run the example app's tests
+        run: flutter test
+        working-directory: example
+
       - name: Dry run pub publish
         # We don't want it to fail the CI, it's just to see how would `pub publish` behave.
         run: dart pub publish --dry-run || true
