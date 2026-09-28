@@ -518,7 +518,9 @@ children.subscribeToFields([adults]);
   ```
 
   Every call re-runs the sync validator against the current values, so this is safe even
-  right after another `validate()` that has not finished yet (an eager check in the constructor, say).
+  right after another `validate()` that has not finished yet — say, a form controller whose
+  constructor calls `validate()` so a fresh form shows its errors, followed by the first
+  listener call.
   One trap: `validate()` also runs `asyncValidation`, so a field with a server check hits the
   server the first time the watched field changes; after that the verdict for its unchanged
   value is reused. And `validate()` ignores rule 2 on purpose, so the **whole** validator runs:
