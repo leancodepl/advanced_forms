@@ -1,3 +1,7 @@
+## Unreleased
+
+* A section detached by its `enabled:` condition has its errors cleared, so it does not come back red.
+
 ## 0.2.2
 
 * Conditional sections in one line: `addSubform(invoice, enabled: () => needsInvoice.fieldValue)` attaches and detaches the section as the checkbox flips, and its values survive.
