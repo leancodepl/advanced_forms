@@ -149,13 +149,18 @@ aircraft.select(pa28);   // 0.1.x: instructor revalidates, "not rated on PA-28"
                          // 0.2.x: nothing — nobody has edited the instructor field
 ```
 
-Pass `revalidateUntouched: true` where the dependent field must react anyway. It opens the gate for that one subscription; the mode still rules, so nothing happens under `manual`, and the async validator does not run:
+Where the dependent field must react anyway, call `validate()` on it from a listener on the watched field. `validate()` ignores the gate and the mode, so it reaches an untouched field, and its sync result lands before it returns. Compare the value yourself, because a listener also fires on status changes:
 
 ```dart
-instructor.subscribeToFields([aircraft], revalidateUntouched: true);
+var lastAircraft = aircraft.fieldValue;
+aircraft.addListener(() {
+  if (aircraft.fieldValue == lastAircraft) return;
+  lastAircraft = aircraft.fieldValue;
+  instructor.validate();
+});
 ```
 
-Two things to know: the whole validator runs, so an empty prefilled field with a `notNull` rule shows "required" the moment its dependency moves; and `validate()` on submit checks every field regardless, so a form that only needs the error at submit time needs nothing at all.
+Three things to know: the whole validator runs, so an empty prefilled field with a `notNull` rule shows "required" the moment its dependency moves — on a create screen, after a `prefill`, and after `resetAll()`; `validate()` runs the async validator once per value of the dependent field, then reuses the verdict; and `validate()` on submit checks every field regardless, so a form that only needs the error at submit time needs nothing at all.
 
 ### `subscribeToFields` fires more eagerly
 

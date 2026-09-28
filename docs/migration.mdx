@@ -59,7 +59,7 @@ favour of `controller: field.textController`.
 </Step>
 <Step>
 **Review `subscribeToFields` on edit screens.** A field filled from the server no longer reacts to its dependencies
-until the user edits it; pass `revalidateUntouched: true` where it must.
+until the user edits it; where it must, call `validate()` on it from a listener on the watched field.
 </Step>
 <Step>
 **Guard late writes with `isDisposed`.** A result that lands after the screen closed now throws from `setValue`.
@@ -111,8 +111,8 @@ These compile after the renames and behave differently, so nothing points you at
 - **`setError(null)` clears instead of marking the field invalid**, and `setError` leaves `asyncError` alone.
 - **`reset()` keeps the validation mode and `readOnly`.** `form.resetAll()` no longer unlocks fields you locked.
 - **`subscribeToFields` re-runs the sync validator only**, fires on the first value change to any watched field, and
-  never on a status-only change. It does not reach a field the user has not edited: on an edit screen, subscribe with
-  `revalidateUntouched: true`.
+  never on a status-only change. It does not reach a field the user has not edited: on an edit screen, call
+  `validate()` on the dependent field from a listener on the watched one.
 - **`removeSubform` only detaches.** The parent owns every subform it was given and disposes them all.
 - **A disposed controller throws** a `StateError` from `registerFields`, `addSubform`, `removeSubform`,
   `setValidationEnabled`, `addRelation`, `subscribeToFields` and `setValue`. Check `isDisposed` before a write that
