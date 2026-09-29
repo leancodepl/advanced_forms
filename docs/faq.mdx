@@ -37,7 +37,8 @@ field changed — a status-only change never fires it. See [Cross-field logic](.
 
 If the dependent field was prefilled and really has to react before anyone touches it, call `validate()` on it from a
 listener on the watched field: `validate()` ignores both gates. Keep the rule in the validator; the listener only
-decides when it runs.
+decides when it runs. Mind that the whole validator runs, so an empty field with a `notNull` rule shows "required" as
+soon as its dependency moves, on a fresh form too.
 
 </Accordion>
 <Accordion title="The error disappears while I type and comes back a moment later.">
@@ -63,7 +64,8 @@ state-model change; see [Under the hood](./internals/decisions.mdx#deliberate-re
 </Accordion>
 <Accordion title="Can a submit be double-tapped?">
 
-Not into two validation passes: concurrent `validate()` calls share one future. Your *save request* is another
+Not into two rounds of server checks: a second `validate()` awaits the async checks already in flight (the cheap sync
+validators run again, so the answer is current). Your *save request* is another
 matter — the package knows nothing about it. Keep a flag on the controller and set it before the first `await`. See
 [Form-level state](./form-state/submit-button.mdx).
 

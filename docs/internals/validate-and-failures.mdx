@@ -31,8 +31,10 @@ completed.
 
 On a form: validate every field and every subform **concurrently with no short-circuit** — every field must be
 visited — then AND the results. Return `true` immediately when `validationEnabled` is false. Concurrent calls on
-either coalesce: while one `validate()` is in flight the same future is returned, so a double-tapped submit button
-cannot start two passes. A field disposed mid-flight completes `false` rather than hanging.
+either coalesce on the async round only: every call re-runs the sync validator, which is cheap and must never be stale
+— its verdict can depend on other fields that changed since the last call — while a round in flight is awaited, so a
+double-tapped submit button cannot start two server calls. A field disposed mid-flight completes `false` rather than
+hanging.
 
 ## The failure model
 

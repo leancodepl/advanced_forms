@@ -18,6 +18,28 @@ void main() {
   tearDown(() => field.dispose());
 
   group('validate', () {
+    test('a validator that calls validate() on its own field re-enters it', () {
+      // Nothing in the package stops this: the call is not shared, so the
+      // validator runs again inside itself. A validator must not do this.
+      var calls = 0;
+      late final AdvancedFieldController<int, TestError> field;
+      field = AdvancedFieldController<int, TestError>(
+        initialValue: 0,
+        validator: (_) {
+          calls++;
+          if (calls < 3) {
+            field.validate();
+          }
+          return null;
+        },
+      );
+      addTearDown(field.dispose);
+
+      field.validate();
+
+      expect(calls, 3);
+    });
+
     test('when is valid', () async {
       validator.validationResult = null;
       final result = await field.validate();
@@ -124,7 +146,7 @@ void main() {
       expect(await result, isFalse);
     });
 
-    test('two concurrent calls coalesce into one pass', () async {
+    test('two concurrent calls share one async round', () async {
       final (:field, :validated) = makeAsyncField(
         validatorDelay: const Duration(milliseconds: 50),
       );
@@ -133,10 +155,52 @@ void main() {
       final first = field.validate();
       final second = field.validate();
 
-      expect(identical(first, second), isTrue);
       expect(await first, true);
       expect(await second, true);
       expect(validated, const [initialValue]);
+    });
+
+    test('a second call before the first finished re-runs the sync validator',
+        () async {
+      validator.validationResult = null;
+      final first = field.validate();
+
+      // What the validator reads changed, not the field's own value.
+      validator.validationResult = TestError.malformed;
+      final second = field.validate();
+
+      // Nothing has been awaited: the sync verdict lands in the call itself.
+      expect(field.error, TestError.malformed);
+      expect(await first, true);
+      expect(await second, false);
+    });
+
+    test('a sync error found by a second call survives the shared round',
+        () async {
+      TestError? syncError;
+      final (:field, :validated) = makeAsyncField(
+        validator: (_) => syncError,
+        validatorDelay: const Duration(milliseconds: 50),
+        mode: ValidationMode.manual,
+      );
+      addTearDown(field.dispose);
+
+      final first = field.validate();
+      expect(field.value.isValidating, isTrue);
+
+      syncError = TestError.malformed;
+      final second = field.validate();
+      expect(field.error, TestError.malformed);
+
+      expect(await first, false);
+      expect(await second, false);
+      // Let the validator settle: its answer must not land over the sync error.
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      expect(validated, const [initialValue]);
+      expect(field.value.validationError, TestError.malformed);
+      expect(field.value.asyncError, isNull);
+      expect(field.value.status, FieldStatus.invalid);
     });
 
     test('flushes a round still waiting out its debounce', () async {

@@ -349,7 +349,8 @@ logging, never read by the package) and `validateAll` (below).
 **`validate()` ignores all of it.** `await form.validate()` validates every field and subform
 — including ones the user never touched — and returns `false` if anything is invalid. It
 neither consults nor changes the mode, so there is no escalation and no "live after the first
-submit" for free. Double-tapping submit is safe: a second call joins the first. **Always
+submit" for free. Double-tapping submit is safe: every call re-runs the sync validators, and a
+second call awaits the async checks already in flight instead of starting new ones. **Always
 `await validate()` before using the values** — `state.isValid` and `form.value.canSubmit` mean
 "no error recorded right now", and a passing `validate()` is what licenses a `!` on a nullable
 field value.
@@ -516,10 +517,17 @@ children.subscribeToFields([adults]);
   });
   ```
 
-  Two traps: a `validate()` already in flight is shared, so a second call before it finishes
-  gets the first round's result — one value change per event-loop turn is fine, a synchronous
-  loop of writes is not; and `validate()` also runs `asyncValidation`, so a field with a server
-  check will hit the server on every change of the watched field.
+  Every call re-runs the sync validator against the current values, so this is safe even
+  right after another `validate()` that has not finished yet — say, a form controller whose
+  constructor calls `validate()` so a fresh form shows its errors, followed by the first
+  listener call.
+  One trap: `validate()` also runs `asyncValidation`, so a field with a server check hits the
+  server the first time the watched field changes; after that the verdict for its unchanged
+  value is reused. And `validate()` ignores rule 2 on purpose, so the **whole** validator runs:
+  an empty dependent field with a `notNull` rule shows "required" the moment its dependency
+  moves — on a create screen, after a `prefill` of the dependency, and after `resetAll()` if the
+  dependent is registered before its dependency. It runs under `manual` too. If that is not what
+  the screen wants, guard the listener yourself.
 
 **Value depends on another field** ("when B changes, set A" — totals, mirroring, clearing a
 dependent selection). Use the form's `addRelation(source, select, onChange)`, in the

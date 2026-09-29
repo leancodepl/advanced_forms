@@ -17,7 +17,8 @@ extension type _Rounds<T, E extends Object>(
 
     if (validationError != null) {
       // Sync error already failed — skip async. Keep any existing async verdict
-      // since the value did not change.
+      // since the value did not change. Aborting also stops a round still in
+      // flight from landing over this error; whoever awaits it gets false.
       abort();
       _setState(
         _value.copyWithNullable(
