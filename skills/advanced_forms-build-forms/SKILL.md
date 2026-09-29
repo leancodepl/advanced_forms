@@ -525,8 +525,9 @@ children.subscribeToFields([adults]);
   server the first time the watched field changes; after that the verdict for its unchanged
   value is reused. And `validate()` ignores rule 2 on purpose, so the **whole** validator runs:
   an empty dependent field with a `notNull` rule shows "required" the moment its dependency
-  moves — on a create screen, after a `prefill` of the dependency, and after `resetAll()`. It
-  runs under `manual` too. If that is not what the screen wants, guard the listener yourself.
+  moves — on a create screen, after a `prefill` of the dependency, and after `resetAll()` if the
+  dependent is registered before its dependency. It runs under `manual` too. If that is not what
+  the screen wants, guard the listener yourself.
 
 **Value depends on another field** ("when B changes, set A" — totals, mirroring, clearing a
 dependent selection). Use the form's `addRelation(source, select, onChange)`, in the
