@@ -160,7 +160,7 @@ aircraft.addListener(() {
 });
 ```
 
-Three things to know: the whole validator runs, so an empty prefilled field with a `notNull` rule shows "required" the moment its dependency moves — on a create screen, after a `prefill`, and after `resetAll()`; `validate()` runs the async validator once per value of the dependent field, then reuses the verdict; and `validate()` on submit checks every field regardless, so a form that only needs the error at submit time needs nothing at all.
+Three things to know: the whole validator runs, so an empty prefilled field with a `notNull` rule shows "required" the moment its dependency moves — on a create screen, after a `prefill`, and after `resetAll()` if the dependent field is registered before its dependency; `validate()` runs the async validator once per value of the dependent field, then reuses the verdict; and `validate()` on submit checks every field regardless, so a form that only needs the error at submit time needs nothing at all.
 
 ### `subscribeToFields` fires more eagerly
 
