@@ -1,10 +1,11 @@
-## Unreleased
+## 0.2.3
 
-* A section detached by its `enabled:` condition has its errors cleared, so it does not come back red.
 * Fixed `validate()` returning a stale answer when called again before the first call had finished; every call now re-runs the sync validators and only an async check in flight is shared.
+* A section detached by its `enabled:` condition has its errors cleared, so it does not come back red.
 * The first `validate()` caller now gets `false` when a later call finds a sync error before the async check lands.
 * Concurrent `validate()` calls no longer return the same `Future` instance; they still share one async check.
 * `validate()` on a disposed form returns `false` instead of the result still in flight.
+* The migration guide covers the untouched-field gate, what throws after `dispose()`, `reset()` keeping `readOnly`, porting field streams and disposing subforms that are gone for good.
 
 ## 0.2.2
 
