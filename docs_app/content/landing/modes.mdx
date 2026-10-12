@@ -68,6 +68,9 @@ class _ValidationModesDemoState extends State<ValidationModesDemo> {
       ValidationMode.onUnfocus =>
         'Leaving a field you edited validates it. Tabbing through an '
             'untouched field costs nothing.',
+      ValidationMode.afterFirstUnfocus =>
+        'Quiet while you type. Leaving a field you edited validates it, '
+            'and from then on every keystroke does.',
     };
 
     return Column(

@@ -41,7 +41,7 @@ A subform behaves the same way: a `validationMode` given to its constructor, or 
 makes a wizard step "live" after the user has tried to leave it while the steps ahead stay quiet — see
 [Wizards](../subforms/wizard.mdx).
 
-## `onUnfocus` needs a focus node
+## `onUnfocus` and `afterFirstUnfocus` need a focus node
 
 The field only learns that focus left it through its `focusNode`. Bind it to the widget, or — for a picker that
 manages focus itself — call `field.handleUnfocus()` when the interaction ends:
