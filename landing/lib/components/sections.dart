@@ -376,7 +376,7 @@ class SkillBand extends StatelessComponent {
               div(classes: 'af-hero-actions', [
                 Button('How it works', href: skillDocsPath, leading: .bot),
                 Button(
-                  'Read SKILL.md',
+                  'Read the skill',
                   href: skillUrl,
                   variant: .secondary,
                   external: true,
