@@ -46,10 +46,9 @@ const apiReferenceUrl = 'https://pub.dev/documentation/advanced_forms/latest/';
 const changelogUrl = '$repoUrl/blob/main/CHANGELOG.md';
 const migrationUrl = '$repoUrl/blob/main/MIGRATION.md';
 const issuesUrl = '$repoUrl/issues';
-const skillUrl =
-    '$repoUrl/blob/main/skills/advanced_forms-build-forms/SKILL.md';
+const skillUrl = '$repoUrl/tree/main/skills/advanced_forms-build-forms';
 
-/// The docs page that installs the Agent Skill: one copy, one file.
+/// The docs page that installs the Agent Skill: one command.
 const skillDocsPath = '$docsPath/agent-skill';
 
 const _utm =
