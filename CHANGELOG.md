@@ -1,9 +1,15 @@
+## Unreleased
+
+* New `ValidationMode.afterFirstUnfocus`: a field stays quiet while the user types, validates when first left, and from then on validates every edit.
+
 ## 0.2.4
 
 * The skill is renamed to `advanced-forms-build-forms` to match the Agent Skills spec. Run `dart run skills@ get` again to get the new name.
 * The skill is split into a short `SKILL.md` and reference files, so it uses fewer tokens.
 * The docs recommend `dart run skills@ get` as the way to install the skill.
 * The package now works with `equatable` 3.0.0.
+=======
+## Unreleased
 
 ## 0.2.3
 

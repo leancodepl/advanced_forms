@@ -16,7 +16,7 @@
 - **Validators that compose** — `filled`, `notEmpty`, `notNull`, `mustBeTrue`, `atLeastLength`, `notLongerThan`, `exactly` and numeric checks, combined with `&` and `|`, or any `E? Function(T)` you write yourself.
 - **Async validation** — debounced server-side checks ("is this email taken?") with a timeout, failure handling and cached answers.
 - **Cross-field validation** — re-run a validator when the fields it depends on change, or derive one field's value from another.
-- **Validation modes** — validate on submit, on every keystroke, or on unfocus. Set once, applied to the whole form.
+- **Validation modes** — validate on submit, on every keystroke, on unfocus, or on unfocus first and every keystroke after. Set once, applied to the whole form.
 - **Subforms** — attach and detach nested form controllers; their fields join the parent's validate, reset, read-only and error handling.
 - **Form-level state** — `canSubmit`, `wasModified`, `validating` and `validationErrors`, ready to bind to a submit button.
 - **Read-only fields and server-side errors** — freeze a value, or push an error in from an API response.
@@ -228,6 +228,7 @@ Three rules cover every case:
 | `manual` (default) | Nothing validates until submit. Editing a field still clears the error that described its old value |
 | `onUserInteraction` | Every keystroke validates the field being edited; the async check waits out its debounce |
 | `onUnfocus` | Leaving a field the user edited validates it. Tabbing through it, or leaving it unchanged, costs nothing |
+| `afterFirstUnfocus` | Quiet while the user types, until the field is first left after an edit. From then on every edit validates it, so an error disappears the moment the value is fixed |
 
 ```dart
 final form = AdvancedFormController(

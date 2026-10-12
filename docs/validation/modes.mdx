@@ -1,6 +1,6 @@
 ---
 title: Validation modes
-description: Three rules and one table decide when a field validates itself — on submit, on every keystroke, or when it loses focus.
+description: Three rules and one table decide when a field validates itself — on submit, on every keystroke, when it loses focus, or on unfocus first and every keystroke after.
 ---
 
 {/*
@@ -20,13 +20,14 @@ A validator is a function: value in, error out, `null` means valid. *When* it ru
 
 `validate()` obeys none of them: it ignores the mode, never changes it, and runs every field — touched or not.
 
-## The three modes
+## The four modes
 
 | `ValidationMode` | What the user sees |
 | --- | --- |
 | `manual` (default) | Nothing validates until `validate()` is called — usually on submit. Editing a field still clears the error that described its old value |
 | `onUserInteraction` | Every edit validates the field being edited; the async check waits out its debounce |
 | `onUnfocus` | Leaving a field the user edited validates it. Tabbing through an untouched field costs nothing; a debounced async check is flushed on the way out |
+| `afterFirstUnfocus` | Quiet while the user types, until the field is first left after an edit. From then on every edit validates it, so an error disappears the moment the value is fixed |
 
 The gate, in full — the row is the mode, the column is the event:
 
@@ -35,6 +36,13 @@ The gate, in full — the row is the mode, the column is the event:
 | `manual` | — | — | — |
 | `onUserInteraction` | validate | — (the edit already did) | sync only |
 | `onUnfocus` | — (still typing) | validate | sync only |
+| `afterFirstUnfocus`, not yet left | — (still typing) | validate | sync only |
+| `afterFirstUnfocus`, left once | validate | — (the edit already did) | sync only |
+
+`afterFirstUnfocus` is the `onUnfocus` row until the user first leaves the field after editing it, and the
+`onUserInteraction` row from then on. Only that unfocus flips it: a `validate()` from a submit button does not, and
+`reset()` flips it back. A field the user tabbed through without editing has not been "left" in this sense, so it still
+waits. Like `onUnfocus`, it needs the widget to bind `field.focusNode` (see [Configuring the mode](./configuring.mdx)).
 
 "A dependency changed" is what [`subscribeToFields`](./cross-field.mdx) and `validateAll` produce; it re-runs the sync
 validator only, because this field's own value did not change and its async verdict still stands.
@@ -107,6 +115,9 @@ class _ValidationModesDemoState extends State<ValidationModesDemo> {
       ValidationMode.onUnfocus =>
         'Leaving a field you edited validates it. Tabbing through an '
             'untouched field costs nothing.',
+      ValidationMode.afterFirstUnfocus =>
+        'Quiet while you type. Leaving a field you edited validates it, '
+            'and from then on every keystroke does.',
     };
 
     return Column(
