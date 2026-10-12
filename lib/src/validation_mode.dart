@@ -16,6 +16,13 @@ enum ValidationMode {
   /// answer. Requires a widget to bind the field's `focusNode`, or a call to
   /// `handleUnfocus()` — nothing validates in this mode otherwise.
   onUnfocus,
+
+  /// Quiet while the user types, like [onUnfocus], until the field first
+  /// loses focus after an edit; from then on every edit validates it, like
+  /// [onUserInteraction]. Needs the same `focusNode` binding or
+  /// `handleUnfocus()` call as [onUnfocus]. `validate()` does not count as
+  /// that first unfocus, and `reset()` makes the field wait for it again.
+  afterFirstUnfocus,
 }
 
 @internal
@@ -34,17 +41,21 @@ enum ValidationEvent {
 /// | `manual` | — | — | — |
 /// | `onUserInteraction` | validate | — | sync only |
 /// | `onUnfocus` | — | validate | sync only |
+/// | `afterFirstUnfocus`, not yet left | — | validate | sync only |
+/// | `afterFirstUnfocus`, left once | validate | — | sync only |
 ///
 /// Reads no field status on purpose: a debounced round overwrites the status
 /// with `pending` and the write path clears both errors, so a status check
-/// would disarm itself as the user started fixing the value.
+/// would disarm itself as the user started fixing the value. `hasUnfocused`
+/// is not a status: it is set by an event and only `reset()` clears it.
 @internal
 bool validatesOn(
   ValidationEvent event, {
   required ValidationMode mode,
   required bool hasInteracted,
+  required bool hasUnfocused,
 }) =>
-    // Checked before the mode, so an untouched field stays quiet in all three.
+    // Checked before the mode, so an untouched field stays quiet in all four.
     hasInteracted &&
     switch (mode) {
       ValidationMode.manual => false,
@@ -52,4 +63,9 @@ bool validatesOn(
       ValidationMode.onUserInteraction => event != ValidationEvent.unfocus,
       // The value is still being typed, so an edit waits for the unfocus.
       ValidationMode.onUnfocus => event != ValidationEvent.valueChanged,
+      // The onUnfocus row until the field is first left, the
+      // onUserInteraction row after that.
+      ValidationMode.afterFirstUnfocus => hasUnfocused
+          ? event != ValidationEvent.unfocus
+          : event != ValidationEvent.valueChanged,
     };
