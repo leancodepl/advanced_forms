@@ -36,9 +36,9 @@ export const flutterExamples: Record<string, FlutterExample> = {
   "833e51744528": { preview: "OrderTotalForm", files: 2, docs: ["docs/validation/relations.mdx"], helpers: ["DocsTextField"] },
   "8c0ab0393167": { preview: "SliderInputDemo", files: 2, docs: ["docs/rendering/scalar.mdx"], helpers: ["DocsActions"] },
   "9e1503fddf0c": { preview: "PasswordForm", files: 2, docs: ["docs/validation/cross-field.mdx"], helpers: ["DocsTextField"] },
+  "b470bdb0ef6c": { preview: "ValidationModesDemo", files: 2, docs: ["docs/validation/modes.mdx","docs_app/content/landing/modes.mdx"], helpers: ["DocsActions","DocsHint","DocsSubmitButton","DocsTextField"] },
   "c513edd2c993": { preview: "PasswordRulesForm", files: 2, docs: ["docs/validation/custom-validators.mdx"], helpers: ["DocsTextField"] },
   "e2356ccef99b": { preview: "GuestListForm", files: 2, docs: ["docs/subforms/index.mdx"], helpers: ["DocsActions","DocsSubmitButton","DocsTextField"] },
   "f21af60e91f0": { preview: "BooleanInputDemo", files: 3, docs: ["docs/rendering/boolean.mdx"], helpers: ["DocsActions"] },
-  "f295a159666b": { preview: "ValidationModesDemo", files: 2, docs: ["docs/validation/modes.mdx","docs_app/content/landing/modes.mdx"], helpers: ["DocsActions","DocsHint","DocsSubmitButton","DocsTextField"] },
   "f733c75e06e6": { preview: "PrefillDemo", files: 2, docs: ["docs/lifecycle/prefilled-forms.mdx"], helpers: ["DocsActions","DocsFormStatus","DocsTextField"] },
 }

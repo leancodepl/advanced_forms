@@ -25,8 +25,9 @@ validate-on-submit button on `canSubmit` at all — it turns `false` while a che
 
 The default mode is `manual`: nothing validates until the first `validate()`. That is deliberate — a form should not
 shout before the user has done anything. For live feedback give the form `ValidationMode.onUserInteraction`; for
-feedback when a field is left, `ValidationMode.onUnfocus` — which also needs the widget to bind `field.focusNode`. And
-in every mode a field the user has never edited stays quiet on its own. See [Validation modes](./validation/modes.mdx).
+feedback when a field is left, `ValidationMode.onUnfocus` — which also needs the widget to bind `field.focusNode`; for
+the common "quiet at first, live once the user has left the field" pattern, `ValidationMode.afterFirstUnfocus`. And in
+every mode a field the user has never edited stays quiet on its own. See [Validation modes](./validation/modes.mdx).
 
 </Accordion>
 <Accordion title="My subscribeToFields dependency does not re-validate.">

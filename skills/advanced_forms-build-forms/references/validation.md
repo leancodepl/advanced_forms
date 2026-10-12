@@ -24,7 +24,9 @@ class SignupFormController extends AdvancedFormController {
 
 ## Unfocus the widget owns
 
-`onUnfocus` listens to the field's `focusNode`, so the widget binds it ([binding](binding.md)). A picker, date dialog, or custom dropdown that owns focus calls `field.handleUnfocus()` — otherwise nothing validates in that mode. It returns `Future<void>`. In any mode it flushes a pending debounce.
+`onUnfocus` and `afterFirstUnfocus` listen to the field's `focusNode`, so the widget binds it ([binding](binding.md)). A picker, date dialog, or custom dropdown that owns focus calls `field.handleUnfocus()` — otherwise nothing validates in those modes. It returns `Future<void>`. In any mode it flushes a pending debounce.
+
+`afterFirstUnfocus` is the "quiet at first, live once left" pattern: no error while the user types, the first unfocus after an edit validates, and from then on every edit does. Only an unfocus flips it; `validate()` from submit does not, and `reset()` flips it back.
 
 ## Built-in validators
 
@@ -92,7 +94,7 @@ final username = AdvancedTextFieldController(
 );
 ```
 
-- **Debounce** delays a round a keystroke started. It applies in `onUserInteraction`. In `manual` and `onUnfocus` the check starts from `validate()` or from leaving the field, so `debounce` changes nothing.
+- **Debounce** delays a round a keystroke started. It applies in `onUserInteraction`, and in `afterFirstUnfocus` once the field was first left. In `manual` and `onUnfocus` the check starts from `validate()` or from leaving the field, so `debounce` changes nothing.
 - A value change cancels the in-flight round. A stale answer never lands.
 - A settled answer is reused while the value is unchanged, so a second submit on an untouched form makes no network call. Any `setValue` drops the cached answer. When the check depends on state outside the value, invalidate with `field.clearErrors()`.
 - `state.isPending` / `isValidating` / `isInProgress` — a spinner is `isInProgress`.

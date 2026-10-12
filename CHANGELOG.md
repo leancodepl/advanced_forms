@@ -1,3 +1,7 @@
+## Unreleased
+
+* New `ValidationMode.afterFirstUnfocus`: a field stays quiet while the user types, validates when first left, and from then on validates every edit.
+
 ## 0.2.3
 
 * Fixed `validate()` returning a stale answer when called again before the first call had finished; every call now re-runs the sync validators and only an async check in flight is shared.
