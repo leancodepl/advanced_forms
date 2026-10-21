@@ -42,7 +42,7 @@ export const urls = {
   changelog: `${repo}/blob/${gitConfig.branch}/CHANGELOG.md`,
   migration: `${repo}/blob/${gitConfig.branch}/MIGRATION.md`,
   license: `${repo}/blob/${gitConfig.branch}/LICENSE`,
-  skill: `${repo}/tree/${gitConfig.branch}/skills/advanced_forms-build-forms`,
+  skill: `${repo}/tree/${gitConfig.branch}/skills/advanced-forms-build-forms`,
   exampleApp: `${repo}/tree/${gitConfig.branch}/example`,
   exampleGuide: `${repo}/blob/${gitConfig.branch}/example/example.md`,
   exampleWidgets: `${repo}/tree/${gitConfig.branch}/example/lib/widgets`,

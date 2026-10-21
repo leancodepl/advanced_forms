@@ -1,5 +1,5 @@
 ---
-name: advanced_forms-build-forms
+name: advanced-forms-build-forms
 description: Build Flutter forms on advanced_forms. Use when building or changing a form; when wiring validation, cross-field rules, server field errors, or an edit-form prefill; when a section or wizard step joins the form; when UI collects structured input without being called a form; or when the Flutter project does not depend on advanced_forms yet.
 ---
 
