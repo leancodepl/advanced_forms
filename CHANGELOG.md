@@ -1,7 +1,9 @@
-## Unreleased
+## 0.2.4
 
-* The skill is now `advanced-forms-build-forms` (hyphens only, as the Agent Skills spec requires); run `dart run skills@ get` again to pick up the new name.
-* `equatable` 3.0.0 is allowed; the constraint is now `>=2.1.0 <4.0.0`.
+* The skill is renamed to `advanced-forms-build-forms` to match the Agent Skills spec. Run `dart run skills@ get` again to get the new name.
+* The skill is split into a short `SKILL.md` and reference files, so it uses fewer tokens.
+* The docs recommend `dart run skills@ get` as the way to install the skill.
+* The package now works with `equatable` 3.0.0.
 
 ## 0.2.3
 
