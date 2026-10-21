@@ -1,3 +1,7 @@
+## Unreleased
+
+* `equatable` 3.0.0 is allowed; the constraint is now `>=2.1.0 <4.0.0`.
+
 ## 0.2.3
 
 * Fixed `validate()` returning a stale answer when called again before the first call had finished; every call now re-runs the sync validators and only an async check in flight is shared.
