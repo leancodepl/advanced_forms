@@ -16,7 +16,7 @@
 - **Validators that compose** — `filled`, `notEmpty`, `notNull`, `mustBeTrue`, `atLeastLength`, `notLongerThan`, `exactly` and numeric checks, combined with `&` and `|`, or any `E? Function(T)` you write yourself.
 - **Async validation** — debounced server-side checks ("is this email taken?") with a timeout, failure handling and cached answers.
 - **Cross-field validation** — re-run a validator when the fields it depends on change, or derive one field's value from another.
-- **Validation modes** — validate on submit, on every keystroke, on unfocus, or on unfocus first and every keystroke after. Set once, applied to the whole form.
+- **Validation modes** — validate on submit, on every keystroke, on unfocus, or on unfocus first and every keystroke after. Set once, applied to the whole form. When none of them fits, write your own rule in one line with `ValidationMode.custom`.
 - **Subforms** — attach and detach nested form controllers; their fields join the parent's validate, reset, read-only and error handling.
 - **Form-level state** — `canSubmit`, `wasModified`, `validating` and `validationErrors`, ready to bind to a submit button.
 - **Read-only fields and server-side errors** — freeze a value, or push an error in from an API response.
