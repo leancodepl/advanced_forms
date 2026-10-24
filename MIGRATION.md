@@ -49,7 +49,7 @@
 | `form.onValuesChangedStream` (`Stream<void>`) | `form.onValuesChanged` (`Listenable`) |
 | `form.onStatusChangedStream` (`Stream<FieldStatus>`) | `form.onStatusChanged` (`Listenable`, no payload) |
 | `BlocBuilder<FormGroupCubit, FormGroupState>` | `ValueListenableBuilder<AdvancedFormState>` — there is no `AdvancedFormBuilder` |
-| `FieldCubit.stream` (inherited from `Cubit`) | `AdvancedFieldController.stream` — deprecated extension, removed in 0.3.0 ([section 9](#9-migrating-a-custom-field)) |
+| `FieldCubit.stream` (inherited from `Cubit`) | none; a listener, or a stream you wrap around one ([section 9](#9-migrating-a-custom-field)) |
 | `Future<void> close()` | `void dispose()` |
 | `addDisposable(...)`, the `Disposable` mixin | **Removed** — override `dispose()` ([section 7](#7-lifecycle-close--dispose)) |
 
@@ -470,15 +470,28 @@ addRelation(
 
 Outside a form, a raw listener works the same way with the comparison written by hand and a `removeListener` in `dispose()`.
 
-**Code that composes streams** — rxdart operators, `await for`, merging fields into a pipeline. The deprecated `stream` extension bridges a field to a broadcast stream so helpers written against `FieldCubit.stream` keep compiling:
+**Code that composes streams** — rxdart operators, `await for`, merging fields into a pipeline. A field has no stream (the deprecated `stream` bridge was removed in 0.3.0). Where a pipeline needs one, wrap the listener yourself and keep the stream in a field, so it is created once:
 
 ```dart
-final subscription = quantityField.stream
+Stream<AdvancedFieldState<T, E>> statesOf<T, E extends Object>(
+  AdvancedFieldController<T, E> field,
+) {
+  late final StreamController<AdvancedFieldState<T, E>> controller;
+  void listener() => controller.add(field.value);
+  controller = StreamController.broadcast(
+    onListen: () => field.addListener(listener),
+    onCancel: () => field.removeListener(listener),
+  );
+  return controller.stream;
+}
+
+final quantities = statesOf(quantityField);
+final subscription = quantities
     .map((state) => state.value.amount)
     .listen(recalculateTotals);
 ```
 
-Three caveats: every read allocates a new `StreamController`, so store it rather than re-reading the getter; the controller is never closed, so unlike `Cubit.stream` it does not terminate an `await for` loop; and it goes away in 0.3.0.
+Unlike `Cubit.stream`, this controller is never closed, so it does not terminate an `await for` loop; cancel the subscription in `dispose()`.
 
 ---
 

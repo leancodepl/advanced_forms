@@ -175,9 +175,9 @@ needs a fresh controller. Consider `setValidationEnabled(false)` instead of deta
 <Accordion title="Where did the streams go?">
 
 0.1.x controllers were cubits, so they had a `stream`. 0.2 is `Listenable`-based: `addListener`,
-`subscribeToFields`, `onValuesChanged`, `onStatusChanged`, and the builder widgets. A deprecated
-`AdvancedFieldController.stream` extension exists as a migration bridge and is removed in 0.3.0. See
-[Migration](./migration.mdx).
+`subscribeToFields`, `onValuesChanged`, `onStatusChanged`, and the builder widgets. The deprecated
+`AdvancedFieldController.stream` bridge was removed in 0.3.0; a pipeline that needs a stream wraps a listener in a
+`StreamController` (the recipe is in the repo's `MIGRATION.md`, section 9). See [Migration](./migration.mdx).
 
 </Accordion>
 </Accordions>
