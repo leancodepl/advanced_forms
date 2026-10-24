@@ -1,6 +1,8 @@
-## Unreleased
+## 0.3.0
 
-* Validation modes are now yours to write. `ValidationMode` is a class, and `ValidationMode.custom(name, fn)` turns a one-line rule into a mode the package treats like its own.
+Validation modes are now yours to write. The four modes stay as they were; what is new is that a rule none of them states no longer needs a workaround.
+
+* `ValidationMode` is a class, and `ValidationMode.custom(name, fn)` turns a one-line rule into a mode the package treats like its own.
   * The rule gets a `ValidationContext`: which event is happening (`valueChanged`, `unfocus` or `dependencyChanged`) and whether the user has ever left the field after editing it.
   * It never sees the status, the errors or the value, so a rule cannot switch itself off while the user is fixing a mistake.
   * An untouched field still validates nothing, whatever the rule says; `validate()` still ignores the mode; sync still runs before async.
@@ -8,8 +10,16 @@
   * Modes are compared by name, so a mode built in `build()` is not a mode change; a built-in name throws.
   * The docs have a page for it with a live demo, and the README and the skill cover it too.
 * New built-in mode `ValidationMode.afterFirstUnfocus`: quiet while the user types, validates when the field is first left, and from then on validates every edit, so an error disappears the moment the value is fixed.
-* Breaking: an exhaustive `switch` over `ValidationMode` needs a default case, and `ValidationMode.values` is gone, because with custom modes there is no finite list.
-* The deprecated `stream` extension stays until 0.4.0; it was announced for removal in 0.3.0, but this release already asks for one change in a `switch`, and that is enough.
+* The mode pickers in the docs demos are pills that wrap, so every mode name is readable on a phone.
+
+Breaking changes, both small:
+
+* An exhaustive `switch` over `ValidationMode` needs a default case now.
+* `ValidationMode.values` is gone, because with custom modes there is no finite list.
+
+Still here:
+
+* The deprecated `stream` extension stays until 0.4.0. It was announced for removal in 0.3.0, but this release already asks for one change, and that is enough.
 
 ## 0.2.4
 
