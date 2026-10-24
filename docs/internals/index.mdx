@@ -33,7 +33,7 @@ codes is never used for the throw path.
 
 ## The gate reads no field status
 
-The whole trigger behaviour is one function of the mode, the event, and two bits the user's actions set: whether they
+The whole trigger behavior is one function of the mode, the event, and two bits the user's actions set: whether they
 have edited the field, and whether they have left it since:
 
 ```dart
@@ -63,8 +63,8 @@ live parent link with its own lifecycle. Escalation was what forced inheritance 
 what produced the bug where late-attached subforms missed the push. Deleting escalation deleted the bug's cause rather
 than its symptom.
 
-`afterFirstUnfocus` came later and brought none of that back: the mode never changes by itself, and the bit it reads
-is set by an unfocus, not derived from a verdict.
+`afterFirstUnfocus` brings none of that back: the mode never changes by itself, and the bit it reads is set by an
+unfocus, not derived from a verdict.
 
 Mode and the enabled flag reach children **by broadcast**, never through a back-reference to the parent. "Validation
 disabled" is expressed as broadcasting an effective mode of `manual`, so there is one mechanism instead of two. A form
