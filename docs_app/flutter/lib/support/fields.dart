@@ -609,3 +609,61 @@ class _Spinner extends StatelessWidget {
     );
   }
 }
+
+/// A titled row of single-choice pills, wrapping onto more rows as needed.
+/// The selected pill is solid accent with ink text, like the primary button.
+class DocsModePicker<T> extends StatelessWidget {
+  const DocsModePicker({
+    super.key,
+    required this.title,
+    required this.options,
+    required this.selected,
+    required this.label,
+    required this.onSelected,
+  });
+
+  final String title;
+  final List<T> options;
+  final T selected;
+  final String Function(T option) label;
+  final ValueChanged<T> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: scheme.primary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final option in options)
+              ChoiceChip(
+                label: Text(label(option)),
+                showCheckmark: false,
+                selected: option == selected,
+                selectedColor: scheme.primary,
+                labelStyle: TextStyle(
+                  color: option == selected
+                      ? scheme.onPrimary
+                      : scheme.onSurface,
+                  fontWeight: FontWeight.w600,
+                ),
+                onSelected: (_) => onSelected(option),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
