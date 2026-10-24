@@ -34,6 +34,7 @@ export const flutterExamples: Record<string, FlutterExample> = {
   "5cef6df3c4e9": { preview: "StateInspector", files: 2, docs: ["docs/concepts/state.mdx"], helpers: ["DocsActions","DocsTextField"] },
   "6ca6c8909e84": { preview: "WizardForm", files: 3, docs: ["docs/subforms/wizard.mdx"], helpers: ["DocsActions","DocsDropdownField","DocsSubmitButton","DocsSwitchField","DocsTextField"] },
   "73b97401fc82": { preview: "ProfileForm", files: 2, docs: ["docs/server-errors/index.mdx"], helpers: ["DocsActions","DocsHint","DocsSubmitButton","DocsTextField"] },
+  "776a5df6676f": { preview: "CustomModesDemo", files: 2, docs: ["docs/validation/custom-modes.mdx"], helpers: ["DocsActions","DocsHint","DocsSubmitButton","DocsTextField"] },
   "833e51744528": { preview: "OrderTotalForm", files: 2, docs: ["docs/validation/relations.mdx"], helpers: ["DocsTextField"] },
   "8c0ab0393167": { preview: "SliderInputDemo", files: 2, docs: ["docs/rendering/scalar.mdx"], helpers: ["DocsActions"] },
   "9e1503fddf0c": { preview: "PasswordForm", files: 2, docs: ["docs/validation/cross-field.mdx"], helpers: ["DocsTextField"] },

@@ -100,6 +100,141 @@ final quietDependencies = ValidationMode.custom(
 );
 ```
 
+## Try it
+
+Three rules on the Repeat password field; Password stays on the form's default. Type in both fields, then change
+Password and watch what each rule does with the mismatch.
+
+<AdvancedFormsExample preview="CustomModesDemo" title="custom_modes.dart" code="collapsed">
+
+```dart title="password_form_controller.dart"
+class PasswordFormController extends AdvancedFormController {
+  PasswordFormController() {
+    registerFields([password, repeatPassword]);
+    repeatPassword.subscribeToFields([password]);
+  }
+
+  final password = AdvancedTextFieldController(
+    validator: atLeastLength(4, 'At least 4 characters'),
+  );
+
+  late final repeatPassword = AdvancedTextFieldController(
+    validator: (value) =>
+        value == password.fieldValue ? null : 'Passwords do not match',
+  );
+}
+```
+
+```dart title="custom_modes_demo.dart"
+// Re-check only when Password changes, never on this field's own edits.
+final followsDependency = ValidationMode.custom(
+  'followsDependency',
+  (c) => c.event == ValidationEvent.dependencyChanged,
+);
+
+// Live after the first unfocus; a change in Password never re-checks it.
+final quietDependencies = ValidationMode.custom(
+  'quietDependencies',
+  (c) => c.everUnfocused && c.event == ValidationEvent.valueChanged,
+);
+
+// Only leaving the field validates it.
+final onUnfocusOnly = ValidationMode.custom(
+  'onUnfocusOnly',
+  (c) => c.event == ValidationEvent.unfocus,
+);
+
+class CustomModesDemo extends StatefulWidget {
+  const CustomModesDemo({super.key});
+
+  @override
+  State<CustomModesDemo> createState() => _CustomModesDemoState();
+}
+
+class _CustomModesDemoState extends State<CustomModesDemo> {
+  final _form = PasswordFormController();
+  var _rule = followsDependency;
+
+  @override
+  void initState() {
+    super.initState();
+    _form.repeatPassword.setValidationMode(_rule);
+  }
+
+  @override
+  void dispose() {
+    _form.dispose();
+    super.dispose();
+  }
+
+  void _setRule(ValidationMode rule) {
+    setState(() => _rule = rule);
+    // The rule is a mode like any other; this field keeps its own.
+    _form.repeatPassword.setValidationMode(rule);
+  }
+
+  Future<void> _submit() async {
+    final ok = await _form.validate();
+    if (mounted) {
+      ExampleLog.of(context).add(ok ? 'Saved.' : 'Not saved: invalid.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hint = switch (_rule.name) {
+      'followsDependency' =>
+        'Repeat password re-checks only when Password changes. Its own '
+            'edits stay quiet until Save.',
+      'quietDependencies' =>
+        'Quiet until you leave Repeat password, then every keystroke. '
+            'Changing Password does not re-check it.',
+      _ => 'Leaving Repeat password validates it. Changing Password does not.',
+    };
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Full width when it fits, a horizontal scroll when it does not.
+        LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minWidth: constraints.maxWidth),
+              child: SegmentedButton<ValidationMode>(
+                showSelectedIcon: false,
+                segments: [
+                  for (final rule in [
+                    followsDependency,
+                    quietDependencies,
+                    onUnfocusOnly,
+                  ])
+                    ButtonSegment(value: rule, label: Text(rule.name)),
+                ],
+                selected: {_rule},
+                onSelectionChanged: (selection) => _setRule(selection.first),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        DocsHint(hint),
+        DocsTextField(field: _form.password, label: 'Password'),
+        DocsTextField(field: _form.repeatPassword, label: 'Repeat password'),
+        DocsActions(
+          children: [
+            DocsSubmitButton(form: _form, label: 'Save', onPressed: _submit),
+            TextButton(onPressed: _form.resetAll, child: const Text('Reset')),
+          ],
+        ),
+      ],
+    );
+  }
+}
+```
+
+</AdvancedFormsExample>
+
 ## Testing a rule
 
 The rule is a plain function, so test it without a form:
