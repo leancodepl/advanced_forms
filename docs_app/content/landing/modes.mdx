@@ -71,6 +71,7 @@ class _ValidationModesDemoState extends State<ValidationModesDemo> {
       ValidationMode.afterFirstUnfocus =>
         'Quiet while you type. Leaving a field you edited validates it, '
             'and from then on every keystroke does.',
+      _ => 'A mode of your own.',
     };
 
     return Column(
@@ -85,7 +86,12 @@ class _ValidationModesDemoState extends State<ValidationModesDemo> {
               child: SegmentedButton<ValidationMode>(
                 showSelectedIcon: false,
                 segments: [
-                  for (final mode in ValidationMode.values)
+                  for (final mode in [
+                    ValidationMode.manual,
+                    ValidationMode.onUserInteraction,
+                    ValidationMode.onUnfocus,
+                    ValidationMode.afterFirstUnfocus,
+                  ])
                     ButtonSegment(value: mode, label: Text(mode.name)),
                 ],
                 selected: {_mode},

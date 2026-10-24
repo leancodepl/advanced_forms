@@ -1,40 +1,41 @@
 import 'package:meta/meta.dart';
 
-/// When a field validates itself, with nobody calling `validate()`.
-///
-/// Set it on the `AdvancedFormController` and it reaches every field and
-/// subform. `validate()` neither consults nor changes it, and in every mode a
-/// field the user has never edited validates nothing on its own.
-enum ValidationMode {
-  /// Nothing validates until `validate()` is called. The default.
-  manual,
-
-  /// Every edit validates the field, the async check after its debounce.
-  onUserInteraction,
-
-  /// Leaving an edited field validates it; an unchanged value reuses its last
-  /// answer. Requires a widget to bind the field's `focusNode`, or a call to
-  /// `handleUnfocus()` — nothing validates in this mode otherwise.
-  onUnfocus,
-
-  /// Quiet while the user types, like [onUnfocus], until the field first
-  /// loses focus after an edit; from then on every edit validates it, like
-  /// [onUserInteraction]. Needs the same `focusNode` binding or
-  /// `handleUnfocus()` call as [onUnfocus]. `validate()` does not count as
-  /// that first unfocus, and `reset()` makes the field wait for it again.
-  afterFirstUnfocus,
-}
-
-@internal
+/// What happened to a field, as its validation mode sees it.
 enum ValidationEvent {
+  /// The user edited the value.
   valueChanged,
+
+  /// Focus left the field.
   unfocus,
 
   /// A field this one depends on changed, so only the sync validator is owed.
   dependencyChanged,
 }
 
-/// The one place that decides whether a field validates itself.
+/// What a custom mode gets to see.
+///
+/// No status and no errors, on purpose: every edit clears the errors and a
+/// debounced round sets the status to `pending`, so a mode reading either
+/// would disarm itself as the user started fixing the value.
+@immutable
+final class ValidationContext {
+  /// Describes [event] on a field the user has left before, or not.
+  const ValidationContext({required this.event, required this.everUnfocused});
+
+  /// What is happening now.
+  final ValidationEvent event;
+
+  /// The user has left the field after editing it, at least once. Only
+  /// `reset()` clears it.
+  final bool everUnfocused;
+}
+
+/// When a field validates itself, with nobody calling `validate()`.
+///
+/// Set it on the `AdvancedFormController` and it reaches every field and
+/// subform. In every mode, your own included, a field the user has never
+/// edited validates nothing on its own, and `validate()` neither consults nor
+/// changes the mode.
 ///
 /// | mode | valueChanged | unfocus | dependencyChanged |
 /// |---|---|---|---|
@@ -43,29 +44,79 @@ enum ValidationEvent {
 /// | `onUnfocus` | — | validate | sync only |
 /// | `afterFirstUnfocus`, not yet left | — | validate | sync only |
 /// | `afterFirstUnfocus`, left once | validate | — | sync only |
-///
-/// Reads no field status on purpose: a debounced round overwrites the status
-/// with `pending` and the write path clears both errors, so a status check
-/// would disarm itself as the user started fixing the value. `hasUnfocused`
-/// is not a status: it is set by an event and only `reset()` clears it.
-@internal
-bool validatesOn(
-  ValidationEvent event, {
-  required ValidationMode mode,
-  required bool hasInteracted,
-  required bool hasUnfocused,
-}) =>
-    // Checked before the mode, so an untouched field stays quiet in all four.
-    hasInteracted &&
-    switch (mode) {
-      ValidationMode.manual => false,
-      // The edit already validated, so unfocus has nothing left to run.
-      ValidationMode.onUserInteraction => event != ValidationEvent.unfocus,
-      // The value is still being typed, so an edit waits for the unfocus.
-      ValidationMode.onUnfocus => event != ValidationEvent.valueChanged,
-      // The onUnfocus row until the field is first left, the
-      // onUserInteraction row after that.
-      ValidationMode.afterFirstUnfocus => hasUnfocused
-          ? event != ValidationEvent.unfocus
-          : event != ValidationEvent.valueChanged,
-    };
+@immutable
+final class ValidationMode {
+  const ValidationMode._(this.name, this._shouldValidate);
+
+  /// A mode of your own. A built-in [name] throws.
+  factory ValidationMode.custom(
+    String name,
+    bool Function(ValidationContext context) shouldValidate,
+  ) {
+    if (_builtIn.any((mode) => mode.name == name)) {
+      throw ArgumentError.value(name, 'name', 'is a built-in mode');
+    }
+    return ValidationMode._(name, shouldValidate);
+  }
+
+  /// Nothing validates until `validate()` is called. The default.
+  static const manual = ValidationMode._('manual', _manual);
+
+  /// Every edit validates the field, the async check after its debounce.
+  static const onUserInteraction =
+      ValidationMode._('onUserInteraction', _onUserInteraction);
+
+  /// Leaving an edited field validates it; an unchanged value reuses its last
+  /// answer. Requires a widget to bind the field's `focusNode`, or a call to
+  /// `handleUnfocus()` — nothing validates in this mode otherwise.
+  static const onUnfocus = ValidationMode._('onUnfocus', _onUnfocus);
+
+  /// Quiet while the user types, like [onUnfocus], until the field first
+  /// loses focus after an edit; from then on every edit validates it, like
+  /// [onUserInteraction]. Needs the same `focusNode` binding or
+  /// `handleUnfocus()` call as [onUnfocus]. `validate()` does not count as
+  /// that first unfocus, and `reset()` makes the field wait for it again.
+  static const afterFirstUnfocus =
+      ValidationMode._('afterFirstUnfocus', _afterFirstUnfocus);
+
+  static const _builtIn = [
+    manual,
+    onUserInteraction,
+    onUnfocus,
+    afterFirstUnfocus,
+  ];
+
+  /// Identifies the mode: two modes are equal when their names are equal, so
+  /// a name must be unique across your app. The built-in names are `manual`,
+  /// `onUserInteraction`, `onUnfocus` and `afterFirstUnfocus`.
+  final String name;
+
+  final bool Function(ValidationContext context) _shouldValidate;
+
+  /// Whether the field should validate itself on [context].
+  bool shouldValidate(ValidationContext context) => _shouldValidate(context);
+
+  @override
+  bool operator ==(Object other) =>
+      other is ValidationMode && other.name == name;
+
+  @override
+  int get hashCode => name.hashCode;
+
+  @override
+  String toString() => 'ValidationMode.$name';
+
+  static bool _manual(ValidationContext _) => false;
+
+  // The edit already validated, so unfocus has nothing left to run.
+  static bool _onUserInteraction(ValidationContext c) =>
+      c.event != ValidationEvent.unfocus;
+
+  // The value is still being typed, so an edit waits for the unfocus.
+  static bool _onUnfocus(ValidationContext c) =>
+      c.event != ValidationEvent.valueChanged;
+
+  // The onUnfocus row until the field is first left, onUserInteraction after.
+  static bool _afterFirstUnfocus(ValidationContext c) =>
+      c.everUnfocused ? _onUserInteraction(c) : _onUnfocus(c);
+}

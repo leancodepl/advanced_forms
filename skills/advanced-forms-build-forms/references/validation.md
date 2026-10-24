@@ -22,6 +22,19 @@ class SignupFormController extends AdvancedFormController {
 }
 ```
 
+## A mode of your own
+
+Reach for one of the four modes first. `ValidationMode.custom(name, fn)` is for a rule none of them states. `fn` gets a `ValidationContext` with `event` (`valueChanged`, `unfocus`, `dependencyChanged`) and `everUnfocused` (the user has left the field after editing it, at least once). It never sees the status or the errors, and it is never asked about a field the user has not edited. Modes are compared by `name`, so the name must be unique; a built-in name throws.
+
+```dart
+// Live after the first unfocus, but a dependency change never re-checks it.
+final quietDependencies = ValidationMode.custom(
+  'quietDependencies',
+  (c) => c.everUnfocused && c.event == ValidationEvent.valueChanged,
+);
+form.setValidationMode(quietDependencies);
+```
+
 ## Unfocus the widget owns
 
 `onUnfocus` and `afterFirstUnfocus` listen to the field's `focusNode`, so the widget binds it ([binding](binding.md)). A picker, date dialog, or custom dropdown that owns focus calls `field.handleUnfocus()` — otherwise nothing validates in those modes. It returns `Future<void>`. In any mode it flushes a pending debounce.
