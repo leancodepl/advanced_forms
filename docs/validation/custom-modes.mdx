@@ -15,12 +15,13 @@ function, and the package treats it exactly like a built-in mode: set it on the 
 subform; set it on one field, that field keeps it.
 
 ```dart
-final quietDependencies = ValidationMode.custom(
-  'quietDependencies',
-  (c) => c.everUnfocused && c.event == ValidationEvent.valueChanged,
+// Re-check a field on its own edits only, never because another field changed.
+final onOwnEdits = ValidationMode.custom(
+  'onOwnEdits',
+  (c) => c.event == ValidationEvent.valueChanged,
 );
 
-final form = AdvancedFormController(validationMode: quietDependencies);
+final form = AdvancedFormController(validationMode: onOwnEdits);
 ```
 
 Reach for the built-in modes first. A custom mode is for the case you can state in one sentence and no mode covers,
@@ -91,13 +92,18 @@ final onUnfocusOnly = ValidationMode.custom(
 );
 ```
 
-Live after the first unfocus, like `afterFirstUnfocus`, but a dependency change never re-checks the field:
+Re-check on every keystroke, but never because another field changed. A username field with an async availability
+check that should not hit the server again just because the user picked a different country:
 
 ```dart
-final quietDependencies = ValidationMode.custom(
-  'quietDependencies',
-  (c) => c.everUnfocused && c.event == ValidationEvent.valueChanged,
+final onOwnEdits = ValidationMode.custom(
+  'onOwnEdits',
+  (c) => c.event == ValidationEvent.valueChanged,
 );
+
+username
+  ..setValidationMode(onOwnEdits)
+  ..subscribeToFields([country]);
 ```
 
 ## Try it
@@ -132,10 +138,10 @@ final followsDependency = ValidationMode.custom(
   (c) => c.event == ValidationEvent.dependencyChanged,
 );
 
-// Live after the first unfocus; a change in Password never re-checks it.
-final quietDependencies = ValidationMode.custom(
-  'quietDependencies',
-  (c) => c.everUnfocused && c.event == ValidationEvent.valueChanged,
+// Re-check on every keystroke, never because Password changed.
+final onOwnEdits = ValidationMode.custom(
+  'onOwnEdits',
+  (c) => c.event == ValidationEvent.valueChanged,
 );
 
 // Only leaving the field validates it.
@@ -186,9 +192,9 @@ class _CustomModesDemoState extends State<CustomModesDemo> {
       'followsDependency' =>
         'Repeat password re-checks only when Password changes. Its own '
             'edits stay quiet until Save.',
-      'quietDependencies' =>
-        'Quiet until you leave Repeat password, then every keystroke. '
-            'Changing Password does not re-check it.',
+      'onOwnEdits' =>
+        'Every keystroke in Repeat password re-checks it. Changing Password '
+            'does not.',
       _ => 'Leaving Repeat password validates it. Changing Password does not.',
     };
 
@@ -206,7 +212,7 @@ class _CustomModesDemoState extends State<CustomModesDemo> {
                 segments: [
                   for (final rule in [
                     followsDependency,
-                    quietDependencies,
+                    onOwnEdits,
                     onUnfocusOnly,
                   ])
                     ButtonSegment(value: rule, label: Text(rule.name)),
@@ -240,12 +246,12 @@ class _CustomModesDemoState extends State<CustomModesDemo> {
 The rule is a plain function, so test it without a form:
 
 ```dart
-test('quietDependencies ignores dependency changes', () {
+test('onOwnEdits ignores dependency changes', () {
   const context = ValidationContext(
     event: ValidationEvent.dependencyChanged,
     everUnfocused: true,
   );
-  expect(quietDependencies.shouldValidate(context), isFalse);
+  expect(onOwnEdits.shouldValidate(context), isFalse);
 });
 ```
 
@@ -256,7 +262,7 @@ To test it through a field, edit the field first (`setValue`), then drive the ev
 ## Next
 
 <Cards>
-  <Card title="Validation modes" href="./modes.mdx" description="The four modes and the gate table they come from." />
+  <Card title="Available modes" href="./modes.mdx" description="The four modes and the gate table they come from." />
   <Card title="Configuring the mode" href="./configuring.mdx" description="Per form, per field, per subform; switching validation off." />
   <Card title="Under the hood" href="../internals/index.mdx" description="Why the gate reads no status." />
 </Cards>

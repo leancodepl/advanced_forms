@@ -36,12 +36,15 @@ repeatPassword
   ..setValidationMode(followsDependency)
   ..subscribeToFields([password]);
 
-// Live after the first unfocus, but a dependency change never re-checks it.
-final quietDependencies = ValidationMode.custom(
-  'quietDependencies',
-  (c) => c.everUnfocused && c.event == ValidationEvent.valueChanged,
+// Re-check on every keystroke, never because another field changed
+// (an async availability check that should not re-run on a country change).
+final onOwnEdits = ValidationMode.custom(
+  'onOwnEdits',
+  (c) => c.event == ValidationEvent.valueChanged,
 );
-form.setValidationMode(quietDependencies);
+username
+  ..setValidationMode(onOwnEdits)
+  ..subscribeToFields([country]);
 ```
 
 Test a rule without a form: `mode.shouldValidate(const ValidationContext(event: ValidationEvent.unfocus, everUnfocused: false))`.
