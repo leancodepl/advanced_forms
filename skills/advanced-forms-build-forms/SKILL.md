@@ -70,6 +70,10 @@ A round runs the sync validator first, then the async validator only if sync pas
 | `manual` (default) | — | — | — |
 | `onUserInteraction` | validate (async debounced) | — | sync only |
 | `onUnfocus` | — | validate | sync only |
+| `afterFirstUnfocus` | — until the field was first left after an edit, validate after | validate, the first time | sync only |
+| `ValidationMode.custom(name, fn)` | whatever `fn` says, given the event and whether the field was ever left; never for an untouched field | | |
+
+A rule none of the four modes states is a custom mode: [validation](references/validation.md#a-mode-of-your-own). Reach for the built-in modes first.
 
 `await form.validate()` checks every field and subform, untouched included, and returns `false` when anything is invalid. It neither reads nor changes the mode. `state.isValid` and `form.value.canSubmit` mean no error is recorded, including on a field nobody has checked. Read values only after `validate()` returns `true` — that is what licenses a `!` on a nullable value. A second call re-runs the sync validators and awaits async checks already in flight.
 

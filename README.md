@@ -16,7 +16,7 @@
 - **Validators that compose** — `filled`, `notEmpty`, `notNull`, `mustBeTrue`, `atLeastLength`, `notLongerThan`, `exactly` and numeric checks, combined with `&` and `|`, or any `E? Function(T)` you write yourself.
 - **Async validation** — debounced server-side checks ("is this email taken?") with a timeout, failure handling and cached answers.
 - **Cross-field validation** — re-run a validator when the fields it depends on change, or derive one field's value from another.
-- **Validation modes** — validate on submit, on every keystroke, or on unfocus. Set once, applied to the whole form.
+- **Validation modes** — validate on submit, on every keystroke, on unfocus, or on unfocus first and every keystroke after. Set once, applied to the whole form.
 - **Subforms** — attach and detach nested form controllers; their fields join the parent's validate, reset, read-only and error handling.
 - **Form-level state** — `canSubmit`, `wasModified`, `validating` and `validationErrors`, ready to bind to a submit button.
 - **Read-only fields and server-side errors** — freeze a value, or push an error in from an API response.
@@ -228,6 +228,7 @@ Three rules cover every case:
 | `manual` (default) | Nothing validates until submit. Editing a field still clears the error that described its old value |
 | `onUserInteraction` | Every keystroke validates the field being edited; the async check waits out its debounce |
 | `onUnfocus` | Leaving a field the user edited validates it. Tabbing through it, or leaving it unchanged, costs nothing |
+| `afterFirstUnfocus` | Quiet while the user types, until the field is first left after an edit. From then on every edit validates it, so an error disappears the moment the value is fixed |
 
 ```dart
 final form = AdvancedFormController(
@@ -238,7 +239,27 @@ final form = AdvancedFormController(
 form.email.setValidationMode(ValidationMode.onUserInteraction);
 ```
 
-`onUnfocus` needs the widget to bind the field's `focusNode`, or to call `field.handleUnfocus()` itself — which is what a picker or a dropdown does.
+`onUnfocus` and `afterFirstUnfocus` need the widget to bind the field's `focusNode`, or to call `field.handleUnfocus()` itself — which is what a picker or a dropdown does.
+
+### Your own validation mode
+
+When none of the four modes says what a form needs, write the rule yourself. `ValidationMode.custom(name, fn)` makes a mode the package treats like a built-in one: set it on the form and it reaches every field and subform.
+
+```dart
+// Re-check only when another field changes, never on this field's own edits.
+final followsDependency = ValidationMode.custom(
+  'followsDependency',
+  (c) => c.event == ValidationEvent.dependencyChanged,
+);
+
+repeatPassword
+  ..setValidationMode(followsDependency)
+  ..subscribeToFields([password]);
+```
+
+The rule gets a `ValidationContext` with two fields: `event` (`valueChanged`, `unfocus` or `dependencyChanged`) and `everUnfocused` (the user has left the field after editing it, at least once). It never sees the status or the errors, because every edit clears them and a rule reading them would stop validating as the user started fixing the value. The three rules above still hold: an untouched field validates nothing whatever the rule says, `validate()` ignores the mode, and a round runs sync before async.
+
+Modes are compared by name, so a name must be unique across your app; a built-in name throws. The [docs](https://advanced-forms.leancode.co/docs/validation/custom-modes) have more examples and how to test a rule.
 
 The field makes and owns that `focusNode`. Pass `focusNode:` to the constructor to bind one you already own instead — the field listens to it but never disposes it.
 

@@ -22,9 +22,38 @@ class SignupFormController extends AdvancedFormController {
 }
 ```
 
+## A mode of your own
+
+Reach for one of the four modes first. `ValidationMode.custom(name, fn)` is for a rule none of them states. `fn` gets a `ValidationContext` with `event` (`valueChanged`, `unfocus`, `dependencyChanged`) and `everUnfocused` (the user has left the field after editing it, at least once). It never sees the status, the errors or the value, and it is never asked about a field the user has not edited. Do not capture the field in the closure to read its error: every edit clears the errors, so such a rule stops validating as the user starts fixing the value. Modes are compared by `name`, so the name must be unique; a built-in name throws. Set the mode on the form (reaches every field and subform) or on one field (that field keeps it), exactly like a built-in mode.
+
+```dart
+// Re-check only when another field changes, never on this field's own edits.
+final followsDependency = ValidationMode.custom(
+  'followsDependency',
+  (c) => c.event == ValidationEvent.dependencyChanged,
+);
+repeatPassword
+  ..setValidationMode(followsDependency)
+  ..subscribeToFields([password]);
+
+// Re-check on every keystroke, never because another field changed
+// (an async availability check that should not re-run on a country change).
+final onOwnEdits = ValidationMode.custom(
+  'onOwnEdits',
+  (c) => c.event == ValidationEvent.valueChanged,
+);
+username
+  ..setValidationMode(onOwnEdits)
+  ..subscribeToFields([country]);
+```
+
+Test a rule without a form: `mode.shouldValidate(const ValidationContext(event: ValidationEvent.unfocus, everUnfocused: false))`.
+
 ## Unfocus the widget owns
 
-`onUnfocus` listens to the field's `focusNode`, so the widget binds it ([binding](binding.md)). A picker, date dialog, or custom dropdown that owns focus calls `field.handleUnfocus()` — otherwise nothing validates in that mode. It returns `Future<void>`. In any mode it flushes a pending debounce.
+`onUnfocus` and `afterFirstUnfocus` listen to the field's `focusNode`, so the widget binds it ([binding](binding.md)). A picker, date dialog, or custom dropdown that owns focus calls `field.handleUnfocus()` — otherwise nothing validates in those modes. It returns `Future<void>`. In any mode it flushes a pending debounce.
+
+`afterFirstUnfocus` is the "quiet at first, live once left" pattern: no error while the user types, the first unfocus after an edit validates, and from then on every edit does. Only an unfocus flips it; `validate()` from submit does not, and `reset()` flips it back.
 
 ## Built-in validators
 
@@ -92,7 +121,7 @@ final username = AdvancedTextFieldController(
 );
 ```
 
-- **Debounce** delays a round a keystroke started. It applies in `onUserInteraction`. In `manual` and `onUnfocus` the check starts from `validate()` or from leaving the field, so `debounce` changes nothing.
+- **Debounce** delays a round a keystroke started. It applies in `onUserInteraction`, and in `afterFirstUnfocus` once the field was first left. In `manual` and `onUnfocus` the check starts from `validate()` or from leaving the field, so `debounce` changes nothing.
 - A value change cancels the in-flight round. A stale answer never lands.
 - A settled answer is reused while the value is unchanged, so a second submit on an untouched form makes no network call. Any `setValue` drops the cached answer. When the check depends on state outside the value, invalidate with `field.clearErrors()`.
 - `state.isPending` / `isValidating` / `isInProgress` — a spinner is `isInProgress`.

@@ -1,0 +1,268 @@
+---
+title: Your own validation mode
+description: When none of the four modes says what your form needs, write the rule yourself with ValidationMode.custom. What the rule sees, what it never sees, and what still holds.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+The four modes cover most forms: validate on submit, on every keystroke, when a field is left, or live once it was
+first left. When a form needs a rule none of them states, `ValidationMode.custom` lets you write that rule as a
+function, and the package treats it exactly like a built-in mode: set it on the form, it reaches every field and
+subform; set it on one field, that field keeps it.
+
+```dart
+// Re-check a field on its own edits only, never because another field changed.
+final onOwnEdits = ValidationMode.custom(
+  'onOwnEdits',
+  (c) => c.event == ValidationEvent.valueChanged,
+);
+
+final form = AdvancedFormController(validationMode: onOwnEdits);
+```
+
+Reach for the built-in modes first. A custom mode is for the case you can state in one sentence and no mode covers,
+not for tuning a mode that almost fits.
+
+## What the rule sees
+
+The function gets a `ValidationContext` and answers one question: should the field validate itself right now?
+
+| Field | Meaning |
+| --- | --- |
+| `event` | What is happening: `valueChanged` (the user edited the value), `unfocus` (focus left the field) or `dependencyChanged` (a field this one depends on changed) |
+| `everUnfocused` | The user has left this field after editing it, at least once. `reset()` clears it |
+
+That is the whole input. The context carries no status, no errors and no value, on purpose. Every edit clears the
+errors and a debounced async check sets the status to `pending`, so a rule that asked "does this field have an error"
+would stop validating at the exact moment the user started fixing the value. Do not work around this by capturing the
+field in the closure and reading its state from there: it is the same trap with extra steps.
+
+The four modes are written with the same two inputs. `afterFirstUnfocus`, for example, is
+`c.everUnfocused ? c.event != unfocus : c.event != valueChanged`.
+
+## What still holds
+
+A custom mode changes which events validate a field. It changes nothing else:
+
+- **An untouched field validates nothing on its own.** The field checks that before it asks any mode, so a rule that
+  always answers `true` still cannot reach a field the user has not edited. `validate()` is what checks those.
+- **`validate()` ignores the mode** and never changes it, custom or not.
+- **A round runs the sync validator first**, and the async validator only if sync passed. A round started by an edit
+  waits out the debounce; one started by an unfocus runs at once.
+- **The mode reaches the whole tree.** Set on the form, it is broadcast to every field and subform, including ones
+  registered or attached later. A field or subform with its own mode keeps it, as with the built-in modes (see
+  [Configuring the mode](./configuring.mdx)).
+- **Switching validation off** still beats every mode: `setValidationEnabled(false)` makes the tree behave as `manual`.
+
+## The name
+
+Modes are compared by name. Two `custom` modes with the same name are the same mode, so one created in `build()` is
+not a mode change and leaves a round in flight alone. The other way round, two different rules under one name are
+indistinguishable to the package, so a name must be unique across your app. A built-in name (`manual`,
+`onUserInteraction`, `onUnfocus`, `afterFirstUnfocus`) throws.
+
+`toString()` prints `ValidationMode.<name>`, which is what you see in a test failure.
+
+## Examples
+
+Re-check a field only when another field changes, never on its own edits. A "repeat password" field that should go
+red when the password above it changes, but stay quiet while it is being typed:
+
+```dart
+final followsDependency = ValidationMode.custom(
+  'followsDependency',
+  (c) => c.event == ValidationEvent.dependencyChanged,
+);
+
+repeatPassword
+  ..setValidationMode(followsDependency)
+  ..subscribeToFields([password]);
+```
+
+Validate on leaving the field, but ignore dependency changes until the user comes back:
+
+```dart
+final onUnfocusOnly = ValidationMode.custom(
+  'onUnfocusOnly',
+  (c) => c.event == ValidationEvent.unfocus,
+);
+```
+
+Re-check on every keystroke, but never because another field changed. A username field with an async availability
+check that should not hit the server again just because the user picked a different country:
+
+```dart
+final onOwnEdits = ValidationMode.custom(
+  'onOwnEdits',
+  (c) => c.event == ValidationEvent.valueChanged,
+);
+
+username
+  ..setValidationMode(onOwnEdits)
+  ..subscribeToFields([country]);
+```
+
+## Try it
+
+Three rules on the Repeat password field; Password stays on the form's default. Type in both fields, then change
+Password and watch what each rule does with the mismatch.
+
+<AdvancedFormsExample preview="CustomModesDemo" title="custom_modes.dart" code="collapsed">
+
+```dart title="password_form_controller.dart"
+class PasswordFormController extends AdvancedFormController {
+  PasswordFormController() {
+    registerFields([password, repeatPassword]);
+    repeatPassword.subscribeToFields([password]);
+  }
+
+  final password = AdvancedTextFieldController(
+    validator: atLeastLength(4, 'At least 4 characters'),
+  );
+
+  late final repeatPassword = AdvancedTextFieldController(
+    validator: (value) =>
+        value == password.fieldValue ? null : 'Passwords do not match',
+  );
+}
+```
+
+```dart title="custom_modes_demo.dart"
+// Re-check only when Password changes, never on this field's own edits.
+final followsDependency = ValidationMode.custom(
+  'followsDependency',
+  (c) => c.event == ValidationEvent.dependencyChanged,
+);
+
+// Re-check on every keystroke, never because Password changed.
+final onOwnEdits = ValidationMode.custom(
+  'onOwnEdits',
+  (c) => c.event == ValidationEvent.valueChanged,
+);
+
+// Only leaving the field validates it.
+final onUnfocusOnly = ValidationMode.custom(
+  'onUnfocusOnly',
+  (c) => c.event == ValidationEvent.unfocus,
+);
+
+class CustomModesDemo extends StatefulWidget {
+  const CustomModesDemo({super.key});
+
+  @override
+  State<CustomModesDemo> createState() => _CustomModesDemoState();
+}
+
+class _CustomModesDemoState extends State<CustomModesDemo> {
+  final _form = PasswordFormController();
+  var _rule = followsDependency;
+
+  @override
+  void initState() {
+    super.initState();
+    _form.repeatPassword.setValidationMode(_rule);
+  }
+
+  @override
+  void dispose() {
+    _form.dispose();
+    super.dispose();
+  }
+
+  void _setRule(ValidationMode rule) {
+    setState(() => _rule = rule);
+    // The rule is a mode like any other; this field keeps its own.
+    _form.repeatPassword.setValidationMode(rule);
+  }
+
+  Future<void> _submit() async {
+    final ok = await _form.validate();
+    if (mounted) {
+      ExampleLog.of(context).add(ok ? 'Saved.' : 'Not saved: invalid.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hint = switch (_rule.name) {
+      'followsDependency' =>
+        'Repeat password re-checks only when Password changes. Its own '
+            'edits stay quiet until Save.',
+      'onOwnEdits' =>
+        'Every keystroke in Repeat password re-checks it. Changing Password '
+            'does not.',
+      _ => 'Leaving Repeat password validates it. Changing Password does not.',
+    };
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Full width when it fits, a horizontal scroll when it does not.
+        LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minWidth: constraints.maxWidth),
+              child: SegmentedButton<ValidationMode>(
+                showSelectedIcon: false,
+                segments: [
+                  for (final rule in [
+                    followsDependency,
+                    onOwnEdits,
+                    onUnfocusOnly,
+                  ])
+                    ButtonSegment(value: rule, label: Text(rule.name)),
+                ],
+                selected: {_rule},
+                onSelectionChanged: (selection) => _setRule(selection.first),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        DocsHint(hint),
+        DocsTextField(field: _form.password, label: 'Password'),
+        DocsTextField(field: _form.repeatPassword, label: 'Repeat password'),
+        DocsActions(
+          children: [
+            DocsSubmitButton(form: _form, label: 'Save', onPressed: _submit),
+            TextButton(onPressed: _form.resetAll, child: const Text('Reset')),
+          ],
+        ),
+      ],
+    );
+  }
+}
+```
+
+</AdvancedFormsExample>
+
+## Testing a rule
+
+The rule is a plain function, so test it without a form:
+
+```dart
+test('onOwnEdits ignores dependency changes', () {
+  const context = ValidationContext(
+    event: ValidationEvent.dependencyChanged,
+    everUnfocused: true,
+  );
+  expect(onOwnEdits.shouldValidate(context), isFalse);
+});
+```
+
+To test it through a field, edit the field first (`setValue`), then drive the event: `setValue` again for
+`valueChanged`, `handleUnfocus()` for `unfocus`, `revalidateSync()` for `dependencyChanged`. See
+[Testing](../testing.mdx).
+
+## Next
+
+<Cards>
+  <Card title="Available modes" href="./modes.mdx" description="The four modes and the gate table they come from." />
+  <Card title="Configuring the mode" href="./configuring.mdx" description="Per form, per field, per subform; switching validation off." />
+  <Card title="Under the hood" href="../internals/index.mdx" description="Why the gate reads no status." />
+</Cards>

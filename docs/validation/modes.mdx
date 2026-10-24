@@ -1,6 +1,6 @@
 ---
-title: Validation modes
-description: Three rules and one table decide when a field validates itself — on submit, on every keystroke, or when it loses focus.
+title: Available modes
+description: The four modes that ship with the package, and the three rules and one table they come from — validate on submit, on every keystroke, when a field is left, or live once it was first left.
 ---
 
 {/*
@@ -20,13 +20,14 @@ A validator is a function: value in, error out, `null` means valid. *When* it ru
 
 `validate()` obeys none of them: it ignores the mode, never changes it, and runs every field — touched or not.
 
-## The three modes
+## The four modes
 
 | `ValidationMode` | What the user sees |
 | --- | --- |
 | `manual` (default) | Nothing validates until `validate()` is called — usually on submit. Editing a field still clears the error that described its old value |
 | `onUserInteraction` | Every edit validates the field being edited; the async check waits out its debounce |
 | `onUnfocus` | Leaving a field the user edited validates it. Tabbing through an untouched field costs nothing; a debounced async check is flushed on the way out |
+| `afterFirstUnfocus` | Quiet while the user types, until the field is first left after an edit. From then on every edit validates it, so an error disappears the moment the value is fixed |
 
 The gate, in full — the row is the mode, the column is the event:
 
@@ -35,9 +36,23 @@ The gate, in full — the row is the mode, the column is the event:
 | `manual` | — | — | — |
 | `onUserInteraction` | validate | — (the edit already did) | sync only |
 | `onUnfocus` | — (still typing) | validate | sync only |
+| `afterFirstUnfocus`, not yet left | — (still typing) | validate | sync only |
+| `afterFirstUnfocus`, left once | validate | — (the edit already did) | sync only |
+
+`afterFirstUnfocus` is the `onUnfocus` row until the user first leaves the field after editing it, and the
+`onUserInteraction` row from then on. Only that unfocus flips it: a `validate()` from a submit button does not, and
+`reset()` flips it back. A field the user tabbed through without editing has not been "left" in this sense, so it still
+waits. Like `onUnfocus`, it needs the widget to bind `field.focusNode` (see [Configuring the mode](./configuring.mdx)).
 
 "A dependency changed" is what [`subscribeToFields`](./cross-field.mdx) and `validateAll` produce; it re-runs the sync
 validator only, because this field's own value did not change and its async verdict still stands.
+
+## A mode of your own
+
+The four modes are constants of `ValidationMode`, and `ValidationMode.custom(name, fn)` makes one from your own rule.
+The rule sees the same two inputs the built-in modes are written with: which event is happening and whether the user
+has ever left the field after editing it. Everything else on this page still holds for it, the untouched-field rule
+included. [Your own validation mode](./custom-modes.mdx) has the whole story.
 
 ## Try it
 
@@ -107,19 +122,37 @@ class _ValidationModesDemoState extends State<ValidationModesDemo> {
       ValidationMode.onUnfocus =>
         'Leaving a field you edited validates it. Tabbing through an '
             'untouched field costs nothing.',
+      ValidationMode.afterFirstUnfocus =>
+        'Quiet while you type. Leaving a field you edited validates it, '
+            'and from then on every keystroke does.',
+      _ => 'A mode of your own.',
     };
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SegmentedButton<ValidationMode>(
-          showSelectedIcon: false,
-          segments: [
-            for (final mode in ValidationMode.values)
-              ButtonSegment(value: mode, label: Text(mode.name)),
-          ],
-          selected: {_mode},
-          onSelectionChanged: (selection) => _setMode(selection.first),
+        // Full width when it fits, a horizontal scroll when it does not.
+        LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minWidth: constraints.maxWidth),
+              child: SegmentedButton<ValidationMode>(
+                showSelectedIcon: false,
+                segments: [
+                  for (final mode in [
+                    ValidationMode.manual,
+                    ValidationMode.onUserInteraction,
+                    ValidationMode.onUnfocus,
+                    ValidationMode.afterFirstUnfocus,
+                  ])
+                    ButtonSegment(value: mode, label: Text(mode.name)),
+                ],
+                selected: {_mode},
+                onSelectionChanged: (selection) => _setMode(selection.first),
+              ),
+            ),
+          ),
         ),
         const SizedBox(height: 8),
         DocsHint(hint),
@@ -146,6 +179,7 @@ class _ValidationModesDemoState extends State<ValidationModesDemo> {
 ## Next
 
 <Cards>
+  <Card title="Your own validation mode" href="./custom-modes.mdx" description="A rule none of the four modes states." />
   <Card title="Configuring the mode" href="./configuring.mdx" description="Per form, per field, per subform; prefill; switching validation off." />
   <Card title="What validate() does" href="./validate.mdx" description="The one call that ignores the mode." />
 </Cards>

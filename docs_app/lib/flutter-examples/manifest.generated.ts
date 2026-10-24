@@ -23,6 +23,7 @@ export interface FlutterExample {
 
 export const flutterExamples: Record<string, FlutterExample> = {
   "047778d0ab54": { preview: "SignupForm", files: 3, docs: ["docs/first-form.mdx","docs_app/content/landing/signup.mdx"] },
+  "088b30028624": { preview: "CustomModesDemo", files: 2, docs: ["docs/validation/custom-modes.mdx"], helpers: ["DocsActions","DocsHint","DocsSubmitButton","DocsTextField"] },
   "0e5adec0d12e": { preview: "HeroSignupForm", files: 1, docs: ["docs_app/content/landing/hero.mdx"], helpers: ["DocsActions","DocsHint","DocsSubmitButton","DocsSwitchField","DocsTextField"] },
   "16fd48df04c0": { preview: "TextInputDemo", files: 2, docs: ["docs/rendering/text.mdx"], helpers: ["DocsActions"] },
   "18570b69c83d": { preview: "UsernameAvailabilityForm", files: 2, docs: ["docs/validation/async.mdx","docs_app/content/landing/async.mdx"], helpers: ["DocsFailureBanner","DocsFieldStatus","DocsHint","DocsSubmitButton","DocsTextField"] },
@@ -30,6 +31,7 @@ export const flutterExamples: Record<string, FlutterExample> = {
   "24da91a8b29c": { preview: "PizzaOrderForm", files: 2, docs: ["docs/fields/index.mdx"], helpers: ["DocsActions","DocsChipsField","DocsDropdownField","DocsSubmitButton","DocsSwitchField","DocsTextField"] },
   "3f3d204cc417": { preview: "SelectInputDemo", files: 3, docs: ["docs/rendering/select.mdx"], helpers: ["DocsActions"] },
   "5276a0a4f33c": { preview: "FocusForm", files: 2, docs: ["docs/focus.mdx"], helpers: ["DocsActions","DocsSubmitButton","DocsTextField"] },
+  "5587ce64d9ff": { preview: "ValidationModesDemo", files: 2, docs: ["docs/validation/modes.mdx","docs_app/content/landing/modes.mdx"], helpers: ["DocsActions","DocsHint","DocsSubmitButton","DocsTextField"] },
   "5cef6df3c4e9": { preview: "StateInspector", files: 2, docs: ["docs/concepts/state.mdx"], helpers: ["DocsActions","DocsTextField"] },
   "6ca6c8909e84": { preview: "WizardForm", files: 3, docs: ["docs/subforms/wizard.mdx"], helpers: ["DocsActions","DocsDropdownField","DocsSubmitButton","DocsSwitchField","DocsTextField"] },
   "73b97401fc82": { preview: "ProfileForm", files: 2, docs: ["docs/server-errors/index.mdx"], helpers: ["DocsActions","DocsHint","DocsSubmitButton","DocsTextField"] },
@@ -39,6 +41,5 @@ export const flutterExamples: Record<string, FlutterExample> = {
   "c513edd2c993": { preview: "PasswordRulesForm", files: 2, docs: ["docs/validation/custom-validators.mdx"], helpers: ["DocsTextField"] },
   "e2356ccef99b": { preview: "GuestListForm", files: 2, docs: ["docs/subforms/index.mdx"], helpers: ["DocsActions","DocsSubmitButton","DocsTextField"] },
   "f21af60e91f0": { preview: "BooleanInputDemo", files: 3, docs: ["docs/rendering/boolean.mdx"], helpers: ["DocsActions"] },
-  "f295a159666b": { preview: "ValidationModesDemo", files: 2, docs: ["docs/validation/modes.mdx","docs_app/content/landing/modes.mdx"], helpers: ["DocsActions","DocsHint","DocsSubmitButton","DocsTextField"] },
   "f733c75e06e6": { preview: "PrefillDemo", files: 2, docs: ["docs/lifecycle/prefilled-forms.mdx"], helpers: ["DocsActions","DocsFormStatus","DocsTextField"] },
 }

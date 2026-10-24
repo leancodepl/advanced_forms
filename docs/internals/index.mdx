@@ -33,33 +33,38 @@ codes is never used for the throw path.
 
 ## The gate reads no field status
 
-The whole trigger behaviour is one function of the mode, the event, and whether the user has edited the field:
+The whole trigger behaviour is one function of the mode, the event, and two bits the user's actions set: whether they
+have edited the field, and whether they have left it since:
 
 ```dart
-bool validatesOn(
-  ValidationEvent event, {
-  required ValidationMode mode,
-  required bool hasInteracted,
-}) =>
-    hasInteracted &&
-    switch (mode) {
-      ValidationMode.manual => false,
-      ValidationMode.onUserInteraction => event != ValidationEvent.unfocus,
-      ValidationMode.onUnfocus => event != ValidationEvent.valueChanged,
-    };
+// In the field, before any mode is asked:
+bool _shouldValidateOn(ValidationEvent event) =>
+    _hasInteracted &&
+    _value.validationMode.shouldValidate(
+      ValidationContext(event: event, everUnfocused: _everUnfocused),
+    );
 ```
+
+The four built-in modes are `ValidationMode` constants wrapping one function each; `ValidationMode.custom` wraps
+yours. The untouched-field rule sits in front of all of them, in the field, so no mode can reach a field the user has
+not edited.
 
 It reads no field *status* on purpose. A debounced round overwrites the status with `pending` and the write path clears
 both error slots, so any gate that looked at "does this field currently have an error" would disarm itself exactly as
-the user started fixing the value.
+the user started fixing the value. The two bits are not status: an event sets each one, and only `reset()` clears
+them. That is what lets `afterFirstUnfocus` switch from the `onUnfocus` row to the `onUserInteraction` row without a
+latch that a round could erase.
 
-## Why three modes and not Flutter's five
+## Why not Flutter's five modes
 
 An earlier design took Flutter's whole `AutovalidateMode`. Cutting to three deleted, in one move: a latch flipped by
 settling checks, a gate that read `status`, a sweep on registration and on mode change, escalation at submit, and a
 live parent link with its own lifecycle. Escalation was what forced inheritance to be a live link, and the live link is
 what produced the bug where late-attached subforms missed the push. Deleting escalation deleted the bug's cause rather
 than its symptom.
+
+`afterFirstUnfocus` came later and brought none of that back: the mode never changes by itself, and the bit it reads
+is set by an unfocus, not derived from a verdict.
 
 Mode and the enabled flag reach children **by broadcast**, never through a back-reference to the parent. "Validation
 disabled" is expressed as broadcasting an effective mode of `manual`, so there is one mechanism instead of two. A form
