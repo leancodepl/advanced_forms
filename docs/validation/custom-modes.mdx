@@ -1,0 +1,127 @@
+---
+title: Your own validation mode
+description: When none of the four modes says what your form needs, write the rule yourself with ValidationMode.custom. What the rule sees, what it never sees, and what still holds.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+The four modes cover most forms: validate on submit, on every keystroke, when a field is left, or live once it was
+first left. When a form needs a rule none of them states, `ValidationMode.custom` lets you write that rule as a
+function, and the package treats it exactly like a built-in mode: set it on the form, it reaches every field and
+subform; set it on one field, that field keeps it.
+
+```dart
+final quietDependencies = ValidationMode.custom(
+  'quietDependencies',
+  (c) => c.everUnfocused && c.event == ValidationEvent.valueChanged,
+);
+
+final form = AdvancedFormController(validationMode: quietDependencies);
+```
+
+Reach for the built-in modes first. A custom mode is for the case you can state in one sentence and no mode covers,
+not for tuning a mode that almost fits.
+
+## What the rule sees
+
+The function gets a `ValidationContext` and answers one question: should the field validate itself right now?
+
+| Field | Meaning |
+| --- | --- |
+| `event` | What is happening: `valueChanged` (the user edited the value), `unfocus` (focus left the field) or `dependencyChanged` (a field this one depends on changed) |
+| `everUnfocused` | The user has left this field after editing it, at least once. `reset()` clears it |
+
+That is the whole input. The context carries no status, no errors and no value, on purpose. Every edit clears the
+errors and a debounced async check sets the status to `pending`, so a rule that asked "does this field have an error"
+would stop validating at the exact moment the user started fixing the value. Do not work around this by capturing the
+field in the closure and reading its state from there: it is the same trap with extra steps.
+
+The four modes are written with the same two inputs. `afterFirstUnfocus`, for example, is
+`c.everUnfocused ? c.event != unfocus : c.event != valueChanged`.
+
+## What still holds
+
+A custom mode changes which events validate a field. It changes nothing else:
+
+- **An untouched field validates nothing on its own.** The field checks that before it asks any mode, so a rule that
+  always answers `true` still cannot reach a field the user has not edited. `validate()` is what checks those.
+- **`validate()` ignores the mode** and never changes it, custom or not.
+- **A round runs the sync validator first**, and the async validator only if sync passed. A round started by an edit
+  waits out the debounce; one started by an unfocus runs at once.
+- **The mode reaches the whole tree.** Set on the form, it is broadcast to every field and subform, including ones
+  registered or attached later. A field or subform with its own mode keeps it, as with the built-in modes (see
+  [Configuring the mode](./configuring.mdx)).
+- **Switching validation off** still beats every mode: `setValidationEnabled(false)` makes the tree behave as `manual`.
+
+## The name
+
+Modes are compared by name. Two `custom` modes with the same name are the same mode, so one created in `build()` is
+not a mode change and leaves a round in flight alone. The other way round, two different rules under one name are
+indistinguishable to the package, so a name must be unique across your app. A built-in name (`manual`,
+`onUserInteraction`, `onUnfocus`, `afterFirstUnfocus`) throws.
+
+`toString()` prints `ValidationMode.<name>`, which is what you see in a test failure.
+
+## Examples
+
+Re-check a field only when another field changes, never on its own edits. A "repeat password" field that should go
+red when the password above it changes, but stay quiet while it is being typed:
+
+```dart
+final followsDependency = ValidationMode.custom(
+  'followsDependency',
+  (c) => c.event == ValidationEvent.dependencyChanged,
+);
+
+repeatPassword
+  ..setValidationMode(followsDependency)
+  ..subscribeToFields([password]);
+```
+
+Validate on leaving the field, but ignore dependency changes until the user comes back:
+
+```dart
+final onUnfocusOnly = ValidationMode.custom(
+  'onUnfocusOnly',
+  (c) => c.event == ValidationEvent.unfocus,
+);
+```
+
+Live after the first unfocus, like `afterFirstUnfocus`, but a dependency change never re-checks the field:
+
+```dart
+final quietDependencies = ValidationMode.custom(
+  'quietDependencies',
+  (c) => c.everUnfocused && c.event == ValidationEvent.valueChanged,
+);
+```
+
+## Testing a rule
+
+The rule is a plain function, so test it without a form:
+
+```dart
+test('quietDependencies ignores dependency changes', () {
+  const context = ValidationContext(
+    event: ValidationEvent.dependencyChanged,
+    everUnfocused: true,
+  );
+  expect(quietDependencies.shouldValidate(context), isFalse);
+});
+```
+
+To test it through a field, edit the field first (`setValue`), then drive the event: `setValue` again for
+`valueChanged`, `handleUnfocus()` for `unfocus`, `revalidateSync()` for `dependencyChanged`. See
+[Testing](../testing.mdx).
+
+## Next
+
+<Cards>
+  <Card title="Validation modes" href="./modes.mdx" description="The four modes and the gate table they come from." />
+  <Card title="Configuring the mode" href="./configuring.mdx" description="Per form, per field, per subform; switching validation off." />
+  <Card title="Under the hood" href="../internals/index.mdx" description="Why the gate reads no status." />
+</Cards>

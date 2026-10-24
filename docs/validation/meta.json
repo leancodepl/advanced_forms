@@ -4,6 +4,7 @@
   "pages": [
     "modes",
     "configuring",
+    "custom-modes",
     "validate",
     "validators",
     "custom-validators",
