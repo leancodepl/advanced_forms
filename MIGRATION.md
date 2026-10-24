@@ -470,28 +470,39 @@ addRelation(
 
 Outside a form, a raw listener works the same way with the comparison written by hand and a `removeListener` in `dispose()`.
 
-**Code that composes streams** — rxdart operators, `await for`, merging fields into a pipeline. A field has no stream (the deprecated `stream` bridge was removed in 0.3.0). Where a pipeline needs one, wrap the listener yourself and keep the stream in a field, so it is created once:
+**Code that composes streams** — rxdart operators, `await for`, merging fields into a pipeline. A field has no stream (the deprecated `stream` bridge was removed in 0.3.0). Where a pipeline needs one, own a small adapter next to the field and close it when the field goes:
 
 ```dart
-Stream<AdvancedFieldState<T, E>> statesOf<T, E extends Object>(
-  AdvancedFieldController<T, E> field,
-) {
-  late final StreamController<AdvancedFieldState<T, E>> controller;
-  void listener() => controller.add(field.value);
-  controller = StreamController.broadcast(
-    onListen: () => field.addListener(listener),
-    onCancel: () => field.removeListener(listener),
-  );
-  return controller.stream;
+/// A field's states as a broadcast stream. Close it from dispose().
+class FieldStates<T, E extends Object> {
+  FieldStates(this._field) {
+    _controller = StreamController.broadcast(
+      onListen: () => _field.addListener(_emit),
+      onCancel: () => _field.removeListener(_emit),
+    );
+  }
+
+  final AdvancedFieldController<T, E> _field;
+  late final StreamController<AdvancedFieldState<T, E>> _controller;
+
+  void _emit() => _controller.add(_field.value);
+
+  Stream<AdvancedFieldState<T, E>> get stream => _controller.stream;
+
+  /// Ends every subscription and any `await for` over [stream].
+  Future<void> close() => _controller.close();
 }
 
-final quantities = statesOf(quantityField);
-final subscription = quantities
+final quantities = FieldStates(quantityField);
+final subscription = quantities.stream
     .map((state) => state.value.amount)
     .listen(recalculateTotals);
+
+// In dispose(), before the field:
+await quantities.close();
 ```
 
-Unlike `Cubit.stream`, this controller is never closed, so it does not terminate an `await for` loop; cancel the subscription in `dispose()`.
+`close()` is what `Cubit.close()` used to do for you: it completes the stream, so an `await for` loop ends and listeners are detached.
 
 ---
 
