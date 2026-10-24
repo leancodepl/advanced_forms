@@ -16,9 +16,6 @@
 * The skill is split into a short `SKILL.md` and reference files, so it uses fewer tokens.
 * The docs recommend `dart run skills@ get` as the way to install the skill.
 * The package now works with `equatable` 3.0.0.
-=======
-## Unreleased
-
 ## 0.2.3
 
 * Fixed `validate()` returning a stale answer when called again before the first call had finished; every call now re-runs the sync validators and only an async check in flight is shared.
