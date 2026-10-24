@@ -23,6 +23,7 @@ export interface FlutterExample {
 
 export const flutterExamples: Record<string, FlutterExample> = {
   "047778d0ab54": { preview: "SignupForm", files: 3, docs: ["docs/first-form.mdx","docs_app/content/landing/signup.mdx"] },
+  "088b30028624": { preview: "CustomModesDemo", files: 2, docs: ["docs/validation/custom-modes.mdx"], helpers: ["DocsActions","DocsHint","DocsSubmitButton","DocsTextField"] },
   "0e5adec0d12e": { preview: "HeroSignupForm", files: 1, docs: ["docs_app/content/landing/hero.mdx"], helpers: ["DocsActions","DocsHint","DocsSubmitButton","DocsSwitchField","DocsTextField"] },
   "16fd48df04c0": { preview: "TextInputDemo", files: 2, docs: ["docs/rendering/text.mdx"], helpers: ["DocsActions"] },
   "18570b69c83d": { preview: "UsernameAvailabilityForm", files: 2, docs: ["docs/validation/async.mdx","docs_app/content/landing/async.mdx"], helpers: ["DocsFailureBanner","DocsFieldStatus","DocsHint","DocsSubmitButton","DocsTextField"] },
@@ -34,7 +35,6 @@ export const flutterExamples: Record<string, FlutterExample> = {
   "5cef6df3c4e9": { preview: "StateInspector", files: 2, docs: ["docs/concepts/state.mdx"], helpers: ["DocsActions","DocsTextField"] },
   "6ca6c8909e84": { preview: "WizardForm", files: 3, docs: ["docs/subforms/wizard.mdx"], helpers: ["DocsActions","DocsDropdownField","DocsSubmitButton","DocsSwitchField","DocsTextField"] },
   "73b97401fc82": { preview: "ProfileForm", files: 2, docs: ["docs/server-errors/index.mdx"], helpers: ["DocsActions","DocsHint","DocsSubmitButton","DocsTextField"] },
-  "776a5df6676f": { preview: "CustomModesDemo", files: 2, docs: ["docs/validation/custom-modes.mdx"], helpers: ["DocsActions","DocsHint","DocsSubmitButton","DocsTextField"] },
   "833e51744528": { preview: "OrderTotalForm", files: 2, docs: ["docs/validation/relations.mdx"], helpers: ["DocsTextField"] },
   "8c0ab0393167": { preview: "SliderInputDemo", files: 2, docs: ["docs/rendering/scalar.mdx"], helpers: ["DocsActions"] },
   "9e1503fddf0c": { preview: "PasswordForm", files: 2, docs: ["docs/validation/cross-field.mdx"], helpers: ["DocsTextField"] },
