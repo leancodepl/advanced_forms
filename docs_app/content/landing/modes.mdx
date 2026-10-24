@@ -77,28 +77,17 @@ class _ValidationModesDemoState extends State<ValidationModesDemo> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Full width when it fits, a horizontal scroll when it does not.
-        LayoutBuilder(
-          builder: (context, constraints) => SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minWidth: constraints.maxWidth),
-              child: SegmentedButton<ValidationMode>(
-                showSelectedIcon: false,
-                segments: [
-                  for (final mode in [
-                    ValidationMode.manual,
-                    ValidationMode.onUserInteraction,
-                    ValidationMode.onUnfocus,
-                    ValidationMode.afterFirstUnfocus,
-                  ])
-                    ButtonSegment(value: mode, label: Text(mode.name)),
-                ],
-                selected: {_mode},
-                onSelectionChanged: (selection) => _setMode(selection.first),
-              ),
-            ),
-          ),
+        DocsModePicker(
+          title: 'Select your validation mode',
+          options: const [
+            ValidationMode.manual,
+            ValidationMode.onUserInteraction,
+            ValidationMode.onUnfocus,
+            ValidationMode.afterFirstUnfocus,
+          ],
+          selected: _mode,
+          label: (mode) => mode.name,
+          onSelected: _setMode,
         ),
         const SizedBox(height: 8),
         DocsHint(hint),
