@@ -49,23 +49,10 @@ validator only, because this field's own value did not change and its async verd
 
 ## A mode of your own
 
-The four modes are instances of `ValidationMode`, and `ValidationMode.custom(name, fn)` makes one of your own. The
-function sees a `ValidationContext`: which event is happening and whether the user has ever left the field after
-editing it. It never sees the status or the errors, on purpose (see [Under the hood](../internals/index.mdx)). An
-untouched field still validates nothing, whatever the function says.
-
-```dart
-// Live after the first unfocus, but a dependency change never re-checks it.
-final quietDependencies = ValidationMode.custom(
-  'quietDependencies',
-  (c) => c.everUnfocused && c.event == ValidationEvent.valueChanged,
-);
-
-form.setValidationMode(quietDependencies);
-```
-
-The name is what modes are compared by, so it must be unique across your app: two `custom` modes with the same name
-are the same mode, and a built-in name throws.
+The four modes are constants of `ValidationMode`, and `ValidationMode.custom(name, fn)` makes one from your own rule.
+The rule sees the same two inputs the built-in modes are written with: which event is happening and whether the user
+has ever left the field after editing it. Everything else on this page still holds for it, the untouched-field rule
+included. [Your own validation mode](./custom-modes.mdx) has the whole story.
 
 ## Try it
 
@@ -192,6 +179,7 @@ class _ValidationModesDemoState extends State<ValidationModesDemo> {
 ## Next
 
 <Cards>
+  <Card title="Your own validation mode" href="./custom-modes.mdx" description="A rule none of the four modes states." />
   <Card title="Configuring the mode" href="./configuring.mdx" description="Per form, per field, per subform; prefill; switching validation off." />
   <Card title="What validate() does" href="./validate.mdx" description="The one call that ignores the mode." />
 </Cards>

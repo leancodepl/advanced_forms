@@ -24,9 +24,18 @@ class SignupFormController extends AdvancedFormController {
 
 ## A mode of your own
 
-Reach for one of the four modes first. `ValidationMode.custom(name, fn)` is for a rule none of them states. `fn` gets a `ValidationContext` with `event` (`valueChanged`, `unfocus`, `dependencyChanged`) and `everUnfocused` (the user has left the field after editing it, at least once). It never sees the status or the errors, and it is never asked about a field the user has not edited. Modes are compared by `name`, so the name must be unique; a built-in name throws.
+Reach for one of the four modes first. `ValidationMode.custom(name, fn)` is for a rule none of them states. `fn` gets a `ValidationContext` with `event` (`valueChanged`, `unfocus`, `dependencyChanged`) and `everUnfocused` (the user has left the field after editing it, at least once). It never sees the status, the errors or the value, and it is never asked about a field the user has not edited. Do not capture the field in the closure to read its error: every edit clears the errors, so such a rule stops validating as the user starts fixing the value. Modes are compared by `name`, so the name must be unique; a built-in name throws. Set the mode on the form (reaches every field and subform) or on one field (that field keeps it), exactly like a built-in mode.
 
 ```dart
+// Re-check only when another field changes, never on this field's own edits.
+final followsDependency = ValidationMode.custom(
+  'followsDependency',
+  (c) => c.event == ValidationEvent.dependencyChanged,
+);
+repeatPassword
+  ..setValidationMode(followsDependency)
+  ..subscribeToFields([password]);
+
 // Live after the first unfocus, but a dependency change never re-checks it.
 final quietDependencies = ValidationMode.custom(
   'quietDependencies',
@@ -34,6 +43,8 @@ final quietDependencies = ValidationMode.custom(
 );
 form.setValidationMode(quietDependencies);
 ```
+
+Test a rule without a form: `mode.shouldValidate(const ValidationContext(event: ValidationEvent.unfocus, everUnfocused: false))`.
 
 ## Unfocus the widget owns
 
