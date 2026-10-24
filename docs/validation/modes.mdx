@@ -47,6 +47,26 @@ waits. Like `onUnfocus`, it needs the widget to bind `field.focusNode` (see [Con
 "A dependency changed" is what [`subscribeToFields`](./cross-field.mdx) and `validateAll` produce; it re-runs the sync
 validator only, because this field's own value did not change and its async verdict still stands.
 
+## A mode of your own
+
+The four modes are instances of `ValidationMode`, and `ValidationMode.custom` makes a fifth from a function. The
+function sees a `ValidationContext`: which event happened and whether the user has left the field since editing it.
+It never sees the status or the errors, on purpose (see [Under the hood](../internals/index.mdx)). An untouched field
+still validates nothing, whatever the function says.
+
+```dart
+// Live after the first unfocus, but a dependency change never re-checks it.
+final quietDependencies = ValidationMode.custom(
+  'quietDependencies',
+  (c) => c.hasUnfocused && c.event == ValidationEvent.valueChanged,
+);
+
+form.setValidationMode(quietDependencies);
+```
+
+Keep one instance per mode. `setValidationMode` with an equal mode leaves a round in flight alone, and two `custom`
+calls are never equal.
+
 ## Try it
 
 Switch the mode while you type. The form is the same; only the trigger changes.
@@ -118,6 +138,7 @@ class _ValidationModesDemoState extends State<ValidationModesDemo> {
       ValidationMode.afterFirstUnfocus =>
         'Quiet while you type. Leaving a field you edited validates it, '
             'and from then on every keystroke does.',
+      _ => 'A mode of your own.',
     };
 
     return Column(

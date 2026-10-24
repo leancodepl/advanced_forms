@@ -14,5 +14,6 @@ export 'src/field/advanced_text_field_controller.dart';
 export 'src/field/builder/advanced_field_builder.dart';
 export 'src/form/advanced_form_controller.dart';
 export 'src/form/advanced_form_state.dart';
-export 'src/validation_mode.dart' show ValidationMode;
+export 'src/validation_mode.dart'
+    show ValidationContext, ValidationEvent, ValidationMode, ValidationStrategy;
 export 'src/validators/validators.dart';

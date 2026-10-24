@@ -37,22 +37,20 @@ The whole trigger behaviour is one function of the mode, the event, and two bits
 have edited the field, and whether they have left it since:
 
 ```dart
-bool validatesOn(
-  ValidationEvent event, {
-  required ValidationMode mode,
-  required bool hasInteracted,
-  required bool hasUnfocused,
-}) =>
-    hasInteracted &&
-    switch (mode) {
-      ValidationMode.manual => false,
-      ValidationMode.onUserInteraction => event != ValidationEvent.unfocus,
-      ValidationMode.onUnfocus => event != ValidationEvent.valueChanged,
-      ValidationMode.afterFirstUnfocus => hasUnfocused
-          ? event != ValidationEvent.unfocus
-          : event != ValidationEvent.valueChanged,
-    };
+abstract interface class ValidationStrategy {
+  bool validatesOn(ValidationContext context); // context: event + hasUnfocused
+}
+
+// In the field, before any strategy is asked:
+bool _shouldValidateOn(ValidationEvent event) =>
+    _hasInteracted &&
+    _value.validationMode.validatesOn(
+      ValidationContext(event: event, hasUnfocused: _hasUnfocused),
+    );
 ```
+
+The four built-in modes are `ValidationMode` constants wrapping one function each; `ValidationMode.custom` wraps
+yours.
 
 It reads no field *status* on purpose. A debounced round overwrites the status with `pending` and the write path clears
 both error slots, so any gate that looked at "does this field currently have an error" would disarm itself exactly as

@@ -399,11 +399,12 @@ class AdvancedFieldController<T, E extends Object>
     super.dispose();
   }
 
-  bool _shouldValidateOn(ValidationEvent event) => validatesOn(
-        event,
-        mode: _value.validationMode,
-        hasInteracted: _hasInteracted,
-        hasUnfocused: _hasUnfocused,
+  // Checked before the strategy, so an untouched field stays quiet whatever
+  // the strategy would say.
+  bool _shouldValidateOn(ValidationEvent event) =>
+      _hasInteracted &&
+      _value.validationMode.validatesOn(
+        ValidationContext(event: event, hasUnfocused: _hasUnfocused),
       );
 
   // Publishes [value] with both errors cleared and the given status.

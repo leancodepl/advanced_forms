@@ -1,5 +1,6 @@
 ## Unreleased
 
+* `ValidationMode` is a class with the four modes as constants, and `ValidationMode.custom` builds one of your own from a function over `ValidationContext`.
 * New `ValidationMode.afterFirstUnfocus`: a field stays quiet while the user types, validates when first left, and from then on validates every edit.
 
 ## 0.2.3

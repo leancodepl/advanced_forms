@@ -238,6 +238,60 @@ void main() {
     });
   });
 
+  group('custom strategies', () {
+    test('a custom mode sees the event and whether the field was left', () {
+      final seen = <(ValidationEvent, bool)>[];
+      final spy = ValidationMode.custom('spy', (c) {
+        seen.add((c.event, c.hasUnfocused));
+        return false;
+      });
+      field
+        ..setValidationMode(spy)
+        ..setValue(10)
+        ..revalidateSync()
+        ..handleUnfocus()
+        ..setValue(11);
+
+      expect(seen, const [
+        (ValidationEvent.valueChanged, false),
+        (ValidationEvent.dependencyChanged, false),
+        (ValidationEvent.unfocus, false),
+        (ValidationEvent.valueChanged, true),
+      ]);
+    });
+
+    test('an untouched field stays quiet even if the strategy says yes', () {
+      validator.validationResult = TestError.malformed;
+      field
+        ..setValidationMode(ValidationMode.custom('always', (_) => true))
+        ..revalidateSync();
+
+      expect(field.value.error, isNull);
+    });
+
+    test('a custom mode validates when it says so', () {
+      validator.validationResult = TestError.malformed;
+      field
+        ..setValidationMode(ValidationMode.custom('always', (_) => true))
+        ..setValue(10);
+
+      expect(field.value.error, TestError.malformed);
+    });
+
+    test('two custom instances are different modes', () {
+      bool live(ValidationContext _) => true;
+      expect(
+        ValidationMode.custom('a', live),
+        isNot(ValidationMode.custom('a', live)),
+      );
+      expect(ValidationMode.values, hasLength(4));
+      expect(
+        ValidationMode.afterFirstUnfocus.toString(),
+        'ValidationMode.afterFirstUnfocus',
+      );
+    });
+  });
+
   group('the interaction guarantee', () {
     for (final mode in ValidationMode.values) {
       test(
