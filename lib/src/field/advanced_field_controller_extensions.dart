@@ -24,7 +24,7 @@ extension AdvancedFieldControllerListen<T, E extends Object>
   /// Listeners are attached lazily on first subscription and detached when
   /// the last subscription is cancelled.
   @Deprecated(
-    'Migration bridge for 0.1.x cubit streams, to be removed in 0.3.0. '
+    'Migration bridge for 0.1.x cubit streams, to be removed in 0.4.0. '
     'Use addListener, subscribeToFields, or the builder widgets instead.',
   )
   Stream<AdvancedFieldState<T, E>> get stream {

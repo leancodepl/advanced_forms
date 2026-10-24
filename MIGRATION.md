@@ -49,7 +49,7 @@
 | `form.onValuesChangedStream` (`Stream<void>`) | `form.onValuesChanged` (`Listenable`) |
 | `form.onStatusChangedStream` (`Stream<FieldStatus>`) | `form.onStatusChanged` (`Listenable`, no payload) |
 | `BlocBuilder<FormGroupCubit, FormGroupState>` | `ValueListenableBuilder<AdvancedFormState>` — there is no `AdvancedFormBuilder` |
-| `FieldCubit.stream` (inherited from `Cubit`) | `AdvancedFieldController.stream` — deprecated extension, removed in 0.3.0 ([section 9](#9-migrating-a-custom-field)) |
+| `FieldCubit.stream` (inherited from `Cubit`) | `AdvancedFieldController.stream` — deprecated extension, removed in 0.4.0 ([section 9](#9-migrating-a-custom-field)) |
 | `Future<void> close()` | `void dispose()` |
 | `addDisposable(...)`, the `Disposable` mixin | **Removed** — override `dispose()` ([section 7](#7-lifecycle-close--dispose)) |
 
@@ -478,7 +478,7 @@ final subscription = quantityField.stream
     .listen(recalculateTotals);
 ```
 
-Three caveats: every read allocates a new `StreamController`, so store it rather than re-reading the getter; the controller is never closed, so unlike `Cubit.stream` it does not terminate an `await for` loop; and it goes away in 0.3.0.
+Three caveats: every read allocates a new `StreamController`, so store it rather than re-reading the getter; the controller is never closed, so unlike `Cubit.stream` it does not terminate an `await for` loop; and it goes away in 0.4.0.
 
 ---
 

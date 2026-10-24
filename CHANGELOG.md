@@ -9,6 +9,7 @@
   * The docs have a page for it with a live demo, and the README and the skill cover it too.
 * New built-in mode `ValidationMode.afterFirstUnfocus`: quiet while the user types, validates when the field is first left, and from then on validates every edit, so an error disappears the moment the value is fixed.
 * Breaking: an exhaustive `switch` over `ValidationMode` needs a default case, and `ValidationMode.values` is gone, because with custom modes there is no finite list.
+* The deprecated `stream` extension stays until 0.4.0; it was announced for removal in 0.3.0, but this release already asks for one change in a `switch`, and that is enough.
 
 ## 0.2.4
 
