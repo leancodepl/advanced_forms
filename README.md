@@ -229,6 +229,7 @@ Three rules cover every case:
 | `onUserInteraction` | Every keystroke validates the field being edited; the async check waits out its debounce |
 | `onUnfocus` | Leaving a field the user edited validates it. Tabbing through it, or leaving it unchanged, costs nothing |
 | `afterFirstUnfocus` | Quiet while the user types, until the field is first left after an edit. From then on every edit validates it, so an error disappears the moment the value is fixed |
+| `ValidationMode.custom(name, fn)` | Your own rule. `fn` sees which event is happening and whether the user has ever left the field; it never sees the status, and an untouched field still validates nothing |
 
 ```dart
 final form = AdvancedFormController(

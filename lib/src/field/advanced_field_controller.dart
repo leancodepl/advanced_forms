@@ -106,7 +106,7 @@ class AdvancedFieldController<T, E extends Object>
   // Set when the user first leaves the field after editing it. Only reset()
   // clears it. Tracked in every mode, so a later switch to
   // afterFirstUnfocus already knows which fields the user has left.
-  bool _hasUnfocused = false;
+  bool _everUnfocused = false;
 
   // null: follow the form's mode. Non-null: this field manages its own.
   ValidationMode? _ownMode;
@@ -189,7 +189,7 @@ class AdvancedFieldController<T, E extends Object>
     // Decided before the bit flips, so the first unfocus still validates.
     final validates = _shouldValidateOn(ValidationEvent.unfocus);
     if (_hasInteracted) {
-      _hasUnfocused = true;
+      _everUnfocused = true;
     }
     if (!validates) {
       return;
@@ -317,7 +317,7 @@ class AdvancedFieldController<T, E extends Object>
   void reset() {
     _rounds.invalidate();
     _hasInteracted = false;
-    _hasUnfocused = false;
+    _everUnfocused = false;
     _clearTo(_initialValue);
   }
 
@@ -399,11 +399,12 @@ class AdvancedFieldController<T, E extends Object>
     super.dispose();
   }
 
-  bool _shouldValidateOn(ValidationEvent event) => validatesOn(
-        event,
-        mode: _value.validationMode,
-        hasInteracted: _hasInteracted,
-        hasUnfocused: _hasUnfocused,
+  // Checked before the mode, so an untouched field stays quiet whatever the
+  // mode would say. This is the one place the rule lives.
+  bool _shouldValidateOn(ValidationEvent event) =>
+      _hasInteracted &&
+      _value.validationMode.shouldValidate(
+        ValidationContext(event: event, everUnfocused: _everUnfocused),
       );
 
   // Publishes [value] with both errors cleared and the given status.
