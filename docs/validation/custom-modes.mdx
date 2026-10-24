@@ -201,27 +201,18 @@ class _CustomModesDemoState extends State<CustomModesDemo> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Full width when it fits, a horizontal scroll when it does not.
-        LayoutBuilder(
-          builder: (context, constraints) => SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minWidth: constraints.maxWidth),
-              child: SegmentedButton<ValidationMode>(
-                showSelectedIcon: false,
-                segments: [
-                  for (final rule in [
-                    followsDependency,
-                    onOwnEdits,
-                    onUnfocusOnly,
-                  ])
-                    ButtonSegment(value: rule, label: Text(rule.name)),
-                ],
-                selected: {_rule},
-                onSelectionChanged: (selection) => _setRule(selection.first),
+        // One pill per mode; they wrap instead of squeezing into one row.
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final rule in [followsDependency, onOwnEdits, onUnfocusOnly])
+              ChoiceChip(
+                label: Text(rule.name),
+                selected: rule == _rule,
+                onSelected: (_) => _setRule(rule),
               ),
-            ),
-          ),
+          ],
         ),
         const SizedBox(height: 8),
         DocsHint(hint),
