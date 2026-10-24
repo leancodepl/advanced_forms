@@ -131,23 +131,17 @@ class _ValidationModesDemoState extends State<ValidationModesDemo> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // One pill per mode; they wrap instead of squeezing into one row.
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final mode in [
-              ValidationMode.manual,
-              ValidationMode.onUserInteraction,
-              ValidationMode.onUnfocus,
-              ValidationMode.afterFirstUnfocus,
-            ])
-              ChoiceChip(
-                label: Text(mode.name),
-                selected: mode == _mode,
-                onSelected: (_) => _setMode(mode),
-              ),
+        DocsModePicker(
+          title: 'Select your validation mode',
+          options: const [
+            ValidationMode.manual,
+            ValidationMode.onUserInteraction,
+            ValidationMode.onUnfocus,
+            ValidationMode.afterFirstUnfocus,
           ],
+          selected: _mode,
+          label: (mode) => mode.name,
+          onSelected: _setMode,
         ),
         const SizedBox(height: 8),
         DocsHint(hint),

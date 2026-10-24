@@ -201,18 +201,12 @@ class _CustomModesDemoState extends State<CustomModesDemo> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // One pill per mode; they wrap instead of squeezing into one row.
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final rule in [followsDependency, onOwnEdits, onUnfocusOnly])
-              ChoiceChip(
-                label: Text(rule.name),
-                selected: rule == _rule,
-                onSelected: (_) => _setRule(rule),
-              ),
-          ],
+        DocsModePicker(
+          title: 'Select your validation mode',
+          options: [followsDependency, onOwnEdits, onUnfocusOnly],
+          selected: _rule,
+          label: (rule) => rule.name,
+          onSelected: _setRule,
         ),
         const SizedBox(height: 8),
         DocsHint(hint),
