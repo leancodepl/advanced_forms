@@ -845,8 +845,17 @@ a.af-pill-accent:hover {
   background: var(--af-surface);
   font-size: 0.78rem;
   line-height: 1.45;
-  white-space: pre;
   overflow-x: auto;
+}
+
+/* The card is an li, so the inline-code rule above would apply; undo it. */
+.af-mode-code code {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: inherit;
+  white-space: pre;
 }
 
 .af-band {
