@@ -3,12 +3,12 @@ part of 'advanced_field_controller.dart';
 // Every decision to validate the field on its own, and carrying it out. The
 // mode picks the action; the rules no mode can change live here: an untouched
 // field stays quiet, an edit drops errors that described the old value, and
-// only settled checks reach the history.
+// only finished checks reach the context the mode sees.
 extension type _Engine<T, E extends Object>(
         AdvancedFieldController<T, E> _field)
     implements AdvancedFieldController<T, E> {
   void onEdit(T value) {
-    _history = _history.edited();
+    _hasInteracted = true;
     _rounds.invalidate();
 
     switch (_decide(ValidationEvent.valueChanged)) {
@@ -30,10 +30,10 @@ extension type _Engine<T, E extends Object>(
     // User left the field — finish any debounced validation now.
     _rounds.flushDebounce();
 
-    // Decided before the history moves, so the first unfocus still sees none.
+    // Decided before the bit flips, so the first unfocus still sees none.
     final action = _decide(ValidationEvent.unfocus);
-    if (_history.edits > 0) {
-      _history = _history.left();
+    if (_hasInteracted) {
+      _everUnfocused = true;
     }
 
     // Caught here, so a throwing validator cannot escape into the zone of
@@ -62,31 +62,21 @@ extension type _Engine<T, E extends Object>(
   }
 
   Future<bool> onValidate() {
-    _history = _history.validated();
+    _everValidated = true;
     return _rounds.runValidate();
   }
 
-  // Records how the check that just wrote the state ended, unless a round is
-  // still on its way.
-  void settle() {
-    if (_value.isInProgress) {
-      return;
-    }
-    _history = _history.withVerdict(
-      _value.validationError != null
-          ? FieldVerdict.invalid
-          : _value.isFailedValidation
-              ? FieldVerdict.failed
-              : _value.asyncError != null
-                  ? FieldVerdict.invalid
-                  : FieldVerdict.valid,
-    );
-  }
-
-  ValidationAction _decide(ValidationEvent event) => _history.edits == 0
+  // Checked before the mode, so an untouched field stays quiet whatever the
+  // mode would say. This is the one place the rule lives.
+  ValidationAction _decide(ValidationEvent event) => !_hasInteracted
       ? ValidationAction.none
       : _value.validationMode.decide(
-          ValidationContext(event: event, history: _history),
+          ValidationContext(
+            event: event,
+            everUnfocused: _everUnfocused,
+            everValidated: _everValidated,
+            lastStatus: _lastStatus,
+          ),
         );
 
   // Only a full check is async; the other two finish before this returns.
@@ -95,8 +85,7 @@ extension type _Engine<T, E extends Object>(
       case ValidationAction.none:
         return Future.value();
       case ValidationAction.sync:
-        _setSyncError(_validator(_value.value));
-        settle();
+        _setSyncError(_validator(_value.value), fromCheck: true);
         return Future.value();
       case ValidationAction.full:
         return _rounds.runValidate();
@@ -104,15 +93,13 @@ extension type _Engine<T, E extends Object>(
   }
 
   // The value changed, so the async error described the old one.
-  void _writeEdit(T value, E? validationError) {
-    _setState(
-      _value.copyWithNullable(
-        value: value,
-        validationError: validationError,
-        asyncError: null,
-        status: _statusFromErrors(validationError, null),
-      ),
-    );
-    settle();
-  }
+  void _writeEdit(T value, E? validationError) => _setState(
+        _value.copyWithNullable(
+          value: value,
+          validationError: validationError,
+          asyncError: null,
+          status: _statusFromErrors(validationError, null),
+        ),
+        fromCheck: true,
+      );
 }

@@ -25,15 +25,14 @@ extension type _Rounds<T, E extends Object>(
           validationError: validationError,
           status: FieldStatus.invalid,
         ),
+        fromCheck: true,
       );
-      _engine.settle();
       return false;
     }
 
-    _setSyncError(null);
+    _setSyncError(null, fromCheck: _asyncValidation == null);
 
     if (_asyncValidation == null) {
-      _engine.settle();
       return _value.isValid;
     }
 
@@ -46,7 +45,6 @@ extension type _Rounds<T, E extends Object>(
     }
 
     if (_hasVerdict) {
-      _engine.settle();
       return _value.isValid;
     }
 
@@ -140,8 +138,8 @@ extension type _Rounds<T, E extends Object>(
           asyncError: result.verdict,
           status: _statusFromErrors(_value.validationError, result.verdict),
         ),
+        fromCheck: true,
       );
-      _engine.settle();
       round.finish();
       return;
     }
@@ -153,8 +151,8 @@ extension type _Rounds<T, E extends Object>(
         asyncError: asyncValidation._mapFailure(failure, name),
         status: FieldStatus.failedValidation,
       ),
+      fromCheck: true,
     );
-    _engine.settle();
     round.finish();
     unawaited(asyncValidation._reportFailure(failure, name));
   }
