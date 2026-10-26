@@ -27,17 +27,18 @@ class SignupFormController extends AdvancedFormController {
 Reach for one of the four modes first. For a rule none of them states, extend `CustomValidationMode` and override `decide`. It gets a `ValidationContext`: `event` (`valueChanged`, `unfocus`, `dependencyChanged`), `everUnfocused` (left after an edit, at least once), `everValidated` (`validate()` ran at least once) and `lastStatus` (`valid`, `invalid` or `failedValidation` of the last finished check; null until one finishes). It answers a `ValidationAction`: `none`, `sync` (sync validator only) or `full` (sync, then async if sync passed; debounced after an edit). It never sees the live status, the errors or the value, and it is never asked about a field the user has not edited. Do not read the field from inside the class: every edit clears the errors, so such a rule stops validating as the user starts fixing the value. Modes compare by type; a mode with settings lists them in `props`. Set it on the form (reaches every field and subform) or on one field (that field keeps it), exactly like a built-in mode.
 
 ```dart
-// Re-check only when another field changes, never on this field's own edits.
-final class FollowsDependency extends CustomValidationMode {
-  const FollowsDependency();
+// The e-mail syntax on every keystroke, the server only when the field is left.
+final class LiveSyntaxServerOnLeave extends CustomValidationMode {
+  const LiveSyntaxServerOnLeave();
 
   @override
   ValidationAction decide(ValidationContext c) =>
-      c.event == ValidationEvent.dependencyChanged ? ValidationAction.sync : ValidationAction.none;
+      c.event == ValidationEvent.unfocus ? ValidationAction.full : ValidationAction.sync;
 }
-repeatPassword
-  ..setValidationMode(const FollowsDependency())
-  ..subscribeToFields([password]);
+final email = AdvancedTextFieldController(
+  validator: emailSyntax('Not an e-mail address'),      // on every keystroke
+  asyncValidation: AsyncValidation(validator: isTaken),  // only when the field is left
+)..setValidationMode(const LiveSyntaxServerOnLeave());
 
 // Quiet while typing until a check finds an error, live while fixing, quiet once one passes.
 final class LiveWhileInvalid extends CustomValidationMode {
@@ -53,7 +54,7 @@ final class LiveWhileInvalid extends CustomValidationMode {
 }
 ```
 
-Test a rule without a form: `const FollowsDependency().decide(const ValidationContext(event: ValidationEvent.unfocus))` is `ValidationAction.none`.
+Test a rule without a form: `const LiveSyntaxServerOnLeave().decide(const ValidationContext(event: ValidationEvent.unfocus))` is `ValidationAction.full`.
 
 ## Unfocus the widget owns
 

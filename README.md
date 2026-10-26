@@ -246,18 +246,19 @@ form.email.setValidationMode(ValidationMode.onUserInteraction);
 When none of the four modes says what a form needs, write the rule yourself: extend `CustomValidationMode` and override `decide`. The package treats it like a built-in mode: set it on the form and it reaches every field and subform; set it on one field and that field keeps it.
 
 ```dart
-// Re-check only when another field changes, never on this field's own edits.
-final class FollowsDependency extends CustomValidationMode {
-  const FollowsDependency();
+// The e-mail syntax on every keystroke, the server only when the field is left.
+final class LiveSyntaxServerOnLeave extends CustomValidationMode {
+  const LiveSyntaxServerOnLeave();
 
   @override
   ValidationAction decide(ValidationContext c) =>
-      c.event == ValidationEvent.dependencyChanged ? ValidationAction.sync : ValidationAction.none;
+      c.event == ValidationEvent.unfocus ? ValidationAction.full : ValidationAction.sync;
 }
 
-repeatPassword
-  ..setValidationMode(const FollowsDependency())
-  ..subscribeToFields([password]);
+final email = AdvancedTextFieldController(
+  validator: emailSyntax('Not an e-mail address'),      // on every keystroke
+  asyncValidation: AsyncValidation(validator: isTaken),  // only when the field is left
+)..setValidationMode(const LiveSyntaxServerOnLeave());
 ```
 
 `decide` gets a `ValidationContext` (`event`: `valueChanged`, `unfocus` or `dependencyChanged`; `everUnfocused` and `everValidated`; `lastStatus` of the last finished check) and answers a `ValidationAction`: `none`, `sync` or `full`. It never sees the live status or the errors, because every edit clears them and a rule reading them would stop validating as the user started fixing the value. The three rules above still hold: an untouched field validates nothing whatever the rule says, `validate()` ignores the mode, and sync runs before async.

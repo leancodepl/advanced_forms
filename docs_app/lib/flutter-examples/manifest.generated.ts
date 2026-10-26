@@ -23,11 +23,11 @@ export interface FlutterExample {
 
 export const flutterExamples: Record<string, FlutterExample> = {
   "047778d0ab54": { preview: "SignupForm", files: 3, docs: ["docs/first-form.mdx","docs_app/content/landing/signup.mdx"] },
+  "0b9a2e834d28": { preview: "CustomModesDemo", files: 2, docs: ["docs/validation/custom-modes.mdx"], helpers: ["DocsActions","DocsFieldStatus","DocsHint","DocsModePicker","DocsSubmitButton","DocsTextField"] },
   "0e51f5023edf": { preview: "ValidationModesDemo", files: 2, docs: ["docs/validation/modes.mdx","docs_app/content/landing/modes.mdx"], helpers: ["DocsActions","DocsHint","DocsModePicker","DocsSubmitButton","DocsTextField"] },
   "0e5adec0d12e": { preview: "HeroSignupForm", files: 1, docs: ["docs_app/content/landing/hero.mdx"], helpers: ["DocsActions","DocsHint","DocsSubmitButton","DocsSwitchField","DocsTextField"] },
   "16fd48df04c0": { preview: "TextInputDemo", files: 2, docs: ["docs/rendering/text.mdx"], helpers: ["DocsActions"] },
   "18570b69c83d": { preview: "UsernameAvailabilityForm", files: 2, docs: ["docs/validation/async.mdx","docs_app/content/landing/async.mdx"], helpers: ["DocsFailureBanner","DocsFieldStatus","DocsHint","DocsSubmitButton","DocsTextField"] },
-  "1e4fc474af53": { preview: "CustomModesDemo", files: 2, docs: ["docs/validation/custom-modes.mdx"], helpers: ["DocsActions","DocsHint","DocsModePicker","DocsSubmitButton","DocsTextField"] },
   "2440ae7a9f0c": { preview: "DraftForm", files: 2, docs: ["docs/form-state/index.mdx"], helpers: ["DocsActions","DocsFailureBanner","DocsFormStatus","DocsHint","DocsSubmitButton","DocsTextField"] },
   "24da91a8b29c": { preview: "PizzaOrderForm", files: 2, docs: ["docs/fields/index.mdx"], helpers: ["DocsActions","DocsChipsField","DocsDropdownField","DocsSubmitButton","DocsSwitchField","DocsTextField"] },
   "3f3d204cc417": { preview: "SelectInputDemo", files: 3, docs: ["docs/rendering/select.mdx"], helpers: ["DocsActions"] },
