@@ -105,6 +105,9 @@ final class ManualValidationMode extends ValidationMode {
 
   @override
   ValidationAction decide(ValidationContext context) => ValidationAction.none;
+
+  @override
+  String toString() => 'ValidationMode.manual';
 }
 
 /// The class behind [ValidationMode.onUserInteraction].
@@ -119,6 +122,9 @@ final class OnUserInteractionValidationMode extends ValidationMode {
         ValidationEvent.unfocus => ValidationAction.none,
         ValidationEvent.dependencyChanged => ValidationAction.sync,
       };
+
+  @override
+  String toString() => 'ValidationMode.onUserInteraction';
 }
 
 /// The class behind [ValidationMode.onUnfocus].
@@ -133,6 +139,9 @@ final class OnUnfocusValidationMode extends ValidationMode {
         ValidationEvent.unfocus => ValidationAction.full,
         ValidationEvent.dependencyChanged => ValidationAction.sync,
       };
+
+  @override
+  String toString() => 'ValidationMode.onUnfocus';
 }
 
 /// The class behind [ValidationMode.afterFirstUnfocus].
@@ -144,6 +153,9 @@ final class AfterFirstUnfocusValidationMode extends ValidationMode {
   ValidationAction decide(ValidationContext context) => context.everUnfocused
       ? ValidationMode.onUserInteraction.decide(context)
       : ValidationMode.onUnfocus.decide(context);
+
+  @override
+  String toString() => 'ValidationMode.afterFirstUnfocus';
 }
 
 /// Extend this for a mode of your own.
