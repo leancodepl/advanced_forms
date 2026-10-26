@@ -190,10 +190,10 @@ class ValidationSection extends StatelessComponent {
             const pre(classes: 'af-mode-code', [
               code([
                 .text(
-                  'ValidationAction decide(ValidationContext c) =>\n'
-                  '    c.event == ValidationEvent.unfocus\n'
-                  '        ? ValidationAction.full   // the server\n'
-                  '        : ValidationAction.sync;  // the syntax',
+                  'decide(ValidationContext c) =>\n'
+                  '  c.event == ValidationEvent.unfocus\n'
+                  '    ? ValidationAction.full // server\n'
+                  '    : ValidationAction.sync; // syntax',
                 ),
               ]),
             ]),
