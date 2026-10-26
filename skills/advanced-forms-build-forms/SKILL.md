@@ -71,7 +71,7 @@ A round runs the sync validator first, then the async validator only if sync pas
 | `onUserInteraction` | validate (async debounced) | — | sync only |
 | `onUnfocus` | — | validate | sync only |
 | `afterFirstUnfocus` | — until the field was first left after an edit, validate after | validate, the first time | sync only |
-| `ValidationMode.custom(name, fn)` | whatever `fn` says, given the event and whether the field was ever left; never for an untouched field | | |
+| a class extending `CustomValidationMode` | whatever its `decide` answers (`none`, `sync`, `full`), given the event and what happened before; never for an untouched field | | |
 
 A rule none of the four modes states is a custom mode: [validation](references/validation.md#a-mode-of-your-own). Reach for the built-in modes first.
 

@@ -38,16 +38,23 @@ have edited the field, and whether they have left it since:
 
 ```dart
 // In the field, before any mode is asked:
-bool _shouldValidateOn(ValidationEvent event) =>
-    _hasInteracted &&
-    _value.validationMode.shouldValidate(
-      ValidationContext(event: event, everUnfocused: _everUnfocused),
-    );
+ValidationAction _decide(ValidationEvent event) => !_hasInteracted
+    ? ValidationAction.none
+    : _value.validationMode.decide(
+        ValidationContext(
+          event: event,
+          everUnfocused: _everUnfocused,
+          everValidated: _everValidated,
+          lastStatus: _lastStatus,
+        ),
+      );
 ```
 
-The four built-in modes are `ValidationMode` constants wrapping one function each; `ValidationMode.custom` wraps
-yours. The untouched-field rule sits in front of all of them, in the field, so no mode can reach a field the user has
-not edited.
+The four built-in modes are classes with one `decide` each; a mode of your own extends `CustomValidationMode`. The
+untouched-field rule sits in front of all of them, in the field, so no mode can reach a field the user has not edited.
+`lastStatus` is the one piece of the past that comes from a check, and it is recorded in the same place state is
+written, only for writes that finish a check, so a `pending` round or an edit that clears the errors never reaches a
+mode.
 
 It reads no field *status* on purpose. A debounced round overwrites the status with `pending` and the write path clears
 both error slots, so any gate that looked at "does this field currently have an error" would disarm itself exactly as

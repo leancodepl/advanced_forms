@@ -27,8 +27,8 @@ The default mode is `manual`: nothing validates until the first `validate()`. Th
 shout before the user has done anything. For live feedback give the form `ValidationMode.onUserInteraction`; for
 feedback when a field is left, `ValidationMode.onUnfocus` — which also needs the widget to bind `field.focusNode`; for
 the common "quiet at first, live once the user has left the field" pattern, `ValidationMode.afterFirstUnfocus`; for
-anything else, `ValidationMode.custom`. And in every mode, your own included, a field the user has never edited stays
-quiet on its own. See [Validation modes](./validation/modes.mdx).
+anything else, [a mode of your own](./validation/custom-modes.mdx). And in every mode, your own included, a field the
+user has never edited stays quiet on its own. See [Validation modes](./validation/modes.mdx).
 
 </Accordion>
 <Accordion title="My subscribeToFields dependency does not re-validate.">

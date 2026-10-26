@@ -41,7 +41,7 @@ class Hero extends StatelessComponent {
             ]),
             const p(classes: 'af-hero-lead', [
               .text(
-                'Typed fields, three validation modes out of the box, async '
+                'Typed fields, four validation modes out of the box or your own, async '
                 'checks with cancellation, cross-field rules and wizards for '
                 'Flutter — wired the same way a two-field sign-up is, on the ',
               ),

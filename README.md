@@ -243,23 +243,26 @@ form.email.setValidationMode(ValidationMode.onUserInteraction);
 
 ### Your own validation mode
 
-When none of the four modes says what a form needs, write the rule yourself. `ValidationMode.custom(name, fn)` makes a mode the package treats like a built-in one: set it on the form and it reaches every field and subform.
+When none of the four modes says what a form needs, write the rule yourself: extend `CustomValidationMode` and override `decide`. The package treats it like a built-in mode: set it on the form and it reaches every field and subform; set it on one field and that field keeps it.
 
 ```dart
 // Re-check only when another field changes, never on this field's own edits.
-final followsDependency = ValidationMode.custom(
-  'followsDependency',
-  (c) => c.event == ValidationEvent.dependencyChanged,
-);
+final class FollowsDependency extends CustomValidationMode {
+  const FollowsDependency();
+
+  @override
+  ValidationAction decide(ValidationContext c) =>
+      c.event == ValidationEvent.dependencyChanged ? ValidationAction.sync : ValidationAction.none;
+}
 
 repeatPassword
-  ..setValidationMode(followsDependency)
+  ..setValidationMode(const FollowsDependency())
   ..subscribeToFields([password]);
 ```
 
-The rule gets a `ValidationContext` with two fields: `event` (`valueChanged`, `unfocus` or `dependencyChanged`) and `everUnfocused` (the user has left the field after editing it, at least once). It never sees the status or the errors, because every edit clears them and a rule reading them would stop validating as the user started fixing the value. The three rules above still hold: an untouched field validates nothing whatever the rule says, `validate()` ignores the mode, and a round runs sync before async.
+`decide` gets a `ValidationContext` (`event`: `valueChanged`, `unfocus` or `dependencyChanged`; `everUnfocused` and `everValidated`; `lastStatus` of the last finished check) and answers a `ValidationAction`: `none`, `sync` or `full`. It never sees the live status or the errors, because every edit clears them and a rule reading them would stop validating as the user started fixing the value. The three rules above still hold: an untouched field validates nothing whatever the rule says, `validate()` ignores the mode, and sync runs before async.
 
-Modes are compared by name, so a name must be unique across your app; a built-in name throws. The [docs](https://advanced-forms.leancode.co/docs/validation/custom-modes) have more examples and how to test a rule.
+Modes compare by type, and a mode with settings lists them in `props`. The [docs](https://advanced-forms.leancode.co/docs/validation/custom-modes) have more examples, including "live while invalid" and "live after the first submit", and how to test a rule.
 
 The field makes and owns that `focusNode`. Pass `focusNode:` to the constructor to bind one you already own instead — the field listens to it but never disposes it.
 

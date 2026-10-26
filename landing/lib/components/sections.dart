@@ -125,9 +125,18 @@ const _modes = [
     'The user finishes a field, moves on, and sees the verdict. Tabbing through '
         'a field they never touched costs nothing.',
   ),
+  _Mode(
+    Icon.listChecks,
+    'afterFirstUnfocus',
+    'leave, then live',
+    'Quiet until the field is first left, live after.',
+    'No error while the user types an email for the first time. Leaving the '
+        'field validates it, and from then on every keystroke does, so the error '
+        'disappears the moment the value is right.',
+  ),
 ];
 
-/// "Three rules": the trigger behaviour, the three modes, and a demo that
+/// "Three rules": the trigger behaviour, the four modes, and a demo that
 /// switches between them.
 class ValidationSection extends StatelessComponent {
   const ValidationSection({required this.example, super.key});
@@ -273,9 +282,10 @@ const _features = [
   ),
   _Feature(
     Icon.mousePointerClick,
-    'Three validation modes',
-    'Validate on submit, on every keystroke, or when a field loses focus. Set '
-        'once on the form; a field or a subform can opt out with its own mode.',
+    'Four validation modes, or your own',
+    'Validate on submit, on every keystroke, when a field loses focus, or live '
+        'once it was first left. Set once on the form; a field or a subform can '
+        'opt out. A rule none of them states is one class with one method.',
   ),
   _Feature(
     Icon.gitFork,
