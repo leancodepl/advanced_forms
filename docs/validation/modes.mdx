@@ -150,7 +150,12 @@ class _ValidationModesDemoState extends State<ValidationModesDemo> {
           },
           onSelected: _setMode,
         ),
-        const SizedBox(height: 8),
+        const DocsLinkBanner(
+          message: 'None of these fits? Write your own mode in one class.',
+          linkText: 'Your own validation mode',
+          url: '/docs/validation/custom-modes',
+        ),
+        const SizedBox(height: 4),
         DocsHint(hint),
         DocsTextField(field: _form.username, label: 'Username'),
         DocsTextField(

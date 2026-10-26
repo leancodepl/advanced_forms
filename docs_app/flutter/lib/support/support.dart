@@ -12,5 +12,6 @@
 /// so snippets in the docs stay free of import noise.
 library;
 
+export 'docs_link_banner.dart';
 export 'example_log.dart' show ExampleLog;
 export 'fields.dart';
