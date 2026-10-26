@@ -176,10 +176,44 @@ class ValidationSection extends StatelessComponent {
               p(classes: 'af-mode-when', [.text(mode.when)]),
               p([.text(mode.body)]),
             ]),
+          li(classes: 'af-card af-mode af-mode-custom', [
+            div(classes: 'af-mode-head', [
+              span(classes: 'af-feature-icon', [Icon.braces.build(size: 22)]),
+              const Pill('yours', accent: true),
+            ]),
+            const h3([
+              code([.text('CustomValidationMode')]),
+            ]),
+            const p(classes: 'af-mode-when', [
+              .text('A rule none of the four states, in one class.'),
+            ]),
+            const pre(classes: 'af-mode-code', [
+              code([
+                .text(
+                  'ValidationAction decide(ValidationContext c) =>\n'
+                  '    c.event == ValidationEvent.unfocus\n'
+                  '        ? ValidationAction.full   // the server\n'
+                  '        : ValidationAction.sync;  // the syntax',
+                ),
+              ]),
+            ]),
+            const p([
+              .text(
+                'The e-mail syntax on every keystroke, the server only when the '
+                'field is left. It sees which event is happening and what '
+                'happened before; it never sees the live status, so it cannot '
+                'switch itself off while the user fixes the value.',
+              ),
+            ]),
+          ]),
         ]),
         const p(classes: 'af-section-more', [
           a(href: '$docsPath/validation/modes', [
             .text('Every mode and every event, explained →'),
+          ]),
+          .text('  ·  '),
+          a(href: '$docsPath/validation/custom-modes', [
+            .text('Write your own mode →'),
           ]),
         ]),
         div(classes: 'af-section-demo', [

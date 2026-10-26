@@ -15,18 +15,24 @@ package treats the result exactly like a built-in mode: set it on the form, it r
 on one field, that field keeps it.
 
 ```dart
-// Re-check a field on its own edits only, never because another field changed.
-final class OnOwnEdits extends CustomValidationMode {
-  const OnOwnEdits();
+// The e-mail syntax on every keystroke, the server only when the field is left.
+final class LiveSyntaxServerOnLeave extends CustomValidationMode {
+  const LiveSyntaxServerOnLeave();
 
   @override
-  ValidationAction decide(ValidationContext c) => c.event == ValidationEvent.valueChanged
-      ? ValidationAction.full
-      : ValidationAction.none;
+  ValidationAction decide(ValidationContext c) =>
+      c.event == ValidationEvent.unfocus ? ValidationAction.full : ValidationAction.sync;
 }
 
-final form = AdvancedFormController(validationMode: const OnOwnEdits());
+final email = AdvancedTextFieldController(
+  validator: emailSyntax('Not an e-mail address'),        // sync: runs on every keystroke
+  asyncValidation: AsyncValidation(validator: isTaken),    // async: runs only when the field is left
+)..setValidationMode(const LiveSyntaxServerOnLeave());
 ```
+
+An e-mail field with `onUserInteraction` would hit the server on every keystroke (debounced, but still); with
+`onUnfocus` the user would not see "not an e-mail address" until they left the field. This rule gives each check its
+own moment, in seven lines.
 
 Reach for the built-in modes first. A custom mode is for the case you can state in one sentence and no mode covers,
 not for tuning a mode that almost fits.
@@ -119,18 +125,6 @@ repeatPassword
   ..subscribeToFields([password]);
 ```
 
-The format on every keystroke, the server only when the field is left. A username with an async availability check:
-
-```dart
-final class SyncLiveAsyncOnLeave extends CustomValidationMode {
-  const SyncLiveAsyncOnLeave();
-
-  @override
-  ValidationAction decide(ValidationContext c) =>
-      c.event == ValidationEvent.unfocus ? ValidationAction.full : ValidationAction.sync;
-}
-```
-
 Quiet while typing until a check finds an error, live while the user fixes it, quiet again once a check passes:
 
 ```dart
@@ -162,61 +156,45 @@ final class LiveAfterSubmit extends CustomValidationMode {
 
 ## Try it
 
-Three rules on the Repeat password field; Password stays on the form's default. Type in both fields, then change
-Password and watch what each rule does with the mismatch.
+One e-mail field. The sync validator checks the syntax, the async one asks a (fake) server whether the address is
+taken: anything starting with `taken` is. Switch between the two built-in modes and the rule above, type, and watch
+the status pill: with `onUserInteraction` the server runs on every keystroke, with `onUnfocus` nothing runs until you
+leave, with the rule the syntax runs live and the server only when you leave.
 
 <AdvancedFormsExample preview="CustomModesDemo" title="custom_modes.dart" code="collapsed">
 
-```dart title="password_form_controller.dart"
-class PasswordFormController extends AdvancedFormController {
-  PasswordFormController() {
-    registerFields([password, repeatPassword]);
-    repeatPassword.subscribeToFields([password]);
+```dart title="email_form_controller.dart"
+class EmailFormController extends AdvancedFormController {
+  EmailFormController() {
+    registerFields([email]);
   }
 
-  final password = AdvancedTextFieldController(
-    validator: atLeastLength(4, 'At least 4 characters'),
+  final email = AdvancedTextFieldController(
+    validator: (value) =>
+        _syntax.hasMatch(value) ? null : 'Not an e-mail address',
+    asyncValidation: const AsyncValidation(validator: _isTaken),
   );
 
-  late final repeatPassword = AdvancedTextFieldController(
-    validator: (value) =>
-        value == password.fieldValue ? null : 'Passwords do not match',
-  );
+  static final _syntax = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+
+  // Stands in for the server: anything starting with "taken" is taken.
+  static Future<String?> _isTaken(String value) async {
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+    return value.startsWith('taken') ? 'Already taken' : null;
+  }
 }
 ```
 
 ```dart title="custom_modes_demo.dart"
-// Re-check only when Password changes, never on this field's own edits.
-final class FollowsDependency extends CustomValidationMode {
-  const FollowsDependency();
-
-  @override
-  ValidationAction decide(ValidationContext c) =>
-      c.event == ValidationEvent.dependencyChanged
-      ? ValidationAction.sync
-      : ValidationAction.none;
-}
-
-// Re-check on every keystroke, never because Password changed.
-final class OnOwnEdits extends CustomValidationMode {
-  const OnOwnEdits();
-
-  @override
-  ValidationAction decide(ValidationContext c) =>
-      c.event == ValidationEvent.valueChanged
-      ? ValidationAction.full
-      : ValidationAction.none;
-}
-
-// Only leaving the field validates it.
-final class OnUnfocusOnly extends CustomValidationMode {
-  const OnUnfocusOnly();
+// The e-mail syntax on every keystroke, the server only when the field is left.
+final class LiveSyntaxServerOnLeave extends CustomValidationMode {
+  const LiveSyntaxServerOnLeave();
 
   @override
   ValidationAction decide(ValidationContext c) =>
       c.event == ValidationEvent.unfocus
       ? ValidationAction.full
-      : ValidationAction.none;
+      : ValidationAction.sync;
 }
 
 class CustomModesDemo extends StatefulWidget {
@@ -227,13 +205,13 @@ class CustomModesDemo extends StatefulWidget {
 }
 
 class _CustomModesDemoState extends State<CustomModesDemo> {
-  final _form = PasswordFormController();
-  ValidationMode _rule = const FollowsDependency();
+  final _form = EmailFormController();
+  ValidationMode _mode = const LiveSyntaxServerOnLeave();
 
   @override
   void initState() {
     super.initState();
-    _form.repeatPassword.setValidationMode(_rule);
+    _form.setValidationMode(_mode);
   }
 
   @override
@@ -242,10 +220,10 @@ class _CustomModesDemoState extends State<CustomModesDemo> {
     super.dispose();
   }
 
-  void _setRule(ValidationMode rule) {
-    setState(() => _rule = rule);
-    // The rule is a mode like any other; this field keeps its own.
-    _form.repeatPassword.setValidationMode(rule);
+  void _setMode(ValidationMode mode) {
+    setState(() => _mode = mode);
+    // Your own mode is set exactly like a built-in one.
+    _form.setValidationMode(mode);
   }
 
   Future<void> _submit() async {
@@ -257,14 +235,16 @@ class _CustomModesDemoState extends State<CustomModesDemo> {
 
   @override
   Widget build(BuildContext context) {
-    final hint = switch (_rule) {
-      FollowsDependency() =>
-        'Repeat password re-checks only when Password changes. Its own '
-            'edits stay quiet until Save.',
-      OnOwnEdits() =>
-        'Every keystroke in Repeat password re-checks it. Changing Password '
-            'does not.',
-      _ => 'Leaving Repeat password validates it. Changing Password does not.',
+    final hint = switch (_mode) {
+      OnUserInteractionValidationMode() =>
+        'Every keystroke runs the syntax check and, after the debounce, '
+            'the server.',
+      OnUnfocusValidationMode() =>
+        'Nothing runs while you type. Leaving the field runs the syntax '
+            'check and the server.',
+      _ =>
+        'The syntax check runs on every keystroke. The server runs only '
+            'when you leave the field.',
     };
 
     return Column(
@@ -272,19 +252,27 @@ class _CustomModesDemoState extends State<CustomModesDemo> {
       children: [
         DocsModePicker(
           title: 'Select your validation mode',
-          options: const [FollowsDependency(), OnOwnEdits(), OnUnfocusOnly()],
-          selected: _rule,
-          label: (rule) => switch (rule) {
-            FollowsDependency() => 'followsDependency',
-            OnOwnEdits() => 'onOwnEdits',
-            _ => 'onUnfocusOnly',
+          options: const [
+            ValidationMode.onUserInteraction,
+            ValidationMode.onUnfocus,
+            LiveSyntaxServerOnLeave(),
+          ],
+          selected: _mode,
+          label: (mode) => switch (mode) {
+            OnUserInteractionValidationMode() => 'onUserInteraction',
+            OnUnfocusValidationMode() => 'onUnfocus',
+            _ => 'LiveSyntaxServerOnLeave (yours)',
           },
-          onSelected: _setRule,
+          onSelected: _setMode,
         ),
         const SizedBox(height: 8),
         DocsHint(hint),
-        DocsTextField(field: _form.password, label: 'Password'),
-        DocsTextField(field: _form.repeatPassword, label: 'Repeat password'),
+        DocsTextField(
+          field: _form.email,
+          label: 'E-mail',
+          hint: 'try taken@example.com',
+        ),
+        DocsFieldStatus(field: _form.email, label: 'status'),
         DocsActions(
           children: [
             DocsSubmitButton(form: _form, label: 'Save', onPressed: _submit),
@@ -304,12 +292,11 @@ class _CustomModesDemoState extends State<CustomModesDemo> {
 `decide` is a plain method, so test it without a form:
 
 ```dart
-test('OnOwnEdits ignores dependency changes', () {
-  const context = ValidationContext(
-    event: ValidationEvent.dependencyChanged,
-    everUnfocused: true,
-  );
-  expect(const OnOwnEdits().decide(context), ValidationAction.none);
+test('LiveSyntaxServerOnLeave keeps the server for the unfocus', () {
+  const typing = ValidationContext(event: ValidationEvent.valueChanged);
+  const leaving = ValidationContext(event: ValidationEvent.unfocus);
+  expect(const LiveSyntaxServerOnLeave().decide(typing), ValidationAction.sync);
+  expect(const LiveSyntaxServerOnLeave().decide(leaving), ValidationAction.full);
 });
 ```
 
