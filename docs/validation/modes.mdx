@@ -49,9 +49,9 @@ validator only, because this field's own value did not change and its async verd
 
 ## A mode of your own
 
-The four modes are constants of `ValidationMode`, and `ValidationMode.custom(name, fn)` makes one from your own rule.
-The rule sees the same two inputs the built-in modes are written with: which event is happening and whether the user
-has ever left the field after editing it. Everything else on this page still holds for it, the untouched-field rule
+The four modes are constants of `ValidationMode`. A rule none of them states is a class that extends
+`CustomValidationMode` and overrides one method: it sees which event is happening and what happened to the field
+before, and answers how much to run. Everything else on this page still holds for it, the untouched-field rule
 included. [Your own validation mode](./custom-modes.mdx) has the whole story.
 
 ## Try it
@@ -90,7 +90,7 @@ class ValidationModesDemo extends StatefulWidget {
 
 class _ValidationModesDemoState extends State<ValidationModesDemo> {
   final _form = ProfileFormController();
-  var _mode = ValidationMode.manual;
+  ValidationMode _mode = ValidationMode.manual;
 
   @override
   void dispose() {
@@ -113,19 +113,20 @@ class _ValidationModesDemoState extends State<ValidationModesDemo> {
 
   @override
   Widget build(BuildContext context) {
+    // Sealed, so the switch is exhaustive: the four modes and your own.
     final hint = switch (_mode) {
-      ValidationMode.manual =>
+      ManualValidationMode() =>
         'Nothing validates until you press Save. An edit still clears '
             'the error that described the old value.',
-      ValidationMode.onUserInteraction =>
+      OnUserInteractionValidationMode() =>
         'Every keystroke validates the field being edited.',
-      ValidationMode.onUnfocus =>
+      OnUnfocusValidationMode() =>
         'Leaving a field you edited validates it. Tabbing through an '
             'untouched field costs nothing.',
-      ValidationMode.afterFirstUnfocus =>
+      AfterFirstUnfocusValidationMode() =>
         'Quiet while you type. Leaving a field you edited validates it, '
             'and from then on every keystroke does.',
-      _ => 'A mode of your own.',
+      CustomValidationMode() => 'A mode of your own.',
     };
 
     return Column(
@@ -140,7 +141,13 @@ class _ValidationModesDemoState extends State<ValidationModesDemo> {
             ValidationMode.afterFirstUnfocus,
           ],
           selected: _mode,
-          label: (mode) => mode.name,
+          label: (mode) => switch (mode) {
+            ManualValidationMode() => 'manual',
+            OnUserInteractionValidationMode() => 'onUserInteraction',
+            OnUnfocusValidationMode() => 'onUnfocus',
+            AfterFirstUnfocusValidationMode() => 'afterFirstUnfocus',
+            CustomValidationMode() => 'custom',
+          },
           onSelected: _setMode,
         ),
         const SizedBox(height: 8),

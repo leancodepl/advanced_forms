@@ -1,14 +1,16 @@
 ## Unreleased
 
-* Validation modes are now yours to write. `ValidationMode` is a class, and `ValidationMode.custom(name, fn)` turns a one-line rule into a mode the package treats like its own.
-  * The rule gets a `ValidationContext`: which event is happening (`valueChanged`, `unfocus` or `dependencyChanged`) and whether the user has ever left the field after editing it.
-  * It never sees the status, the errors or the value, so a rule cannot switch itself off while the user is fixing a mistake.
+* Validation modes are now yours to write. `ValidationMode` is a sealed class, and a rule none of the four modes states is a class that extends `CustomValidationMode` and overrides `decide`.
+  * The rule gets a `ValidationContext`: which event is happening (`valueChanged`, `unfocus` or `dependencyChanged`), whether the user has ever left the field after editing it, whether `validate()` has ever run on it, and how the last finished check ended.
+  * It answers a `ValidationAction`: `none`, `sync` (the sync validator only) or `full` (sync, then async if sync passed), so a rule can check the format on every keystroke and the server only when the field is left.
+  * It never sees the live status, the errors or the value, so a rule cannot switch itself off while the user is fixing a mistake; the last finished check is recorded where state is written, never from a round in flight.
   * An untouched field still validates nothing, whatever the rule says; `validate()` still ignores the mode; sync still runs before async.
   * Set it on the form and it reaches every field and subform; set it on one field and that field keeps it.
-  * Modes are compared by name, so a mode built in `build()` is not a mode change; a built-in name throws.
-  * The docs have a page for it with a live demo, and the README and the skill cover it too.
+  * Modes compare by type, so a mode built in `build()` is not a mode change; a mode with settings lists them in `props`.
+  * The docs have a page for it with a live demo and examples such as "live while invalid" and "live after the first submit"; the README and the skill cover it too.
 * New built-in mode `ValidationMode.afterFirstUnfocus`: quiet while the user types, validates when the field is first left, and from then on validates every edit, so an error disappears the moment the value is fixed.
-* Breaking: an exhaustive `switch` over `ValidationMode` needs a default case, and `ValidationMode.values` is gone, because with custom modes there is no finite list.
+* The mode pickers in the docs demos are pills that wrap, so every mode name is readable on a phone.
+* Breaking: `ValidationMode` is no longer an enum. The constants `ValidationMode.manual` and the rest still work; `ValidationMode.values` and `.name` are gone, and a `switch` over the modes matches on the classes behind the constants (`ManualValidationMode()` and so on) with `CustomValidationMode()` as the last case.
 
 ## 0.2.4
 

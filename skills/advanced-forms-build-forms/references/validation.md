@@ -24,30 +24,36 @@ class SignupFormController extends AdvancedFormController {
 
 ## A mode of your own
 
-Reach for one of the four modes first. `ValidationMode.custom(name, fn)` is for a rule none of them states. `fn` gets a `ValidationContext` with `event` (`valueChanged`, `unfocus`, `dependencyChanged`) and `everUnfocused` (the user has left the field after editing it, at least once). It never sees the status, the errors or the value, and it is never asked about a field the user has not edited. Do not capture the field in the closure to read its error: every edit clears the errors, so such a rule stops validating as the user starts fixing the value. Modes are compared by `name`, so the name must be unique; a built-in name throws. Set the mode on the form (reaches every field and subform) or on one field (that field keeps it), exactly like a built-in mode.
+Reach for one of the four modes first. For a rule none of them states, extend `CustomValidationMode` and override `decide`. It gets a `ValidationContext`: `event` (`valueChanged`, `unfocus`, `dependencyChanged`), `everUnfocused` (left after an edit, at least once), `everValidated` (`validate()` ran at least once) and `lastStatus` (`valid`, `invalid` or `failedValidation` of the last finished check; null until one finishes). It answers a `ValidationAction`: `none`, `sync` (sync validator only) or `full` (sync, then async if sync passed; debounced after an edit). It never sees the live status, the errors or the value, and it is never asked about a field the user has not edited. Do not read the field from inside the class: every edit clears the errors, so such a rule stops validating as the user starts fixing the value. Modes compare by type; a mode with settings lists them in `props`. Set it on the form (reaches every field and subform) or on one field (that field keeps it), exactly like a built-in mode.
 
 ```dart
 // Re-check only when another field changes, never on this field's own edits.
-final followsDependency = ValidationMode.custom(
-  'followsDependency',
-  (c) => c.event == ValidationEvent.dependencyChanged,
-);
+final class FollowsDependency extends CustomValidationMode {
+  const FollowsDependency();
+
+  @override
+  ValidationAction decide(ValidationContext c) =>
+      c.event == ValidationEvent.dependencyChanged ? ValidationAction.sync : ValidationAction.none;
+}
 repeatPassword
-  ..setValidationMode(followsDependency)
+  ..setValidationMode(const FollowsDependency())
   ..subscribeToFields([password]);
 
-// Re-check on every keystroke, never because another field changed
-// (an async availability check that should not re-run on a country change).
-final onOwnEdits = ValidationMode.custom(
-  'onOwnEdits',
-  (c) => c.event == ValidationEvent.valueChanged,
-);
-username
-  ..setValidationMode(onOwnEdits)
-  ..subscribeToFields([country]);
+// Quiet while typing until a check finds an error, live while fixing, quiet once one passes.
+final class LiveWhileInvalid extends CustomValidationMode {
+  const LiveWhileInvalid();
+
+  @override
+  ValidationAction decide(ValidationContext c) => switch (c.event) {
+        ValidationEvent.valueChanged =>
+          c.lastStatus == FieldStatus.invalid ? ValidationAction.full : ValidationAction.none,
+        ValidationEvent.unfocus => ValidationAction.full,
+        ValidationEvent.dependencyChanged => ValidationAction.sync,
+      };
+}
 ```
 
-Test a rule without a form: `mode.shouldValidate(const ValidationContext(event: ValidationEvent.unfocus, everUnfocused: false))`.
+Test a rule without a form: `const FollowsDependency().decide(const ValidationContext(event: ValidationEvent.unfocus))` is `ValidationAction.none`.
 
 ## Unfocus the widget owns
 
