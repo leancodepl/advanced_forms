@@ -70,7 +70,7 @@ void main() {
 
     for (final (mode, event, expected) in table) {
       test(
-        '${mode.name}: $event ${expected ? 'validates' : 'validates nothing'}',
+        '$mode: $event ${expected ? 'validates' : 'validates nothing'}',
         () => expect(validates(mode, event), expected),
       );
     }
@@ -86,7 +86,7 @@ void main() {
 
     for (final (mode, event, expected) in leftOnceTable) {
       test(
-        '${mode.name}, left once: $event '
+        '$mode, left once: $event '
         '${expected ? 'validates' : 'validates nothing'}',
         () => expect(validates(mode, event, leftOnce: true), expected),
       );
@@ -238,110 +238,17 @@ void main() {
     });
   });
 
-  group('custom strategies', () {
-    test('a custom mode sees the event and whether the field was left', () {
-      final seen = <(ValidationEvent, bool)>[];
-      final spy = ValidationMode.custom('spy', (c) {
-        seen.add((c.event, c.everUnfocused));
-        return false;
-      });
-      field
-        ..setValidationMode(spy)
-        ..setValue(10)
-        ..revalidateSync()
-        ..handleUnfocus()
-        ..setValue(11);
-
-      expect(seen, const [
-        (ValidationEvent.valueChanged, false),
-        (ValidationEvent.dependencyChanged, false),
-        (ValidationEvent.unfocus, false),
-        (ValidationEvent.valueChanged, true),
-      ]);
-    });
-
-    test('an untouched field stays quiet even if the strategy says yes', () {
-      validator.validationResult = TestError.malformed;
-      field
-        ..setValidationMode(ValidationMode.custom('always', (_) => true))
-        ..revalidateSync();
-
-      expect(field.value.error, isNull);
-    });
-
-    test('a custom mode validates when it says so', () {
-      validator.validationResult = TestError.malformed;
-      field
-        ..setValidationMode(ValidationMode.custom('always', (_) => true))
-        ..setValue(10);
-
-      expect(field.value.error, TestError.malformed);
-    });
-
-    test('the name identifies a custom mode', () {
-      bool live(ValidationContext _) => true;
-      expect(
-        ValidationMode.custom('a', live),
-        ValidationMode.custom('a', live),
-      );
-      expect(
-        ValidationMode.custom('a', live),
-        isNot(ValidationMode.custom('b', live)),
-      );
-      expect(ValidationMode.custom('a', live), isNot(ValidationMode.manual));
-      expect(
-        () => ValidationMode.custom('manual', live),
-        throwsArgumentError,
-      );
-      expect(
-        ValidationMode.afterFirstUnfocus.toString(),
-        'ValidationMode.afterFirstUnfocus',
-      );
-    });
-
-    test('re-applying an equal custom mode leaves a round in flight alone',
-        () async {
-      final (:field, :validated) = makeAsyncField();
-      addTearDown(field.dispose);
-      bool live(ValidationContext _) => true;
-
-      field
-        ..setValidationMode(ValidationMode.custom('live', live))
-        ..setValue(10)
-        ..setValidationMode(ValidationMode.custom('live', live));
-
-      expect(field.value.isPending, isTrue);
-      await Future<void>.delayed(const Duration(milliseconds: 120));
-      expect(validated, [10]);
-    });
-
-    test('a form broadcasts a custom mode to a subform field', () {
-      final form = AdvancedFormController();
-      final section = AdvancedFormController();
-      addTearDown(form.dispose);
-      addTearDown(section.dispose);
-      final inner = AdvancedFieldController<int, TestError>(initialValue: 0);
-      section.registerFields([inner]);
-      form.addSubform(section);
-      final live = ValidationMode.custom('live', (_) => true);
-
-      form.setValidationMode(live);
-
-      expect(inner.value.validationMode, live);
-    });
-  });
-
   group('the interaction guarantee', () {
     final modes = [
       ValidationMode.manual,
       ValidationMode.onUserInteraction,
       ValidationMode.onUnfocus,
       ValidationMode.afterFirstUnfocus,
-      ValidationMode.custom('always', (_) => true),
+      const _Always(),
     ];
     for (final mode in modes) {
       test(
-          '${mode.name}: an untouched field validates nothing on a dependency '
+          '$mode: an untouched field validates nothing on a dependency '
           'change', () {
         validator.validationResult = TestError.malformed;
         field
@@ -351,7 +258,7 @@ void main() {
         expect(field.value.error, isNull);
       });
 
-      test('${mode.name}: an untouched field validates nothing on an unfocus',
+      test('$mode: an untouched field validates nothing on an unfocus',
           () async {
         validator.validationResult = TestError.malformed;
         field.setValidationMode(mode);
@@ -361,7 +268,7 @@ void main() {
         expect(field.value.error, isNull);
       });
 
-      test('${mode.name}: validate still checks an untouched field', () async {
+      test('$mode: validate still checks an untouched field', () async {
         validator.validationResult = TestError.malformed;
         field.setValidationMode(mode);
 
@@ -414,4 +321,11 @@ void main() {
       expect(own.value.validationMode, ValidationMode.onUnfocus);
     });
   });
+}
+
+final class _Always extends CustomValidationMode {
+  const _Always();
+
+  @override
+  ValidationAction decide(ValidationContext context) => ValidationAction.full;
 }

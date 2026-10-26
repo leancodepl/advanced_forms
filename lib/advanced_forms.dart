@@ -15,5 +15,16 @@ export 'src/field/builder/advanced_field_builder.dart';
 export 'src/form/advanced_form_controller.dart';
 export 'src/form/advanced_form_state.dart';
 export 'src/validation_mode.dart'
-    show ValidationContext, ValidationEvent, ValidationMode;
+    show
+        AfterFirstUnfocusValidationMode,
+        CustomValidationMode,
+        FieldHistory,
+        FieldVerdict,
+        ManualValidationMode,
+        OnUnfocusValidationMode,
+        OnUserInteractionValidationMode,
+        ValidationAction,
+        ValidationContext,
+        ValidationEvent,
+        ValidationMode;
 export 'src/validators/validators.dart';
