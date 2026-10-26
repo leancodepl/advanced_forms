@@ -24,7 +24,6 @@ export interface FlutterExample {
 export const flutterExamples: Record<string, FlutterExample> = {
   "047778d0ab54": { preview: "SignupForm", files: 3, docs: ["docs/first-form.mdx","docs_app/content/landing/signup.mdx"] },
   "0b9a2e834d28": { preview: "CustomModesDemo", files: 2, docs: ["docs/validation/custom-modes.mdx"], helpers: ["DocsActions","DocsFieldStatus","DocsHint","DocsModePicker","DocsSubmitButton","DocsTextField"] },
-  "0e51f5023edf": { preview: "ValidationModesDemo", files: 2, docs: ["docs/validation/modes.mdx","docs_app/content/landing/modes.mdx"], helpers: ["DocsActions","DocsHint","DocsModePicker","DocsSubmitButton","DocsTextField"] },
   "0e5adec0d12e": { preview: "HeroSignupForm", files: 1, docs: ["docs_app/content/landing/hero.mdx"], helpers: ["DocsActions","DocsHint","DocsSubmitButton","DocsSwitchField","DocsTextField"] },
   "16fd48df04c0": { preview: "TextInputDemo", files: 2, docs: ["docs/rendering/text.mdx"], helpers: ["DocsActions"] },
   "18570b69c83d": { preview: "UsernameAvailabilityForm", files: 2, docs: ["docs/validation/async.mdx","docs_app/content/landing/async.mdx"], helpers: ["DocsFailureBanner","DocsFieldStatus","DocsHint","DocsSubmitButton","DocsTextField"] },
@@ -36,6 +35,7 @@ export const flutterExamples: Record<string, FlutterExample> = {
   "73b97401fc82": { preview: "ProfileForm", files: 2, docs: ["docs/server-errors/index.mdx"], helpers: ["DocsActions","DocsHint","DocsSubmitButton","DocsTextField"] },
   "833e51744528": { preview: "OrderTotalForm", files: 2, docs: ["docs/validation/relations.mdx"], helpers: ["DocsTextField"] },
   "8c0ab0393167": { preview: "SliderInputDemo", files: 2, docs: ["docs/rendering/scalar.mdx"], helpers: ["DocsActions"] },
+  "90e25ce32858": { preview: "ValidationModesDemo", files: 2, docs: ["docs/validation/modes.mdx","docs_app/content/landing/modes.mdx"], helpers: ["DocsActions","DocsHint","DocsLinkBanner","DocsModePicker","DocsSubmitButton","DocsTextField"] },
   "9e1503fddf0c": { preview: "PasswordForm", files: 2, docs: ["docs/validation/cross-field.mdx"], helpers: ["DocsTextField"] },
   "a7310b68f19e": { preview: "StateInspector", files: 2, docs: ["docs/concepts/state.mdx"], helpers: ["DocsActions","DocsTextField"] },
   "c513edd2c993": { preview: "PasswordRulesForm", files: 2, docs: ["docs/validation/custom-validators.mdx"], helpers: ["DocsTextField"] },
