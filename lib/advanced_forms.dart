@@ -14,17 +14,17 @@ export 'src/field/advanced_text_field_controller.dart';
 export 'src/field/builder/advanced_field_builder.dart';
 export 'src/form/advanced_form_controller.dart';
 export 'src/form/advanced_form_state.dart';
+// Validation modes: the constants, the class to extend, and the classes
+// behind the constants for an exhaustive switch.
 export 'src/validation_mode.dart'
     show
         AfterFirstUnfocusValidationMode,
         CustomValidationMode,
-        FieldHistory,
-        FieldVerdict,
         ManualValidationMode,
         OnUnfocusValidationMode,
         OnUserInteractionValidationMode,
-        ValidationAction,
-        ValidationContext,
-        ValidationEvent,
         ValidationMode;
+// What a mode sees and answers.
+export 'src/validation_mode.dart'
+    show ValidationAction, ValidationContext, ValidationEvent;
 export 'src/validators/validators.dart';

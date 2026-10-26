@@ -13,7 +13,7 @@ final class LiveWhileInvalid extends CustomValidationMode {
   @override
   ValidationAction decide(ValidationContext context) => switch (context.event) {
         ValidationEvent.valueChanged =>
-          context.history.lastVerdict == FieldVerdict.invalid
+          context.lastStatus == FieldStatus.invalid
               ? ValidationAction.full
               : ValidationAction.none,
         ValidationEvent.unfocus => ValidationAction.full,
@@ -37,22 +37,25 @@ final class LiveAfterSubmit extends CustomValidationMode {
   const LiveAfterSubmit();
 
   @override
-  ValidationAction decide(ValidationContext context) =>
-      context.history.validateCalls > 0
-          ? ValidationMode.onUserInteraction.decide(context)
-          : ValidationAction.none;
+  ValidationAction decide(ValidationContext context) => context.everValidated
+      ? ValidationMode.onUserInteraction.decide(context)
+      : ValidationAction.none;
 }
 
 final class _Spy extends CustomValidationMode {
   _Spy(this.seen);
 
-  final List<(ValidationEvent, int, int, int, FieldVerdict?)> seen;
+  final List<(ValidationEvent, bool, bool, FieldStatus?)> seen;
 
   @override
   ValidationAction decide(ValidationContext context) {
-    final h = context.history;
     seen.add(
-      (context.event, h.edits, h.unfocuses, h.validateCalls, h.lastVerdict),
+      (
+        context.event,
+        context.everUnfocused,
+        context.everValidated,
+        context.lastStatus,
+      ),
     );
     return ValidationAction.sync;
   }
@@ -87,8 +90,8 @@ void main() {
 
   tearDown(() => field.dispose());
 
-  test('a mode sees the event and the history before it', () async {
-    final seen = <(ValidationEvent, int, int, int, FieldVerdict?)>[];
+  test('a mode sees the event and what happened before it', () async {
+    final seen = <(ValidationEvent, bool, bool, FieldStatus?)>[];
     validator.validationResult = TestError.malformed;
     field
       ..setValidationMode(_Spy(seen))
@@ -100,10 +103,10 @@ void main() {
     field.setValue(11);
 
     expect(seen, const [
-      (ValidationEvent.valueChanged, 1, 0, 0, null),
-      (ValidationEvent.dependencyChanged, 1, 0, 1, FieldVerdict.invalid),
-      (ValidationEvent.unfocus, 1, 0, 1, FieldVerdict.invalid),
-      (ValidationEvent.valueChanged, 2, 1, 1, FieldVerdict.invalid),
+      (ValidationEvent.valueChanged, false, false, null),
+      (ValidationEvent.dependencyChanged, false, true, FieldStatus.invalid),
+      (ValidationEvent.unfocus, false, true, FieldStatus.invalid),
+      (ValidationEvent.valueChanged, true, true, FieldStatus.invalid),
     ]);
   });
 
