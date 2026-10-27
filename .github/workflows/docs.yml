@@ -49,7 +49,8 @@ env:
   # Its Dart (3.13) is also the one the landing page builds with, and what
   # leancode_lint needs.
   FLUTTER_VERSION: '3.47.8'
-  JASPR_CLI_VERSION: '0.23.4'
+  # The commit of the jaspr overrides in landing/pubspec.yaml.
+  JASPR_REF: '9311973c7261b4a37ee2cb526466aa6934854851'
 
 # One deployment at a time per ref. A newer push to a pull request supersedes
 # the preview in flight; on main every push still deploys, in order.
@@ -76,7 +77,7 @@ jobs:
           cache: true
 
       - name: Install the Jaspr CLI
-        run: dart pub global activate jaspr_cli "$JASPR_CLI_VERSION"
+        run: dart pub global activate --source git https://github.com/schultek/jaspr --git-path packages/jaspr_cli --git-ref "$JASPR_REF"
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -185,7 +186,7 @@ jobs:
 
       - name: Install the Jaspr CLI
         if: env.VERCEL_TOKEN != ''
-        run: dart pub global activate jaspr_cli "$JASPR_CLI_VERSION"
+        run: dart pub global activate --source git https://github.com/schultek/jaspr --git-path packages/jaspr_cli --git-ref "$JASPR_REF"
 
       - name: Setup Node
         if: env.VERCEL_TOKEN != ''

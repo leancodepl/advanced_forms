@@ -13,7 +13,7 @@
  *
  * Runs `examples:generate` first: the page needs the example registry it
  * writes. Needs the Dart SDK (see ../landing/pubspec.yaml for the version) with the
- * Jaspr CLI activated: `dart pub global activate jaspr_cli 0.23.4`. It is run
+ * Jaspr CLI activated (see ../landing/README.md for the command). It is run
  * through `dart pub global run`, so the `dart` on PATH is the one that builds.
  * `SITE_URL` overrides the canonical URL baked into the page, for previews.
  */

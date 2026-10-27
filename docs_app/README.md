@@ -19,9 +19,9 @@ this directory:
 npm run landing:build && npm run dev
 ```
 
-Open http://localhost:3000. Node 22, the Flutter SDK and the Dart SDK with the Jaspr CLI
-(`dart pub global activate jaspr_cli 0.23.4`) are required. `landing:build` only has to be repeated when `landing/`
-changes; `npm run dev` without it serves the docs and 404s on `/`.
+Open http://localhost:3000. Node 22, the Flutter SDK and the Jaspr CLI (see `../landing/README.md` for the command) are
+required. `landing:build` only has to be repeated when `landing/` changes; `npm run dev` without it serves the docs and
+404s on `/`.
 
 ## Layout
 

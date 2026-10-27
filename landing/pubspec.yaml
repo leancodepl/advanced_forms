@@ -13,19 +13,27 @@ dependencies:
   syntax_highlight_lite: ^0.0.1
 
 dev_dependencies:
-  # jaspr_builder 0.23 compiles only against analyzer 12, so every build-time
-  # package that depends on analyzer is capped at its last analyzer-12 release
-  # and pubspec.lock is committed. Lift this with the next jaspr release.
-  build_runner: '>=2.10.0 <2.15.2'
-  build_web_compilers: '>=4.8.5 <4.8.6'
-  dart_style: '>=3.1.8 <3.1.9'
+  build_runner: ^2.10.0
+  build_web_compilers: ^4.8.5
   jaspr_builder: ^0.23.4
   leancode_lint: ^28.0.0
 
+# The commit of jaspr's `next` branch that ciach's website uses, whose builder
+# supports analyzer 13 and newer, which leancode_lint needs. Keep the commit the
+# same as for `jaspr_cli` in .github/workflows/docs.yml and for `jaspr_lints` in
+# analysis_options.yaml, and go back to the version constraints above once it
+# is published.
 dependency_overrides:
-  # leancode_lint wants analyzer 13+, but only its analysis_options.yaml is
-  # consumed here; the plugin is resolved separately by the analysis server.
-  analyzer: ^12.1.0
+  jaspr:
+    git:
+      url: https://github.com/schultek/jaspr
+      path: packages/jaspr
+      ref: 9311973c7261b4a37ee2cb526466aa6934854851
+  jaspr_builder:
+    git:
+      url: https://github.com/schultek/jaspr
+      path: packages/jaspr_builder
+      ref: 9311973c7261b4a37ee2cb526466aa6934854851
 
 jaspr:
   mode: static
