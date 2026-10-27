@@ -31,10 +31,10 @@ arguable at all.
 The error/failure split is why the hook is `onFailure` and the status is `failedValidation`: the word reserved for
 codes is never used for the throw path.
 
-## The gate reads no field status
+## A mode never sees the live status
 
-The whole trigger behavior is one function of the mode, the event, and two bits the user's actions set: whether they
-have edited the field, and whether they have left it since:
+The whole trigger behavior is one decision per event: the field asks its mode what to run, and tells it what is
+happening now and three facts about the past:
 
 ```dart
 // In the field, before any mode is asked:
@@ -56,11 +56,10 @@ untouched-field rule sits in front of all of them, in the field, so no mode can 
 written, only for writes that finish a check, so a `pending` round or an edit that clears the errors never reaches a
 mode.
 
-It reads no field *status* on purpose. A debounced round overwrites the status with `pending` and the write path clears
-both error slots, so any gate that looked at "does this field currently have an error" would disarm itself exactly as
-the user started fixing the value. The two bits are not status: an event sets each one, and only `reset()` clears
-them. That is what lets `afterFirstUnfocus` switch from the `onUnfocus` row to the `onUserInteraction` row without a
-latch that a round could erase.
+The live status stays out of the context on purpose. A debounced round overwrites the status with `pending` and the
+write path clears both error slots, so a mode that asked "does this field currently have an error" would switch itself
+off exactly as the user started fixing the value. What a mode gets instead cannot be erased by a round or an edit: two
+flags that events set and only `reset()` clears, and the status of the last check that finished.
 
 ## Why not Flutter's five modes
 
@@ -69,9 +68,6 @@ settling checks, a gate that read `status`, a sweep on registration and on mode 
 live parent link with its own lifecycle. Escalation was what forced inheritance to be a live link, and the live link is
 what produced the bug where late-attached subforms missed the push. Deleting escalation deleted the bug's cause rather
 than its symptom.
-
-`afterFirstUnfocus` brings none of that back: the mode never changes by itself, and the bit it reads is set by an
-unfocus, not derived from a verdict.
 
 Mode and the enabled flag reach children **by broadcast**, never through a back-reference to the parent. "Validation
 disabled" is expressed as broadcasting an effective mode of `manual`, so there is one mechanism instead of two. A form
