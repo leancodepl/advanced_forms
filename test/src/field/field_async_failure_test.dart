@@ -259,9 +259,10 @@ void main() {
       });
 
       test('is itself reported through FlutterError when it throws', () async {
-        fieldWithHandler((error, stackTrace) async {
-          throw ArgumentError('handler exploded');
-        }).setValue(10);
+        fieldWithHandler(
+          (error, stackTrace) =>
+              Future.error(ArgumentError('handler exploded')),
+        ).setValue(10);
 
         await Future<void>.delayed(const Duration(milliseconds: 600));
 

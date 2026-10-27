@@ -83,8 +83,7 @@ void main() {
       expect(validated, const [initialValue]);
     });
 
-    test('a flag write re-derives a status that disagrees with the slots',
-        () async {
+    test('a flag write re-derives a status that disagrees with the slots', () {
       // `AdvancedFieldState` can represent `valid` alongside an error, so a
       // write that touches only a flag still has to settle the status rather
       // than carry the stale one through.

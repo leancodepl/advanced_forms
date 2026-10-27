@@ -189,10 +189,10 @@ class _StepControls extends StatelessWidget {
           if (form.isLastStep)
             const _SubmitButton()
           else
-            // `next()` awaits the page's async checks, so the button awaits it
-            // too — never a bare VoidCallback.
+            // `next()` awaits the page's async checks; the tear-off hands the
+            // button its Future instead of wrapping it in a bare VoidCallback.
             ElevatedButton(
-              onPressed: () async => form.next(),
+              onPressed: form.next,
               child: const Text('Next'),
             ),
         ],

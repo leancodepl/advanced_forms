@@ -101,8 +101,8 @@ class AsyncValidation<T, E extends Object> {
   E? _mapFailure(AsyncValidationFailure failure, String? field) {
     try {
       return failureToError?.call(failure.error, failure.stackTrace);
-    } catch (error, stack) {
-      _report(field, 'mapping the async validation failure', error, stack);
+    } catch (err, st) {
+      _report(field, 'mapping the async validation failure', err, st);
     }
     return null;
   }
@@ -114,8 +114,8 @@ class AsyncValidation<T, E extends Object> {
     if (onFailure case final handle?) {
       try {
         return await handle(failure.error, failure.stackTrace);
-      } catch (error, stack) {
-        _report(field, 'running the onFailure handler', error, stack);
+      } catch (err, st) {
+        _report(field, 'running the onFailure handler', err, st);
       }
     } else {
       _report(

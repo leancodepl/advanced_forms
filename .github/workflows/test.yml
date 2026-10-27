@@ -8,23 +8,20 @@ on:
 
 jobs:
   test:
-    name: Flutter ${{ matrix.channel }}${{ matrix.version }}
+    name: Test and analyze
 
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - version: '3.29.x'
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # leancode_lint, a dev dependency, needs Dart 3.13. Keep in sync with
+      # .fvmrc.
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ matrix.version }}
+          flutter-version: '3.47.8'
           cache: true
 
       - name: Flutter version
@@ -40,8 +37,13 @@ jobs:
       - name: Download pub dependencies
         run: flutter pub get
 
+      # Not `flutter analyze`: it leaves out the diagnostics of analyzer
+      # plugins, which is where leancode_lint's own rules come from.
       - name: Run analyzer
-        run: flutter analyze
+        run: dart analyze --fatal-infos
+
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed lib test example/lib example/test
 
       - name: Run tests
         run: flutter test
@@ -53,6 +55,37 @@ jobs:
       - name: Dry run pub publish
         # We don't want it to fail the CI, it's just to see how would `pub publish` behave.
         run: dart pub publish --dry-run || true
+
+  floor:
+    name: Test on Flutter 3.19 (lower bound)
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # The lowest Flutter that pubspec.yaml allows.
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.6'
+          cache: true
+
+      # Consumers never resolve dev dependencies, so the package itself still
+      # resolves on this SDK; leancode_lint, which needs Dart 3.13, does not.
+      - name: Drop leancode_lint
+        run: sed -i '/^  leancode_lint:/d' pubspec.yaml
+
+      # The example app is not part of what consumers get and still depends on
+      # leancode_lint, so it is left out: `dart pub get --no-example` skips it,
+      # where `flutter pub get --no-example` and the implicit `pub get` of
+      # `flutter test` would still touch it.
+      - name: Download pub dependencies
+        run: dart pub get --no-example
+
+      - name: Run tests
+        run: flutter test --no-pub
 
   pana-score:
     name: pana score

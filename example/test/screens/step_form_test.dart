@@ -159,7 +159,7 @@ void main() {
     expect(controller.currentStep, controller.address);
   });
 
-  test('changing the country clears the city', () async {
+  test('changing the country clears the city', () {
     final controller = buildController();
 
     controller.address.country.select(Country.poland);

@@ -141,7 +141,7 @@ void main() {
   // A prefilled field the user never touched, which must still react when a
   // field it depends on changes — the pattern the skill documents.
   group('validate on an untouched dependent', () {
-    test('sees a dependency changed before the first call finished', () async {
+    test('sees a dependency changed before the first call finished', () {
       final form = _EligibilityForm();
       addTearDown(form.dispose);
 
@@ -165,7 +165,7 @@ void main() {
       expect(form.instructor.error, 'not eligible');
     });
 
-    test('reacts from a listener on the watched field', () async {
+    test('reacts from a listener on the watched field', () {
       final form = _EligibilityForm(validateOnAircraftChange: true);
       addTearDown(form.dispose);
 

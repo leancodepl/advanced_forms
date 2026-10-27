@@ -187,8 +187,8 @@ class AdvancedFieldController<T, E extends Object>
     // whoever moved the focus.
     try {
       await validate();
-    } catch (error, stackTrace) {
-      _report(name, 'validating after focus loss', error, stackTrace);
+    } catch (err, st) {
+      _report(name, 'validating after focus loss', err, st);
     }
   }
 
