@@ -30,7 +30,7 @@ extension type _Engine<T, E extends Object>(
     // User left the field — finish any debounced validation now.
     _rounds.flushDebounce();
 
-    // Decided before the bit flips, so the first unfocus still sees none.
+    // Decided before everUnfocused is set, so the first unfocus sees false.
     final action = _decide(ValidationEvent.unfocus);
     if (_hasInteracted) {
       _everUnfocused = true;
@@ -45,7 +45,7 @@ extension type _Engine<T, E extends Object>(
     }
   }
 
-  // A throwing sync validator reaches the caller, as before; a full check
+  // A throwing sync validator reaches the caller; a full check
   // reports its own failures.
   void onDependencyChanged() {
     final done = _run(_decide(ValidationEvent.dependencyChanged));

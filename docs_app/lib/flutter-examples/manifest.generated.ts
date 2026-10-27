@@ -35,11 +35,11 @@ export const flutterExamples: Record<string, FlutterExample> = {
   "73b97401fc82": { preview: "ProfileForm", files: 2, docs: ["docs/server-errors/index.mdx"], helpers: ["DocsActions","DocsHint","DocsSubmitButton","DocsTextField"] },
   "833e51744528": { preview: "OrderTotalForm", files: 2, docs: ["docs/validation/relations.mdx"], helpers: ["DocsTextField"] },
   "8c0ab0393167": { preview: "SliderInputDemo", files: 2, docs: ["docs/rendering/scalar.mdx"], helpers: ["DocsActions"] },
-  "90e25ce32858": { preview: "ValidationModesDemo", files: 2, docs: ["docs/validation/modes.mdx","docs_app/content/landing/modes.mdx"], helpers: ["DocsActions","DocsHint","DocsLinkBanner","DocsModePicker","DocsSubmitButton","DocsTextField"] },
   "9e1503fddf0c": { preview: "PasswordForm", files: 2, docs: ["docs/validation/cross-field.mdx"], helpers: ["DocsTextField"] },
   "a7310b68f19e": { preview: "StateInspector", files: 2, docs: ["docs/concepts/state.mdx"], helpers: ["DocsActions","DocsTextField"] },
   "c513edd2c993": { preview: "PasswordRulesForm", files: 2, docs: ["docs/validation/custom-validators.mdx"], helpers: ["DocsTextField"] },
   "e2356ccef99b": { preview: "GuestListForm", files: 2, docs: ["docs/subforms/index.mdx"], helpers: ["DocsActions","DocsSubmitButton","DocsTextField"] },
+  "f18d9e3f4c96": { preview: "ValidationModesDemo", files: 2, docs: ["docs/validation/modes.mdx","docs_app/content/landing/modes.mdx"], helpers: ["DocsActions","DocsHint","DocsLinkBanner","DocsModePicker","DocsSubmitButton","DocsTextField"] },
   "f21af60e91f0": { preview: "BooleanInputDemo", files: 3, docs: ["docs/rendering/boolean.mdx"], helpers: ["DocsActions"] },
   "f733c75e06e6": { preview: "PrefillDemo", files: 2, docs: ["docs/lifecycle/prefilled-forms.mdx"], helpers: ["DocsActions","DocsFormStatus","DocsTextField"] },
 }

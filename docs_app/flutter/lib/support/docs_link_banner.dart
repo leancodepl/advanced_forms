@@ -5,21 +5,24 @@
  */
 import 'package:flutter/material.dart';
 
-import 'open_url_stub.dart' if (dart.library.js_interop) 'open_url_web.dart';
+import 'go_to_docs_page_stub.dart'
+    if (dart.library.js_interop) 'go_to_docs_page_web.dart';
 
-/// A one-line accent banner with a link, for pointing the reader at the page
-/// that goes further than the demo.
+/// A one-line accent banner with a link to another docs page (same tab), for
+/// pointing the reader at the page that goes further than the demo.
 class DocsLinkBanner extends StatelessWidget {
   const DocsLinkBanner({
     super.key,
     required this.message,
     required this.linkText,
-    required this.url,
+    required this.path,
   });
 
   final String message;
   final String linkText;
-  final String url;
+
+  /// Site-relative, like `/docs/validation/custom-modes`.
+  final String path;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +47,7 @@ class DocsLinkBanner extends StatelessWidget {
             style: small?.copyWith(color: theme.colorScheme.onSurface),
           ),
           InkWell(
-            onTap: () => openUrl(url),
+            onTap: () => goToDocsPage(path),
             borderRadius: BorderRadius.circular(4),
             child: Text(
               '$linkText →',

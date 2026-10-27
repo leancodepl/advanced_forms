@@ -5,4 +5,4 @@
  */
 
 /// Where no browser is around (the VM tests), a link goes nowhere.
-void openUrl(String url) {}
+void goToDocsPage(String path) {}

@@ -129,15 +129,15 @@ const _modes = [
     Icon.listChecks,
     'afterFirstUnfocus',
     'leave, then live',
-    'Quiet until the field is first left, live after.',
+    'Quiet while typing, live once the field was left.',
     'No error while the user types an email for the first time. Leaving the '
         'field validates it, and from then on every keystroke does, so the error '
         'disappears the moment the value is right.',
   ),
 ];
 
-/// "Three rules": the trigger behaviour, the four modes, and a demo that
-/// switches between them.
+/// The validation section: the rules, the modes, and a demo that switches
+/// between them.
 class ValidationSection extends StatelessComponent {
   const ValidationSection({required this.example, super.key});
 
@@ -147,12 +147,12 @@ class ValidationSection extends StatelessComponent {
   Component build(BuildContext context) {
     return Section(
       id: 'validation',
-      eyebrow: 'Three rules',
+      eyebrow: 'The rules',
       heading: const [.text('Validation you can predict.')],
       lead: const [
         .text(
-          'The whole trigger behaviour is twenty lines of Dart. Pick a mode, '
-          'then switch it below while you type to feel the difference.',
+          'The whole trigger behaviour fits in one small file of Dart. Pick a '
+          'mode, then switch it below while you type to feel the difference.',
         ),
       ],
       children: [
@@ -319,7 +319,8 @@ const _features = [
     'Four validation modes, or your own',
     'Validate on submit, on every keystroke, when a field loses focus, or live '
         'once it was first left. Set once on the form; a field or a subform can '
-        'opt out. A rule none of them states is one class with one method.',
+        'opt out. Need a rule none of them states? Write it as a class with one '
+        'method.',
   ),
   _Feature(
     .gitFork,

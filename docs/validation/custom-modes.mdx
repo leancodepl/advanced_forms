@@ -10,7 +10,7 @@ AI-Provenance:
 */}
 
 The four modes cover most forms: validate on submit, on every keystroke, when a field is left, or live once it was
-first left. When a form needs a rule none of them states, extend `CustomValidationMode`, override one method, and the
+first left. When a form needs a rule none of them states, extend `CustomValidationMode`, override `decide`, and the
 package treats the result exactly like a built-in mode: set it on the form, it reaches every field and subform; set it
 on one field, that field keeps it.
 
@@ -30,12 +30,11 @@ final email = AdvancedTextFieldController(
 )..setValidationMode(const LiveSyntaxServerOnLeave());
 ```
 
-An e-mail field with `onUserInteraction` would hit the server on every keystroke (debounced, but still); with
-`onUnfocus` the user would not see "not an e-mail address" until they left the field. This rule gives each check its
-own moment, in seven lines.
+An e-mail field with `onUserInteraction` would ask the server after every pause in typing; with `onUnfocus` the user
+would not see "not an e-mail address" until they left the field. This rule gives each check its own moment.
 
-Reach for the built-in modes first. A custom mode is for the case you can state in one sentence and no mode covers,
-not for tuning a mode that almost fits.
+Reach for a built-in mode when one fits. A custom mode covers everything else, from a one-line tweak of a built-in to
+a rule that reads the field's past.
 
 ## What the rule sees
 
@@ -48,14 +47,14 @@ not for tuning a mode that almost fits.
 | `everValidated` | `validate()` ran on this field at least once since `reset()`. A form's `validate()` counts for each of its fields |
 | `lastStatus` | How the last **finished** check ended: `valid`, `invalid` or `failedValidation`. Null until a check finishes; `clearErrors()`, `prefill()` and `reset()` drop it |
 
-That is the whole input, and the last row is the careful one. The context never carries the live status or the errors.
-Every edit clears the errors and a debounced async check sets the status to `pending`, so a rule that asked "does this
-field have an error right now" would stop validating at the exact moment the user started fixing the value.
-`lastStatus` is immune to that: an edit keeps it, a round in flight does not touch it, and only a check that finishes
-replaces it. Do not work around the rest by capturing the field in the class and reading its state from there: that
-is the same trap with extra steps.
+The context never carries the live status or the errors. Every edit clears the errors and a debounced async check sets
+the status to `pending`, so a rule that asked "does this field have an error right now" would stop validating at the
+exact moment the user started fixing the value. `lastStatus` does not have that problem: an edit keeps it, a round in
+flight does not touch it, and only a check that finishes replaces it. Do not capture the field in the class to read
+its state from there: that is the same trap with extra steps.
 
-The four modes are written with the same inputs. `afterFirstUnfocus` is `c.everUnfocused ? onUserInteraction : onUnfocus`.
+The four built-in modes are `decide` methods like yours. `afterFirstUnfocus`, for example, delegates to
+`onUserInteraction` once `c.everUnfocused` is true and to `onUnfocus` before.
 
 ## What the rule answers
 
@@ -108,21 +107,22 @@ about a field is in the context.
 
 ## Examples
 
-Re-check a field only when another field changes, never on its own edits. A "repeat password" field that should go
-red when the password above it changes, but stay quiet while it is being typed:
+Validate only when the field is left, and ignore changes in the fields it depends on until then. A "to" date that
+must come after "from": while the user is still picking "from", every change would flash "must be after the start
+date" on a "to" they have not come back to yet:
 
 ```dart
-final class FollowsDependency extends CustomValidationMode {
-  const FollowsDependency();
+final class OnUnfocusOnly extends CustomValidationMode {
+  const OnUnfocusOnly();
 
   @override
   ValidationAction decide(ValidationContext c) =>
-      c.event == ValidationEvent.dependencyChanged ? ValidationAction.sync : ValidationAction.none;
+      c.event == ValidationEvent.unfocus ? ValidationAction.full : ValidationAction.none;
 }
 
-repeatPassword
-  ..setValidationMode(const FollowsDependency())
-  ..subscribeToFields([password]);
+to
+  ..setValidationMode(const OnUnfocusOnly())
+  ..subscribeToFields([from]);
 ```
 
 Quiet while typing until a check finds an error, live while the user fixes it, quiet again once a check passes:
@@ -307,7 +307,7 @@ To test it through a field, edit the field first (`setValue`), then drive the ev
 ## Next
 
 <Cards>
-  <Card title="Available modes" href="./modes.mdx" description="The four modes and the gate table they come from." />
+  <Card title="Available validation modes" href="./modes.mdx" description="The four modes and the gate table they come from." />
   <Card title="Configuring the mode" href="./configuring.mdx" description="Per form, per field, per subform; switching validation off." />
   <Card title="Under the hood" href="../internals/index.mdx" description="Why a mode never sees the live status." />
 </Cards>
