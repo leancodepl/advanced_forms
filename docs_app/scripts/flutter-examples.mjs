@@ -116,8 +116,9 @@ function dartLibrary(example) {
   return (
     banner(example.docs.join(", ")) +
     // The prelude is ours, not the author's: a snippet that happens not to need
-    // one of these should not have to carry a lint about it.
-    "// ignore_for_file: unused_import\n" +
+    // one of these should not have to carry a lint about it. Most snippets do
+    // use all three, which `unnecessary_ignore` would report otherwise.
+    "// ignore_for_file: unused_import, unnecessary_ignore\n" +
     "\n" +
     "import 'package:advanced_forms/advanced_forms.dart';\n" +
     "import 'package:advanced_forms_docs_islands/support/support.dart';\n" +
@@ -132,14 +133,17 @@ function dartLibrary(example) {
 }
 
 function dartRegistry(examples) {
-  const imports = examples.map(e => `import 'example_${e.id}.dart' as example_${e.id};`).join("\n")
+  // Laid out the way `dart format` writes them, which CI checks.
+  const imports = examples
+    .map(e => `import 'package:advanced_forms_docs_islands/generated/example_${e.id}.dart'\n    as example_${e.id};\n`)
+    .join("")
   const entries = examples.map(e => `  '${e.id}': example_${e.id}.buildExample,`).join("\n")
 
   return (
     banner("the docs") +
     "\n" +
+    imports +
     "import 'package:flutter/widgets.dart';\n" +
-    (imports ? `\n${imports}\n` : "") +
     "\n" +
     "/// Every example in this bundle, keyed by the content hash of its Dart\n" +
     "/// source. `main.dart` looks up the id the host page passed to `addView`.\n" +

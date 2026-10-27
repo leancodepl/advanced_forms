@@ -4,3 +4,12 @@ analyzer:
   exclude:
     - build/**
     - lib/main.server.options.dart
+
+# The analysis server builds the plugin in a package of its own, so it gets the
+# analyzer it needs despite the analyzer override in pubspec.yaml.
+plugins:
+  leancode_lint:
+    version: ^28.0.0
+    diagnostics:
+      cognitive_complexity: true
+      prefer_dot_shorthand: true

@@ -46,12 +46,9 @@ env:
   # The version the islands are validated against. Multi-view web embedding is
   # young enough that the docs bundle pins its own version rather than following
   # the range the package supports.
-  FLUTTER_VERSION: '3.41.4'
-  # The landing page is plain Dart, and its build tooling (Ciach's pins of
-  # build_web_compilers and leancode_lint) needs a newer SDK than the one this
-  # Flutter bundles. Installed after Flutter, so it is the `dart` on PATH;
-  # `flutter …` commands keep using their own.
-  DART_VERSION: '3.13.0'
+  # Its Dart (3.13) is also the one the landing page builds with, and what
+  # leancode_lint needs.
+  FLUTTER_VERSION: '3.47.8'
   JASPR_CLI_VERSION: '0.23.4'
 
 # One deployment at a time per ref. A newer push to a pull request supersedes
@@ -77,11 +74,6 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
-
-      - name: Setup Dart
-        uses: dart-lang/setup-dart@v1
-        with:
-          sdk: ${{ env.DART_VERSION }}
 
       - name: Install the Jaspr CLI
         run: dart pub global activate jaspr_cli "$JASPR_CLI_VERSION"
@@ -115,8 +107,10 @@ jobs:
         run: dart format --output=none --set-exit-if-changed lib/generated lib/support
         working-directory: docs_app/flutter
 
+      # Not `flutter analyze`: it leaves out the diagnostics of analyzer
+      # plugins, which is where leancode_lint's own rules come from.
       - name: Analyze the example bundle
-        run: flutter analyze
+        run: dart analyze --fatal-infos
         working-directory: docs_app/flutter
 
       # Puts every example through the constraints a real island imposes.
@@ -188,12 +182,6 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
-
-      - name: Setup Dart
-        if: env.VERCEL_TOKEN != ''
-        uses: dart-lang/setup-dart@v1
-        with:
-          sdk: ${{ env.DART_VERSION }}
 
       - name: Install the Jaspr CLI
         if: env.VERCEL_TOKEN != ''

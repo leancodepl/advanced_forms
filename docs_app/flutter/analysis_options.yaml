@@ -12,3 +12,16 @@ analyzer:
     - windows/**
     - macos/**
     - linux/**
+  errors:
+    # The Docs* field widgets are generic over the controller's value type and
+    # take callbacks over it, the same as the controllers in the package.
+    unsafe_variance: ignore
+
+# The same plugin setup as the package's analysis_options.yaml.
+plugins:
+  leancode_lint:
+    version: ^28.0.0
+    diagnostics:
+      cognitive_complexity: true
+      # Off: dot shorthands need Dart 3.10, and this package's floor is 3.8.
+      prefer_dot_shorthand: false

@@ -19,7 +19,7 @@ Future<void> initHighlighting() => sh.Highlighter.initialize(['dart']);
 /// empty. Its text style is required but never rendered.
 final _theme = sh.HighlighterTheme.fromConfiguration(
   '{"settings": []}',
-  sh.TextStyle(foreground: const sh.Color(0)),
+  .new(foreground: const .new(0)),
 );
 
 final _highlighter = sh.Highlighter(language: 'dart', theme: _theme);

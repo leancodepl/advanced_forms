@@ -19,7 +19,7 @@ class App extends StatelessComponent {
         .text('Skip to content'),
       ]),
       const NavBar(),
-      Component.element(
+      .element(
         tag: 'main',
         id: 'main',
         classes: 'af-landing',

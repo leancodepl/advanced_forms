@@ -57,9 +57,9 @@ class ExampleFrame extends StatelessComponent {
             },
             const [],
           ),
-          if (layout == ExampleLayout.split) _SourceTabs(example: example),
+          if (layout == .split) _SourceTabs(example: example),
         ]),
-        if (layout == ExampleLayout.split)
+        if (layout == .split)
           const figcaption(classes: 'af-example-caption', [
             .text(
               'Field widgets prefixed Docs are shorthands the documentation '

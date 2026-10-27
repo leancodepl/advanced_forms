@@ -29,7 +29,7 @@ class ModelSection extends StatelessComponent {
         'render it. It is running on the right — submit it empty.',
       ),
       children: [
-        ExampleFrame(example: example, layout: ExampleLayout.split),
+        ExampleFrame(example: example, layout: .split),
         ul(classes: 'af-checklist', [
           li([
             strong(rich('One call to `registerFields`')),
@@ -102,7 +102,7 @@ class _Mode {
 
 const _modes = [
   _Mode(
-    Icon.hand,
+    .hand,
     'manual',
     'default',
     'Validates on submit.',
@@ -110,7 +110,7 @@ const _modes = [
         'an edit clears the error that described the old value.',
   ),
   _Mode(
-    Icon.keyboard,
+    .keyboard,
     'onUserInteraction',
     'live',
     'Validates on every keystroke.',
@@ -118,7 +118,7 @@ const _modes = [
         'debounce, so typing runs one request, not ten.',
   ),
   _Mode(
-    Icon.squareDashed,
+    .squareDashed,
     'onUnfocus',
     'on leave',
     'Validates when a field loses focus.',
@@ -174,7 +174,7 @@ class ValidationSection extends StatelessComponent {
           ]),
         ]),
         div(classes: 'af-section-demo', [
-          ExampleFrame(example: example, layout: ExampleLayout.split),
+          ExampleFrame(example: example, layout: .split),
         ]),
       ],
     );
@@ -199,7 +199,7 @@ class AsyncSection extends StatelessComponent {
         '`alice`, then `boom`.',
       ),
       children: [
-        ExampleFrame(example: example, layout: ExampleLayout.split),
+        ExampleFrame(example: example, layout: .split),
         ul(classes: 'af-checklist', [
           li([
             const strong([
@@ -252,59 +252,59 @@ class _Feature {
 
 const _features = [
   _Feature(
-    Icon.braces,
+    .braces,
     'Typed field controllers',
     'Text, boolean, single-select and multi-select fields, each with its own '
         'value type and its own error type. Plain strings to start, an enum or '
         'a sealed class when the form grows.',
   ),
   _Feature(
-    Icon.combine,
+    .combine,
     'Validators that compose',
     '`filled`, `atLeastLength`, `notNull`, `mustBeTrue` and the numeric checks, '
         'combined with `&` and `|` — or any `E? Function(T)` you write yourself.',
   ),
   _Feature(
-    Icon.server,
+    .server,
     'Async validation done right',
     'Debounced server checks with a timeout, cancellation of stale rounds, a '
         'cached verdict while the value stands, and a failure model that never '
         'leaves a field stuck on “validating”.',
   ),
   _Feature(
-    Icon.mousePointerClick,
+    .mousePointerClick,
     'Three validation modes',
     'Validate on submit, on every keystroke, or when a field loses focus. Set '
         'once on the form; a field or a subform can opt out with its own mode.',
   ),
   _Feature(
-    Icon.gitFork,
+    .gitFork,
     'Cross-field logic',
     '`subscribeToFields` re-runs a rule when its dependencies change; '
         '`addRelation` derives one field’s value from another. Repeat-password '
         'and running totals in two lines each.',
   ),
   _Feature(
-    Icon.layers,
+    .layers,
     'Subforms',
     'Attach and detach nested controllers. Their fields join the parent’s '
         '`validate`, reset, read-only and error handling — one subform per '
         'wizard step, or one per row of a dynamic list.',
   ),
   _Feature(
-    Icon.listChecks,
+    .listChecks,
     'Form-level state',
     '`canSubmit`, `wasModified`, `validating` and `validationErrors`, derived '
         'from the live tree on every read and ready to bind to a submit button.',
   ),
   _Feature(
-    Icon.lock,
+    .lock,
     'Read-only fields and server errors',
     'Freeze a value with `markReadOnly`, push a 422 response in with '
         '`setError`, and let the next edit clear it — no bookkeeping.',
   ),
   _Feature(
-    Icon.gauge,
+    .gauge,
     'Granular rebuilds',
     'One builder per field. A keystroke rebuilds that field’s subtree and '
         'nothing else, and a no-op write notifies nobody because state is '

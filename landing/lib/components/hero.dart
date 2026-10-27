@@ -96,7 +96,7 @@ class Hero extends StatelessComponent {
                 'sent anywhere.',
               ),
             ]),
-            ExampleFrame(example: demo, layout: ExampleLayout.stage),
+            ExampleFrame(example: demo, layout: .stage),
           ]),
         ]),
       ],

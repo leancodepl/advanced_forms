@@ -19,7 +19,7 @@ class DocsBrightness extends ValueNotifier<Brightness> {
   DocsBrightness() : super(_read()) {
     _observer =
         web.MutationObserver(
-          (JSArray<JSObject> _, web.MutationObserver __) {
+          (JSArray<JSObject> _, web.MutationObserver _) {
             value = _read();
           }.toJS,
         )..observe(
