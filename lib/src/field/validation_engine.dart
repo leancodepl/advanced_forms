@@ -45,18 +45,13 @@ extension type _Engine<T, E extends Object>(
     }
   }
 
-  // A throwing sync validator reaches the caller, because _run throws
-  // before it returns a future; a full check reports its own failures.
-  void onDependencyChanged() {
-    final done = _run(_decide(ValidationEvent.dependencyChanged));
-    unawaited(_reportIfItFails(done, 'validating after a dependency changed'));
-  }
-
-  Future<void> _reportIfItFails(Future<void> done, String what) async {
+  // Caught here, like on unfocus: the caller is another field's listener,
+  // so a throwing validator is reported rather than thrown at it.
+  Future<void> onDependencyChanged() async {
     try {
-      await done;
+      await _run(_decide(ValidationEvent.dependencyChanged));
     } catch (err, st) {
-      _report(name, what, err, st);
+      _report(name, 'validating after a dependency changed', err, st);
     }
   }
 

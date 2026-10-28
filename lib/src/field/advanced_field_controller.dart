@@ -342,7 +342,7 @@ class AdvancedFieldController<T, E extends Object>
   /// re-evaluated.
   ///
   /// The mechanism behind [subscribeToFields] and the form's `revalidateSync`.
-  void revalidateSync() => _engine.onDependencyChanged();
+  void revalidateSync() => unawaited(_engine.onDependencyChanged());
 
   /// Test-only seeder for state combinations the pipeline never produces, such
   /// as an [AdvancedFieldState.asyncError] with no round having run. Carries no
