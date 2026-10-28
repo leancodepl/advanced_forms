@@ -3,10 +3,9 @@
  *   model: Claude Fable 5.1
  *   harness: Claude Code
  */
+import 'package:advanced_forms_docs_islands/support/go_to_docs_page_stub.dart'
+    if (dart.library.js_interop) 'package:advanced_forms_docs_islands/support/go_to_docs_page_web.dart';
 import 'package:flutter/material.dart';
-
-import 'go_to_docs_page_stub.dart'
-    if (dart.library.js_interop) 'go_to_docs_page_web.dart';
 
 /// A one-line accent banner with a link to another docs page (same tab), for
 /// pointing the reader at the page that goes further than the demo.

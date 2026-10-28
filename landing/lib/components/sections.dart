@@ -126,7 +126,7 @@ const _modes = [
         'a field they never touched costs nothing.',
   ),
   _Mode(
-    Icon.listChecks,
+    .listChecks,
     'afterFirstUnfocus',
     'leave, then live',
     'Quiet while typing, live once the field was left.',
