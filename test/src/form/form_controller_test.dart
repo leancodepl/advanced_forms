@@ -1144,8 +1144,7 @@ void main() {
     });
 
     group('removeSubform', () {
-      test('detaches a previously added subform without disposing it',
-          () async {
+      test('detaches a previously added subform without disposing it', () {
         form.addSubform(subform);
         final emissions = _record<AdvancedFormState>(form);
 
@@ -1160,7 +1159,7 @@ void main() {
         subformField.dispose();
       });
 
-      test('a detached subform is re-attachable', () async {
+      test('a detached subform is re-attachable', () {
         form
           ..addSubform(subform)
           ..removeSubform(subform)
@@ -1174,7 +1173,7 @@ void main() {
         subformField.dispose();
       });
 
-      test('is noop if form was not added', () async {
+      test('is noop if form was not added', () {
         final emissions = _record<AdvancedFormState>(form);
         form.removeSubform(subform);
         expect(emissions, isEmpty);

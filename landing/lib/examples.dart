@@ -83,7 +83,7 @@ LandingExample loadExample(String name) {
   final preview = attributes['preview'] ?? _inferPreview(files);
   final id = _idFor(preview, file.path);
 
-  return LandingExample(
+  return .new(
     id: id,
     preview: preview,
     title: attributes['title'] ?? '$preview · live example',

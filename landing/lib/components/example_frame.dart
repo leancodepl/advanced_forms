@@ -57,9 +57,9 @@ class ExampleFrame extends StatelessComponent {
             },
             const [],
           ),
-          if (layout == ExampleLayout.split) _SourceTabs(example: example),
+          if (layout == .split) _SourceTabs(example: example),
         ]),
-        if (layout == ExampleLayout.split)
+        if (layout == .split)
           const figcaption(classes: 'af-example-caption', [
             .text(
               'Field widgets prefixed Docs are shorthands the documentation '
@@ -97,16 +97,13 @@ class _SourceTabs extends StatelessComponent {
             },
             [
               for (final (index, file) in example.files.indexed) ...[
-                Component.element(
-                  tag: 'input',
-                  attributes: {
-                    'type': 'radio',
-                    'name': group,
-                    'id': '$group-$index',
-                    'class': 'af-tab-input',
-                    'aria-label': file.name,
-                    if (index == 0) 'checked': '',
-                  },
+                input(
+                  type: .radio,
+                  name: group,
+                  id: '$group-$index',
+                  classes: 'af-tab-input',
+                  checked: index == 0,
+                  attributes: {'aria-label': file.name},
                 ),
                 label(
                   classes: 'af-example-tab',

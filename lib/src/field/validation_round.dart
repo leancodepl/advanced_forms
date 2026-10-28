@@ -198,12 +198,12 @@ class _ValidationRound<T, E extends Object> {
         timedOut.future,
       ]);
       return (verdict: verdict, failure: null);
-    } catch (error, stackTrace) {
+    } catch (err, st) {
       return (
         verdict: null,
         failure: AsyncValidationFailure(
-          error: error,
-          stackTrace: stackTrace,
+          error: err,
+          stackTrace: st,
           timedOut: timedOut.isCompleted,
         ),
       );

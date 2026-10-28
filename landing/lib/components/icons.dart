@@ -152,7 +152,7 @@ enum Icon {
       'focusable': 'false',
     },
     [
-      for (final d in paths) path(const [], attributes: {'d': d}),
+      for (final d in paths) path(attributes: {'d': d}, const []),
     ],
   );
 }

@@ -12,7 +12,9 @@ the Fumadocs app in `../docs_app`, which serves this page's build output from it
 one domain.
 
 ```bash
-dart pub global activate jaspr_cli 0.23.4
+# The commit of the jaspr overrides in pubspec.yaml, until it is published.
+dart pub global activate --source git https://github.com/schultek/jaspr \
+  --git-path packages/jaspr_cli --git-ref 9311973c7261b4a37ee2cb526466aa6934854851
 dart pub get
 jaspr serve        # http://localhost:8080, rebuilds on change
 jaspr build        # build/jaspr/{index.html,landing.js,landing-icon.svg,fonts/}

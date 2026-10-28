@@ -26,27 +26,27 @@ class Routes {
 }
 
 enum ValidationError {
-  //common
+  // common
   empty,
   toShort,
   toLong,
 
-  //password related
+  // password related
   noNumber,
   noSpecialChar,
   noUpperCase,
   noLowerCase,
   doesNotMatch,
 
-  //email related
+  // email related
   invalidEmail,
   emailTaken,
   emailCheckUnavailable,
 
-  //quiz related
+  // quiz related
   invalidAnswer,
 
-  //step form related
+  // step form related
   mustAccept,
 }
 

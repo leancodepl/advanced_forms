@@ -91,6 +91,8 @@ class _IslandFrameState extends State<IslandFrame> {
 /// The same tokens the docs page paints with: near-black surfaces, one lime
 /// accent, rounded filled inputs. In the light variant the accent becomes a
 /// fill with dark ink on it — a lime *text* would not be legible on paper.
+// The score comes from the flat light/dark choices below, not from nesting.
+// ignore: leancode_lint/cognitive_complexity
 ThemeData islandTheme(Brightness brightness) {
   final dark = brightness == Brightness.dark;
 
