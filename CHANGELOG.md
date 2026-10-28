@@ -1,3 +1,9 @@
+## Unreleased
+
+* You can write your own validation mode: extend `CustomValidationMode`, override `decide`, and set it like a built-in one. A rule sees which event is happening and what happened to the field before, and answers what to run: nothing, the sync validator, or both. An untouched field still validates nothing, and `validate()` still ignores the mode.
+* New built-in mode `ValidationMode.afterFirstUnfocus`: quiet while the user types, validates when the field is first left, and from then on validates every edit, so an error disappears the moment the value is fixed.
+* Breaking: `ValidationMode` is no longer an enum. The constants `ValidationMode.manual` and the rest still work; `ValidationMode.values` and `.name` are gone, and a `switch` over the modes matches on the classes behind the constants (`ManualValidationMode()` and so on) with `CustomValidationMode()` as the last case.
+
 ## 0.2.4
 
 * The skill is renamed to `advanced-forms-build-forms` to match the Agent Skills spec. Run `dart run skills@ get` again to get the new name.

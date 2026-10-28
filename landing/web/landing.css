@@ -833,6 +833,31 @@ a.af-pill-accent:hover {
   font-weight: 600;
 }
 
+.af-mode-custom {
+  border-color: var(--af-accent-text);
+  background: var(--af-accent-soft);
+}
+
+.af-mode-code {
+  margin: 0.5rem 0 0;
+  padding: 0.6rem 0.75rem;
+  border-radius: calc(var(--af-radius) / 2);
+  background: var(--af-surface);
+  font-size: 0.74rem;
+  line-height: 1.45;
+  overflow-x: auto;
+}
+
+/* The card is an li, so the inline-code rule above would apply; undo it. */
+.af-mode-code code {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: inherit;
+  white-space: pre;
+}
+
 .af-band {
   display: grid;
   gap: 2rem;

@@ -10,6 +10,7 @@ import 'package:meta/meta.dart';
 
 part 'async_validation.dart';
 part 'focus_handling.dart';
+part 'validation_engine.dart';
 part 'validation_round.dart';
 
 /// A validate function receiving the current value and returning an error code.
@@ -99,9 +100,17 @@ class AdvancedFieldController<T, E extends Object>
   // Entry point for async validation on this field.
   _Rounds<T, E> get _rounds => _Rounds(this);
 
-  // Set when the user first edits the field. Only reset() clears it.
-  // While false, the field skips validation triggered by its mode.
+  // Every decision to validate on its own goes through here.
+  _Engine<T, E> get _engine => _Engine(this);
+
+  // What the modes see, tracked in every mode so a later switch already knows
+  // what the user did. Only reset() clears the first three; the last status
+  // is also dropped by clearErrors() and prefill(), which erase the check it
+  // came from.
   bool _hasInteracted = false;
+  bool _everUnfocused = false;
+  bool _everValidated = false;
+  FieldStatus? _lastStatus;
 
   // null: follow the form's mode. Non-null: this field manages its own.
   ValidationMode? _ownMode;
@@ -127,28 +136,7 @@ class AdvancedFieldController<T, E extends Object>
       return;
     }
 
-    _hasInteracted = true;
-    _rounds.invalidate();
-
-    if (!_shouldValidateOn(ValidationEvent.valueChanged)) {
-      _clearTo(newValue);
-      return;
-    }
-
-    final validationError = _validator(newValue);
-    if (validationError != null || _asyncValidation == null) {
-      _setState(
-        _value.copyWithNullable(
-          value: newValue,
-          validationError: validationError,
-          asyncError: null,
-          status: _statusFromErrors(validationError, null),
-        ),
-      );
-      return;
-    }
-
-    _rounds.begin(newValue, debounced: true);
+    _engine.onEdit(newValue);
   }
 
   /// Returns `null` if the field is readonly, otherwise [setValue]. Useful
@@ -166,31 +154,18 @@ class AdvancedFieldController<T, E extends Object>
     }
 
     _rounds.invalidate();
+    _lastStatus = null;
     _clearTo(newValue);
   }
 
   /// Called when focus moves away from the field. This is what
-  /// [ValidationMode.onUnfocus] reacts to. With [focusNode] bound, focus loss
-  /// calls this for you; pickers and dropdowns must call it themselves. Runs pending debounce immediately and
+  /// [ValidationMode.onUnfocus] reacts to, and what switches
+  /// [ValidationMode.afterFirstUnfocus] to validating every edit. With
+  /// [focusNode] bound, focus loss calls this for you; pickers and dropdowns
+  /// must call it themselves. Runs pending debounce immediately and
   /// validates read-only fields, same as [validate].
   @override
-  Future<void> handleUnfocus() async {
-    // User left the field — finish any debounced validation now.
-    // Only onUserInteraction mode debounces validation.
-    _rounds.flushDebounce();
-
-    if (!_shouldValidateOn(ValidationEvent.unfocus)) {
-      return;
-    }
-
-    // Caught here, so a throwing validator cannot escape into the zone of
-    // whoever moved the focus.
-    try {
-      await validate();
-    } catch (err, st) {
-      _report(name, 'validating after focus loss', err, st);
-    }
-  }
+  Future<void> handleUnfocus() => _engine.onUnfocus();
 
   /// Sets a new [error] on [AdvancedFieldState.validationError]. Passing null
   /// clears it and the status follows.
@@ -200,11 +175,13 @@ class AdvancedFieldController<T, E extends Object>
   /// [FieldStatus.failedValidation] status, unlike [markReadOnly].
   void setError(E? error) {
     _rounds.abort();
+    // A verdict pushed from outside counts as a finished check.
     _setState(
       _value.copyWithNullable(
         validationError: error,
         status: _statusFromErrors(error, _value.asyncError),
       ),
+      fromCheck: true,
     );
   }
 
@@ -230,7 +207,7 @@ class AdvancedFieldController<T, E extends Object>
   /// `false`. A validator must not call this on its own field: nothing stops
   /// the recursion.
   Future<bool> validate() =>
-      _isDisposed ? Future.value(false) : _rounds.runValidate();
+      _isDisposed ? Future.value(false) : _engine.onValidate();
 
   /// Gives this field its own validation mode, ignoring the form's from now on.
   /// Cannot be undone — the field no longer follows form mode changes.
@@ -293,6 +270,7 @@ class AdvancedFieldController<T, E extends Object>
   /// on state outside the value.
   void clearErrors() {
     _rounds.invalidate();
+    _lastStatus = null;
     _clearTo(_value.value);
   }
 
@@ -300,10 +278,14 @@ class AdvancedFieldController<T, E extends Object>
   /// the verdict and [lastFailure]. Keeps [AdvancedFieldState.validationMode]
   /// and [AdvancedFieldState.readOnly].
   ///
-  /// The field counts as untouched again.
+  /// The field counts as untouched again, and [ValidationMode.afterFirstUnfocus]
+  /// waits for a new first unfocus.
   void reset() {
     _rounds.invalidate();
     _hasInteracted = false;
+    _everUnfocused = false;
+    _everValidated = false;
+    _lastStatus = null;
     _clearTo(_initialValue);
   }
 
@@ -360,11 +342,7 @@ class AdvancedFieldController<T, E extends Object>
   /// re-evaluated.
   ///
   /// The mechanism behind [subscribeToFields] and the form's `revalidateSync`.
-  void revalidateSync() {
-    if (_shouldValidateOn(ValidationEvent.dependencyChanged)) {
-      _setSyncError(_validator(_value.value));
-    }
-  }
+  void revalidateSync() => unawaited(_engine.onDependencyChanged());
 
   /// Test-only seeder for state combinations the pipeline never produces, such
   /// as an [AdvancedFieldState.asyncError] with no round having run. Carries no
@@ -385,12 +363,6 @@ class AdvancedFieldController<T, E extends Object>
     super.dispose();
   }
 
-  bool _shouldValidateOn(ValidationEvent event) => validatesOn(
-        event,
-        mode: _value.validationMode,
-        hasInteracted: _hasInteracted,
-      );
-
   // Publishes [value] with both errors cleared and the given status.
   void _clearTo(T value, {FieldStatus status = FieldStatus.valid}) => _setState(
         _value.copyWithNullable(
@@ -402,11 +374,12 @@ class AdvancedFieldController<T, E extends Object>
       );
 
   // Writes `validationError`, leaving the status to [_statusAfter].
-  void _setSyncError(E? syncError) => _setState(
+  void _setSyncError(E? syncError, {bool fromCheck = false}) => _setState(
         _value.copyWithNullable(
           validationError: syncError,
           status: _statusAfter(syncError),
         ),
+        fromCheck: fromCheck,
       );
 
   // After abort: keep failedValidation so submit stays blocked; else use errors.
@@ -420,8 +393,18 @@ class AdvancedFieldController<T, E extends Object>
           ? _value.status
           : _statusFromErrors(syncError, _value.asyncError);
 
-  void _setState(AdvancedFieldState<T, E> newValue) {
-    if (_isDisposed || newValue == _value) {
+  // With [fromCheck], the write is the outcome of a finished check and its
+  // status becomes what the modes see as the last one, unless a round is still
+  // on its way. Recorded here, in the one place state is written, so a check
+  // cannot land without the modes learning how it ended.
+  void _setState(AdvancedFieldState<T, E> newValue, {bool fromCheck = false}) {
+    if (_isDisposed) {
+      return;
+    }
+    if (fromCheck && !newValue.isInProgress) {
+      _lastStatus = newValue.status;
+    }
+    if (newValue == _value) {
       return;
     }
     _value = newValue;

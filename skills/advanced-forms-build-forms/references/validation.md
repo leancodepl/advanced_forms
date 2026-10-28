@@ -22,9 +22,64 @@ class SignupFormController extends AdvancedFormController {
 }
 ```
 
+## A mode of your own
+
+Reach for one of the four modes first. For a rule none of them states, extend `CustomValidationMode` and override `decide`. Set it like a built-in mode: on the form (reaches every field and subform) or on one field (that field keeps it).
+
+`decide` gets a `ValidationContext`:
+
+- `event`: `valueChanged`, `unfocus` or `dependencyChanged`.
+- `everUnfocused`: the user left the field after an edit, at least once.
+- `everValidated`: `validate()` ran on the field, at least once.
+- `lastStatus`: `valid`, `invalid` or `failedValidation` of the last finished check; null until one finishes.
+
+It answers a `ValidationAction`:
+
+- `none`: nothing runs.
+- `sync`: the sync validator only.
+- `full`: sync, then async if sync passed; debounced after an edit.
+
+Rules that still hold, whatever the mode answers:
+
+- An untouched field is never asked.
+- The context never carries the live status, the errors or the value. Do not read the field from inside the class either: every edit clears the errors, so such a rule stops validating as the user starts fixing the value.
+- Modes compare by type; a mode with settings lists them in `props`.
+
+```dart
+// The e-mail syntax on every keystroke, the server only when the field is left.
+final class LiveSyntaxServerOnLeave extends CustomValidationMode {
+  const LiveSyntaxServerOnLeave();
+
+  @override
+  ValidationAction decide(ValidationContext c) =>
+      c.event == ValidationEvent.unfocus ? ValidationAction.full : ValidationAction.sync;
+}
+final email = AdvancedTextFieldController(
+  validator: emailSyntax('Not an e-mail address'),      // on every keystroke
+  asyncValidation: AsyncValidation(validator: isTaken),  // only when the field is left
+)..setValidationMode(const LiveSyntaxServerOnLeave());
+
+// Quiet while typing until a check finds an error, live while fixing, quiet once one passes.
+final class LiveWhileInvalid extends CustomValidationMode {
+  const LiveWhileInvalid();
+
+  @override
+  ValidationAction decide(ValidationContext c) => switch (c.event) {
+        ValidationEvent.valueChanged =>
+          c.lastStatus == FieldStatus.invalid ? ValidationAction.full : ValidationAction.none,
+        ValidationEvent.unfocus => ValidationAction.full,
+        ValidationEvent.dependencyChanged => ValidationAction.sync,
+      };
+}
+```
+
+Test a rule without a form: `const LiveSyntaxServerOnLeave().decide(const ValidationContext(event: ValidationEvent.unfocus))` is `ValidationAction.full`.
+
 ## Unfocus the widget owns
 
-`onUnfocus` listens to the field's `focusNode`, so the widget binds it ([binding](binding.md)). A picker, date dialog, or custom dropdown that owns focus calls `field.handleUnfocus()` — otherwise nothing validates in that mode. It returns `Future<void>`. In any mode it flushes a pending debounce.
+`onUnfocus` and `afterFirstUnfocus` listen to the field's `focusNode`, so the widget binds it ([binding](binding.md)). A picker, date dialog, or custom dropdown that owns focus calls `field.handleUnfocus()` — otherwise nothing validates in those modes. It returns `Future<void>`. In any mode it flushes a pending debounce.
+
+`afterFirstUnfocus` is the "quiet at first, live once left" pattern: no error while the user types, the first unfocus after an edit validates, and from then on every edit does. Only an unfocus flips it; `validate()` from submit does not, and `reset()` flips it back.
 
 ## Built-in validators
 
@@ -92,7 +147,7 @@ final username = AdvancedTextFieldController(
 );
 ```
 
-- **Debounce** delays a round a keystroke started. It applies in `onUserInteraction`. In `manual` and `onUnfocus` the check starts from `validate()` or from leaving the field, so `debounce` changes nothing.
+- **Debounce** delays a round a keystroke started. It applies in `onUserInteraction`, and in `afterFirstUnfocus` once the field was first left. In `manual` and `onUnfocus` the check starts from `validate()` or from leaving the field, so `debounce` changes nothing.
 - A value change cancels the in-flight round. A stale answer never lands.
 - A settled answer is reused while the value is unchanged, so a second submit on an untouched form makes no network call. Any `setValue` drops the cached answer. When the check depends on state outside the value, invalidate with `field.clearErrors()`.
 - `state.isPending` / `isValidating` / `isInProgress` — a spinner is `isInProgress`.

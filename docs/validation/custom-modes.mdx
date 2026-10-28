@@ -1,0 +1,313 @@
+---
+title: Your own validation mode
+description: When none of the four modes says what your form needs, write the rule as a class. What the rule sees, what it answers, what it never sees, and what still holds.
+---
+
+{/*
+AI-Provenance:
+  model: Claude Fable 5.1
+  harness: Claude Code
+*/}
+
+The four modes cover most forms: validate on submit, on every keystroke, when a field is left, or live once it was
+first left. When a form needs a rule none of them states, extend `CustomValidationMode`, override `decide`, and the
+package treats the result exactly like a built-in mode: set it on the form, it reaches every field and subform; set it
+on one field, that field keeps it.
+
+```dart
+// The e-mail syntax on every keystroke, the server only when the field is left.
+final class LiveSyntaxServerOnLeave extends CustomValidationMode {
+  const LiveSyntaxServerOnLeave();
+
+  @override
+  ValidationAction decide(ValidationContext c) =>
+      c.event == ValidationEvent.unfocus ? ValidationAction.full : ValidationAction.sync;
+}
+
+final email = AdvancedTextFieldController(
+  validator: emailSyntax('Not an e-mail address'),        // sync: runs on every keystroke
+  asyncValidation: AsyncValidation(validator: isTaken),    // async: runs only when the field is left
+)..setValidationMode(const LiveSyntaxServerOnLeave());
+```
+
+An e-mail field with `onUserInteraction` would ask the server after every pause in typing; with `onUnfocus` the user
+would not see "not an e-mail address" until they left the field. This rule gives each check its own moment.
+
+Reach for a built-in mode when one fits. A custom mode covers everything else, from a one-line tweak of a built-in to
+a rule that reads the field's past.
+
+## What the rule sees
+
+`decide` gets a `ValidationContext`: what is happening now, and three facts about what happened before.
+
+| Field | Meaning |
+| --- | --- |
+| `event` | What is happening: `valueChanged` (the user edited the value), `unfocus` (focus left the field) or `dependencyChanged` (a field this one depends on changed) |
+| `everUnfocused` | The user has left this field after editing it, at least once since `reset()` |
+| `everValidated` | `validate()` ran on this field at least once since `reset()`. A form's `validate()` counts for each of its fields |
+| `lastStatus` | How the last **finished** check ended: `valid`, `invalid` or `failedValidation`. Null until a check finishes; `clearErrors()`, `prefill()` and `reset()` drop it |
+
+The context never carries the live status or the errors. Every edit clears the errors and a debounced async check sets
+the status to `pending`, so a rule that asked "does this field have an error right now" would stop validating at the
+exact moment the user started fixing the value. `lastStatus` does not have that problem: an edit keeps it, a round in
+flight does not touch it, and only a check that finishes replaces it. Do not capture the field in the class to read
+its state from there: that is the same trap with extra steps.
+
+The four built-in modes are `decide` methods like yours. `afterFirstUnfocus`, for example, delegates to
+`onUserInteraction` once `c.everUnfocused` is true and to `onUnfocus` before.
+
+## What the rule answers
+
+`decide` returns a `ValidationAction`, which is what the field runs:
+
+| Action | What runs |
+| --- | --- |
+| `none` | Nothing. An edit still clears the errors, because they described the old value |
+| `sync` | The sync validator only |
+| `full` | The sync validator, then the async one if sync passed. After an edit the async check waits out its debounce; after an unfocus it runs at once |
+
+The built-in modes answer `sync` to a dependency change, because the field's own value did not change and its async
+verdict still stands. Your rule may answer `full` there if it needs to.
+
+## What still holds
+
+A custom mode changes which events validate a field and how much runs. It changes nothing else:
+
+- **An untouched field validates nothing on its own.** The field checks that before it asks any mode, so a rule that
+  always answers `full` still cannot reach a field the user has not edited. `validate()` is what checks those.
+- **`validate()` ignores the mode** and never changes it, custom or not. It does set `everValidated`.
+- **Sync runs before async**, and async only if sync passed. There is no action that skips the sync validator.
+- **The mode reaches the whole tree.** Set on the form, it is broadcast to every field and subform, including ones
+  registered or attached later. A field or subform with its own mode keeps it, as with the built-in modes (see
+  [Configuring the mode](./configuring.mdx)).
+- **Switching validation off** still beats every mode: `setValidationEnabled(false)` makes the tree behave as `manual`.
+
+## Identity
+
+Modes compare by type: two `OnOwnEdits()` are the same mode, so one created in `build()` is not a mode change and
+leaves a round in flight alone. A mode with settings lists them in `props`, so two instances with different settings
+are different modes:
+
+```dart
+final class LiveOn extends CustomValidationMode {
+  const LiveOn(this.events);
+  final Set<ValidationEvent> events;
+
+  @override
+  ValidationAction decide(ValidationContext c) =>
+      events.contains(c.event) ? ValidationAction.full : ValidationAction.none;
+
+  @override
+  List<Object?> get props => [events];
+}
+```
+
+One instance of a mode is shared by every field it reaches, so a mode keeps no state of its own. Everything it knows
+about a field is in the context.
+
+## Examples
+
+Validate only when the field is left, and ignore changes in the fields it depends on until then. A "to" date that
+must come after "from": while the user is still picking "from", every change would flash "must be after the start
+date" on a "to" they have not come back to yet:
+
+```dart
+final class OnUnfocusOnly extends CustomValidationMode {
+  const OnUnfocusOnly();
+
+  @override
+  ValidationAction decide(ValidationContext c) =>
+      c.event == ValidationEvent.unfocus ? ValidationAction.full : ValidationAction.none;
+}
+
+to
+  ..setValidationMode(const OnUnfocusOnly())
+  ..subscribeToFields([from]);
+```
+
+Quiet while typing until a check finds an error, live while the user fixes it, quiet again once a check passes:
+
+```dart
+final class LiveWhileInvalid extends CustomValidationMode {
+  const LiveWhileInvalid();
+
+  @override
+  ValidationAction decide(ValidationContext c) => switch (c.event) {
+        ValidationEvent.valueChanged => c.lastStatus == FieldStatus.invalid
+            ? ValidationAction.full
+            : ValidationAction.none,
+        ValidationEvent.unfocus => ValidationAction.full,
+        ValidationEvent.dependencyChanged => ValidationAction.sync,
+      };
+}
+```
+
+Quiet until the first submit, live after it:
+
+```dart
+final class LiveAfterSubmit extends CustomValidationMode {
+  const LiveAfterSubmit();
+
+  @override
+  ValidationAction decide(ValidationContext c) =>
+      c.everValidated ? ValidationMode.onUserInteraction.decide(c) : ValidationAction.none;
+}
+```
+
+## Try it
+
+One e-mail field. The sync validator checks the syntax, the async one asks a (fake) server whether the address is
+taken: anything starting with `taken` is. Switch between the two built-in modes and the rule above, type, and watch
+the status pill: with `onUserInteraction` the server runs on every keystroke, with `onUnfocus` nothing runs until you
+leave, with the rule the syntax runs live and the server only when you leave.
+
+<AdvancedFormsExample preview="CustomModesDemo" title="custom_modes.dart" code="collapsed">
+
+```dart title="email_form_controller.dart"
+class EmailFormController extends AdvancedFormController {
+  EmailFormController() {
+    registerFields([email]);
+  }
+
+  final email = AdvancedTextFieldController(
+    validator: (value) =>
+        _syntax.hasMatch(value) ? null : 'Not an e-mail address',
+    asyncValidation: const AsyncValidation(validator: _isTaken),
+  );
+
+  static final _syntax = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+
+  // Stands in for the server: anything starting with "taken" is taken.
+  static Future<String?> _isTaken(String value) async {
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+    return value.startsWith('taken') ? 'Already taken' : null;
+  }
+}
+```
+
+```dart title="custom_modes_demo.dart"
+// The e-mail syntax on every keystroke, the server only when the field is left.
+final class LiveSyntaxServerOnLeave extends CustomValidationMode {
+  const LiveSyntaxServerOnLeave();
+
+  @override
+  ValidationAction decide(ValidationContext c) =>
+      c.event == ValidationEvent.unfocus
+      ? ValidationAction.full
+      : ValidationAction.sync;
+}
+
+class CustomModesDemo extends StatefulWidget {
+  const CustomModesDemo({super.key});
+
+  @override
+  State<CustomModesDemo> createState() => _CustomModesDemoState();
+}
+
+class _CustomModesDemoState extends State<CustomModesDemo> {
+  final _form = EmailFormController();
+  ValidationMode _mode = const LiveSyntaxServerOnLeave();
+
+  @override
+  void initState() {
+    super.initState();
+    _form.setValidationMode(_mode);
+  }
+
+  @override
+  void dispose() {
+    _form.dispose();
+    super.dispose();
+  }
+
+  void _setMode(ValidationMode mode) {
+    setState(() => _mode = mode);
+    // Your own mode is set exactly like a built-in one.
+    _form.setValidationMode(mode);
+  }
+
+  Future<void> _submit() async {
+    final ok = await _form.validate();
+    if (mounted) {
+      ExampleLog.of(context).add(ok ? 'Saved.' : 'Not saved: invalid.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hint = switch (_mode) {
+      OnUserInteractionValidationMode() =>
+        'Every keystroke runs the syntax check and, after the debounce, '
+            'the server.',
+      OnUnfocusValidationMode() =>
+        'Nothing runs while you type. Leaving the field runs the syntax '
+            'check and the server.',
+      _ =>
+        'The syntax check runs on every keystroke. The server runs only '
+            'when you leave the field.',
+    };
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        DocsModePicker(
+          title: 'Select your validation mode',
+          options: const [
+            ValidationMode.onUserInteraction,
+            ValidationMode.onUnfocus,
+            LiveSyntaxServerOnLeave(),
+          ],
+          selected: _mode,
+          label: (mode) => switch (mode) {
+            OnUserInteractionValidationMode() => 'onUserInteraction',
+            OnUnfocusValidationMode() => 'onUnfocus',
+            _ => 'LiveSyntaxServerOnLeave (yours)',
+          },
+          onSelected: _setMode,
+        ),
+        const SizedBox(height: 8),
+        DocsHint(hint),
+        DocsTextField(
+          field: _form.email,
+          label: 'E-mail',
+          hint: 'try taken@example.com',
+        ),
+        DocsFieldStatus(field: _form.email, label: 'status'),
+        DocsActions(
+          children: [
+            DocsSubmitButton(form: _form, label: 'Save', onPressed: _submit),
+            TextButton(onPressed: _form.resetAll, child: const Text('Reset')),
+          ],
+        ),
+      ],
+    );
+  }
+}
+```
+
+</AdvancedFormsExample>
+
+## Testing a rule
+
+`decide` is a plain method, so test it without a form:
+
+```dart
+test('LiveSyntaxServerOnLeave keeps the server for the unfocus', () {
+  const typing = ValidationContext(event: ValidationEvent.valueChanged);
+  const leaving = ValidationContext(event: ValidationEvent.unfocus);
+  expect(const LiveSyntaxServerOnLeave().decide(typing), ValidationAction.sync);
+  expect(const LiveSyntaxServerOnLeave().decide(leaving), ValidationAction.full);
+});
+```
+
+To test it through a field, edit the field first (`setValue`), then drive the event: `setValue` again for
+`valueChanged`, `handleUnfocus()` for `unfocus`, `revalidateSync()` for `dependencyChanged`. See
+[Testing](../testing.mdx).
+
+## Next
+
+<Cards>
+  <Card title="Available validation modes" href="./modes.mdx" description="The four modes and the gate table they come from." />
+  <Card title="Configuring the mode" href="./configuring.mdx" description="Per form, per field, per subform; switching validation off." />
+  <Card title="Under the hood" href="../internals/index.mdx" description="Why a mode never sees the live status." />
+</Cards>

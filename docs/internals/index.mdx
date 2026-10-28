@@ -31,29 +31,37 @@ arguable at all.
 The error/failure split is why the hook is `onFailure` and the status is `failedValidation`: the word reserved for
 codes is never used for the throw path.
 
-## The gate reads no field status
+## A mode never sees the live status
 
-The whole trigger behaviour is one function of the mode, the event, and whether the user has edited the field:
+The whole trigger behavior is one decision per event: the field asks its mode what to run, and tells it what is
+happening now and three facts about the past:
 
 ```dart
-bool validatesOn(
-  ValidationEvent event, {
-  required ValidationMode mode,
-  required bool hasInteracted,
-}) =>
-    hasInteracted &&
-    switch (mode) {
-      ValidationMode.manual => false,
-      ValidationMode.onUserInteraction => event != ValidationEvent.unfocus,
-      ValidationMode.onUnfocus => event != ValidationEvent.valueChanged,
-    };
+// In the field, before any mode is asked:
+ValidationAction _decide(ValidationEvent event) => !_hasInteracted
+    ? ValidationAction.none
+    : _value.validationMode.decide(
+        ValidationContext(
+          event: event,
+          everUnfocused: _everUnfocused,
+          everValidated: _everValidated,
+          lastStatus: _lastStatus,
+        ),
+      );
 ```
 
-It reads no field *status* on purpose. A debounced round overwrites the status with `pending` and the write path clears
-both error slots, so any gate that looked at "does this field currently have an error" would disarm itself exactly as
-the user started fixing the value.
+The four built-in modes are classes with one `decide` each; a mode of your own extends `CustomValidationMode`. The
+untouched-field rule sits in front of all of them, in the field, so no mode can reach a field the user has not edited.
+`lastStatus` is the one piece of the past that comes from a check, and it is recorded in the same place state is
+written, only for writes that finish a check, so a `pending` round or an edit that clears the errors never reaches a
+mode.
 
-## Why three modes and not Flutter's five
+The live status stays out of the context on purpose. A debounced round overwrites the status with `pending` and the
+write path clears both error slots, so a mode that asked "does this field currently have an error" would switch itself
+off exactly as the user started fixing the value. What a mode gets instead cannot be erased by a round or an edit: two
+flags that events set and only `reset()` clears, and the status of the last check that finished.
+
+## Why not Flutter's five modes
 
 An earlier design took Flutter's whole `AutovalidateMode`. Cutting to three deleted, in one move: a latch flipped by
 settling checks, a gate that read `status`, a sweep on registration and on mode change, escalation at submit, and a

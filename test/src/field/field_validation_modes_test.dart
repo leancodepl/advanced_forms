@@ -19,8 +19,9 @@ void main() {
 
   group('validation modes', () {
     /// Drives [event] on a field the user has already edited, and reports
-    /// whether the field validated itself.
-    bool validates(ValidationMode mode, String event) {
+    /// whether the field validated itself. With [leftOnce] the user has also
+    /// left the field once before.
+    bool validates(ValidationMode mode, String event, {bool leftOnce = false}) {
       var calls = 0;
       final subject = AdvancedFieldController<int, TestError>(
         initialValue: 0,
@@ -34,6 +35,9 @@ void main() {
         // itself is pinned by its own group.
         ..setValue(1);
       addTearDown(subject.dispose);
+      if (leftOnce) {
+        subject.handleUnfocus();
+      }
       calls = 0;
 
       switch (event) {
@@ -59,12 +63,32 @@ void main() {
       (ValidationMode.onUnfocus, 'a value change', false),
       (ValidationMode.onUnfocus, 'an unfocus', true),
       (ValidationMode.onUnfocus, 'a dependency change', true),
+      (ValidationMode.afterFirstUnfocus, 'a value change', false),
+      (ValidationMode.afterFirstUnfocus, 'an unfocus', true),
+      (ValidationMode.afterFirstUnfocus, 'a dependency change', true),
     ];
 
     for (final (mode, event, expected) in table) {
       test(
-        '${mode.name}: $event ${expected ? 'validates' : 'validates nothing'}',
+        '$mode: $event ${expected ? 'validates' : 'validates nothing'}',
         () => expect(validates(mode, event), expected),
+      );
+    }
+
+    // The same cells once the user has left the field.
+    const leftOnceTable = <(ValidationMode, String, bool)>[
+      (ValidationMode.afterFirstUnfocus, 'a value change', true),
+      (ValidationMode.afterFirstUnfocus, 'an unfocus', false),
+      (ValidationMode.afterFirstUnfocus, 'a dependency change', true),
+      (ValidationMode.onUnfocus, 'a value change', false),
+      (ValidationMode.onUserInteraction, 'an unfocus', false),
+    ];
+
+    for (final (mode, event, expected) in leftOnceTable) {
+      test(
+        '$mode, left once: $event '
+        '${expected ? 'validates' : 'validates nothing'}',
+        () => expect(validates(mode, event, leftOnce: true), expected),
       );
     }
 
@@ -128,10 +152,103 @@ void main() {
     });
   });
 
+  group('afterFirstUnfocus', () {
+    setUp(() => field.setValidationMode(ValidationMode.afterFirstUnfocus));
+
+    test('typing stays quiet until the field is left, then every edit shows',
+        () async {
+      validator.validationResult = TestError.malformed;
+
+      field.setValue(10);
+      expect(field.value.error, isNull);
+
+      await field.handleUnfocus();
+      expect(field.value.error, TestError.malformed);
+
+      validator.validationResult = null;
+      field.setValue(11);
+      expect(field.value.error, isNull);
+
+      validator.validationResult = TestError.malformed;
+      field.setValue(12);
+      expect(field.value.error, TestError.malformed);
+    });
+
+    test('validate() does not stand in for the first unfocus', () async {
+      validator.validationResult = TestError.malformed;
+      field.setValue(10);
+
+      expect(await field.validate(), isFalse);
+      field.setValue(11);
+
+      expect(field.value.error, isNull);
+    });
+
+    test('leaving the field untouched does not count', () async {
+      validator.validationResult = TestError.malformed;
+
+      await field.handleUnfocus();
+      field.setValue(10);
+
+      expect(field.value.error, isNull);
+    });
+
+    test('reset() makes the field wait for its first unfocus again', () async {
+      validator.validationResult = TestError.malformed;
+      field.setValue(10);
+      await field.handleUnfocus();
+
+      field
+        ..reset()
+        ..setValue(11);
+
+      expect(field.value.error, isNull);
+    });
+
+    test('a field left under another mode is already past its first unfocus',
+        () async {
+      validator.validationResult = TestError.malformed;
+      field
+        ..setValidationMode(ValidationMode.manual)
+        ..setValue(10);
+      await field.handleUnfocus();
+      expect(field.value.error, isNull);
+
+      field
+        ..setValidationMode(ValidationMode.afterFirstUnfocus)
+        ..setValue(11);
+
+      expect(field.value.error, TestError.malformed);
+    });
+
+    test('an edit after the first unfocus debounces the async check', () async {
+      final (:field, :validated) = makeAsyncField();
+      addTearDown(field.dispose);
+      field
+        ..setValidationMode(ValidationMode.afterFirstUnfocus)
+        ..setValue(10);
+      await field.handleUnfocus();
+      await pumpEventQueue();
+
+      field.setValue(11);
+      expect(field.value.isPending, isTrue);
+      await Future<void>.delayed(const Duration(milliseconds: 120));
+
+      expect(validated, [10, 11]);
+    });
+  });
+
   group('the interaction guarantee', () {
-    for (final mode in ValidationMode.values) {
+    final modes = [
+      ValidationMode.manual,
+      ValidationMode.onUserInteraction,
+      ValidationMode.onUnfocus,
+      ValidationMode.afterFirstUnfocus,
+      const _Always(),
+    ];
+    for (final mode in modes) {
       test(
-          '${mode.name}: an untouched field validates nothing on a dependency '
+          '$mode: an untouched field validates nothing on a dependency '
           'change', () {
         validator.validationResult = TestError.malformed;
         field
@@ -141,7 +258,7 @@ void main() {
         expect(field.value.error, isNull);
       });
 
-      test('${mode.name}: an untouched field validates nothing on an unfocus',
+      test('$mode: an untouched field validates nothing on an unfocus',
           () async {
         validator.validationResult = TestError.malformed;
         field.setValidationMode(mode);
@@ -151,7 +268,7 @@ void main() {
         expect(field.value.error, isNull);
       });
 
-      test('${mode.name}: validate still checks an untouched field', () async {
+      test('$mode: validate still checks an untouched field', () async {
         validator.validationResult = TestError.malformed;
         field.setValidationMode(mode);
 
@@ -204,4 +321,11 @@ void main() {
       expect(own.value.validationMode, ValidationMode.onUnfocus);
     });
   });
+}
+
+final class _Always extends CustomValidationMode {
+  const _Always();
+
+  @override
+  ValidationAction decide(ValidationContext context) => ValidationAction.full;
 }

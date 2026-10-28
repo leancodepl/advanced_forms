@@ -125,10 +125,19 @@ const _modes = [
     'The user finishes a field, moves on, and sees the verdict. Tabbing through '
         'a field they never touched costs nothing.',
   ),
+  _Mode(
+    .listChecks,
+    'afterFirstUnfocus',
+    'leave, then live',
+    'Quiet while typing, live once the field was left.',
+    'No error while the user types an email for the first time. Leaving the '
+        'field validates it, and from then on every keystroke does, so the error '
+        'disappears the moment the value is right.',
+  ),
 ];
 
-/// "Three rules": the trigger behaviour, the three modes, and a demo that
-/// switches between them.
+/// The validation section: the rules, the modes, and a demo that switches
+/// between them.
 class ValidationSection extends StatelessComponent {
   const ValidationSection({required this.example, super.key});
 
@@ -138,12 +147,12 @@ class ValidationSection extends StatelessComponent {
   Component build(BuildContext context) {
     return Section(
       id: 'validation',
-      eyebrow: 'Three rules',
+      eyebrow: 'The rules',
       heading: const [.text('Validation you can predict.')],
       lead: const [
         .text(
-          'The whole trigger behaviour is twenty lines of Dart. Pick a mode, '
-          'then switch it below while you type to feel the difference.',
+          'The whole trigger behaviour fits in one small file of Dart. Pick a '
+          'mode, then switch it below while you type to feel the difference.',
         ),
       ],
       children: [
@@ -167,10 +176,44 @@ class ValidationSection extends StatelessComponent {
               p(classes: 'af-mode-when', [.text(mode.when)]),
               p([.text(mode.body)]),
             ]),
+          li(classes: 'af-card af-mode af-mode-custom', [
+            div(classes: 'af-mode-head', [
+              span(classes: 'af-feature-icon', [Icon.braces.build(size: 22)]),
+              const Pill('yours', accent: true),
+            ]),
+            const h3([
+              code([.text('CustomValidationMode')]),
+            ]),
+            const p(classes: 'af-mode-when', [
+              .text('A rule none of the four states, in one class.'),
+            ]),
+            const pre(classes: 'af-mode-code', [
+              code([
+                .text(
+                  'decide(ValidationContext c) =>\n'
+                  '  c.event == ValidationEvent.unfocus\n'
+                  '    ? ValidationAction.full // server\n'
+                  '    : ValidationAction.sync; // syntax',
+                ),
+              ]),
+            ]),
+            const p([
+              .text(
+                'The e-mail syntax on every keystroke, the server only when the '
+                'field is left. It sees which event is happening and what '
+                'happened before; it never sees the live status, so it cannot '
+                'switch itself off while the user fixes the value.',
+              ),
+            ]),
+          ]),
         ]),
         const p(classes: 'af-section-more', [
           a(href: '$docsPath/validation/modes', [
             .text('Every mode and every event, explained →'),
+          ]),
+          .text('  ·  '),
+          a(href: '$docsPath/validation/custom-modes', [
+            .text('Write your own mode →'),
           ]),
         ]),
         div(classes: 'af-section-demo', [
@@ -273,9 +316,11 @@ const _features = [
   ),
   _Feature(
     .mousePointerClick,
-    'Three validation modes',
-    'Validate on submit, on every keystroke, or when a field loses focus. Set '
-        'once on the form; a field or a subform can opt out with its own mode.',
+    'Four validation modes, or your own',
+    'Validate on submit, on every keystroke, when a field loses focus, or live '
+        'once it was first left. Set once on the form; a field or a subform can '
+        'opt out. Need a rule none of them states? Write it as a class with one '
+        'method.',
   ),
   _Feature(
     .gitFork,
