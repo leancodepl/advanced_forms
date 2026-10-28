@@ -40,25 +40,24 @@ extension type _Engine<T, E extends Object>(
     // whoever moved the focus.
     try {
       await _run(action);
-    } catch (error, stackTrace) {
-      _report(name, 'validating after focus loss', error, stackTrace);
+    } catch (err, st) {
+      _report(name, 'validating after focus loss', err, st);
     }
   }
 
-  // A throwing sync validator reaches the caller; a full check
-  // reports its own failures.
+  // A throwing sync validator reaches the caller, because _run throws
+  // before it returns a future; a full check reports its own failures.
   void onDependencyChanged() {
     final done = _run(_decide(ValidationEvent.dependencyChanged));
-    unawaited(
-      done.catchError((Object error, StackTrace stackTrace) {
-        _report(
-          name,
-          'validating after a dependency changed',
-          error,
-          stackTrace,
-        );
-      }),
-    );
+    unawaited(_reportIfItFails(done, 'validating after a dependency changed'));
+  }
+
+  Future<void> _reportIfItFails(Future<void> done, String what) async {
+    try {
+      await done;
+    } catch (err, st) {
+      _report(name, what, err, st);
+    }
   }
 
   Future<bool> onValidate() {
