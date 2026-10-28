@@ -135,7 +135,7 @@ void main() {
     });
 
     test('a pending round does not disarm it', () async {
-      var answer = TestError.unavailable as TestError?;
+      TestError? answer = TestError.unavailable;
       final (:field, :validated) = makeAsyncField(
         mode: const LiveWhileInvalid(),
         result: () => answer,

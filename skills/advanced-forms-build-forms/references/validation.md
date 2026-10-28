@@ -24,7 +24,26 @@ class SignupFormController extends AdvancedFormController {
 
 ## A mode of your own
 
-Reach for one of the four modes first. For a rule none of them states, extend `CustomValidationMode` and override `decide`. It gets a `ValidationContext`: `event` (`valueChanged`, `unfocus`, `dependencyChanged`), `everUnfocused` (left after an edit, at least once), `everValidated` (`validate()` ran at least once) and `lastStatus` (`valid`, `invalid` or `failedValidation` of the last finished check; null until one finishes). It answers a `ValidationAction`: `none`, `sync` (sync validator only) or `full` (sync, then async if sync passed; debounced after an edit). It never sees the live status, the errors or the value, and it is never asked about a field the user has not edited. Do not read the field from inside the class: every edit clears the errors, so such a rule stops validating as the user starts fixing the value. Modes compare by type; a mode with settings lists them in `props`. Set it on the form (reaches every field and subform) or on one field (that field keeps it), exactly like a built-in mode.
+Reach for one of the four modes first. For a rule none of them states, extend `CustomValidationMode` and override `decide`. Set it like a built-in mode: on the form (reaches every field and subform) or on one field (that field keeps it).
+
+`decide` gets a `ValidationContext`:
+
+- `event`: `valueChanged`, `unfocus` or `dependencyChanged`.
+- `everUnfocused`: the user left the field after an edit, at least once.
+- `everValidated`: `validate()` ran on the field, at least once.
+- `lastStatus`: `valid`, `invalid` or `failedValidation` of the last finished check; null until one finishes.
+
+It answers a `ValidationAction`:
+
+- `none`: nothing runs.
+- `sync`: the sync validator only.
+- `full`: sync, then async if sync passed; debounced after an edit.
+
+Rules that still hold, whatever the mode answers:
+
+- An untouched field is never asked.
+- The context never carries the live status, the errors or the value. Do not read the field from inside the class either: every edit clears the errors, so such a rule stops validating as the user starts fixing the value.
+- Modes compare by type; a mode with settings lists them in `props`.
 
 ```dart
 // The e-mail syntax on every keystroke, the server only when the field is left.

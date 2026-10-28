@@ -239,7 +239,7 @@ final form = AdvancedFormController(
 form.email.setValidationMode(ValidationMode.onUserInteraction);
 ```
 
-`onUnfocus` and `afterFirstUnfocus` need the widget to bind the field's `focusNode`, or to call `field.handleUnfocus()` itself — which is what a picker or a dropdown does.
+`onUnfocus` and `afterFirstUnfocus` need to know when the field loses focus. A text field gets that by binding the field's `focusNode` to the widget. A picker or a dropdown that handles focus itself calls `field.handleUnfocus()` when the interaction ends.
 
 ### Your own validation mode
 
@@ -261,7 +261,12 @@ final email = AdvancedTextFieldController(
 )..setValidationMode(const LiveSyntaxServerOnLeave());
 ```
 
-`decide` gets a `ValidationContext` (`event`: `valueChanged`, `unfocus` or `dependencyChanged`; `everUnfocused` and `everValidated`; `lastStatus` of the last finished check) and answers a `ValidationAction`: `none`, `sync` or `full`. It never sees the live status or the errors, because every edit clears them and a rule reading them would stop validating as the user started fixing the value. The three rules above still hold: an untouched field validates nothing whatever the rule says, `validate()` ignores the mode, and sync runs before async.
+`decide` gets a `ValidationContext` and answers a `ValidationAction`:
+
+- The context says which event is happening (`valueChanged`, `unfocus` or `dependencyChanged`), whether the user ever left the field after an edit, whether `validate()` ever ran on it, and how the last finished check ended. It never carries the live status or the errors, because every edit clears them and a rule reading them would stop validating as the user started fixing the value.
+- The action is `none`, `sync` (the sync validator only) or `full` (sync, then async if sync passed).
+
+The three rules above still hold: an untouched field validates nothing whatever the rule says, `validate()` ignores the mode, and sync runs before async.
 
 Modes compare by type, and a mode with settings lists them in `props`. The [docs](https://advanced-forms.leancode.co/docs/validation/custom-modes) have more examples, including "live while invalid" and "live after the first submit", and how to test a rule.
 

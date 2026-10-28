@@ -1,15 +1,7 @@
 ## Unreleased
 
-* Validation modes are now yours to write. `ValidationMode` is a sealed class, and a rule none of the four modes states is a class that extends `CustomValidationMode` and overrides `decide`.
-  * The rule gets a `ValidationContext`: which event is happening (`valueChanged`, `unfocus` or `dependencyChanged`), whether the user has ever left the field after editing it, whether `validate()` has ever run on it, and how the last finished check ended.
-  * It answers a `ValidationAction`: `none`, `sync` (the sync validator only) or `full` (sync, then async if sync passed), so a rule can check the format on every keystroke and the server only when the field is left.
-  * It never sees the live status, the errors or the value, so a rule cannot switch itself off while the user is fixing a mistake; the last finished check is recorded where state is written, never from a round in flight.
-  * An untouched field still validates nothing, whatever the rule says; `validate()` still ignores the mode; sync still runs before async.
-  * Set it on the form and it reaches every field and subform; set it on one field and that field keeps it.
-  * Modes compare by type, so a mode built in `build()` is not a mode change; a mode with settings lists them in `props`.
-  * The docs have a page for it with a live demo and examples such as "live while invalid" and "live after the first submit"; the README and the skill cover it too.
+* You can write your own validation mode: extend `CustomValidationMode`, override `decide`, and set it like a built-in one. A rule sees which event is happening and what happened to the field before, and answers what to run: nothing, the sync validator, or both. An untouched field still validates nothing, and `validate()` still ignores the mode.
 * New built-in mode `ValidationMode.afterFirstUnfocus`: quiet while the user types, validates when the field is first left, and from then on validates every edit, so an error disappears the moment the value is fixed.
-* The mode pickers in the docs demos are pills that wrap, so every mode name is readable on a phone.
 * Breaking: `ValidationMode` is no longer an enum. The constants `ValidationMode.manual` and the rest still work; `ValidationMode.values` and `.name` are gone, and a `switch` over the modes matches on the classes behind the constants (`ManualValidationMode()` and so on) with `CustomValidationMode()` as the last case.
 
 ## 0.2.4
@@ -18,6 +10,7 @@
 * The skill is split into a short `SKILL.md` and reference files, so it uses fewer tokens.
 * The docs recommend `dart run skills@ get` as the way to install the skill.
 * The package now works with `equatable` 3.0.0.
+
 ## 0.2.3
 
 * Fixed `validate()` returning a stale answer when called again before the first call had finished; every call now re-runs the sync validators and only an async check in flight is shared.
