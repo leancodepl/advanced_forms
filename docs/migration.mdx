@@ -93,7 +93,7 @@ until the user edits it; where it must, call `validate()` on it from a listener 
 | `removeSubform(form, close: …)` | `removeSubform(form)` — detaches only, returns `void` |
 | `Future<void> close()`, `addDisposable`, `Disposable` | `void dispose()` |
 | `BlocBuilder<FormGroupCubit, FormGroupState>` | `ValueListenableBuilder<AdvancedFormState>` |
-| `FieldCubit.stream` | `AdvancedFieldController.stream` — deprecated bridge, removed in 0.3.0 |
+| `FieldCubit.stream` | none; a listener, or a stream you wrap around one (see the repo's `MIGRATION.md`, section 9) |
 
 ## Behaviour changes that are not renames
 
