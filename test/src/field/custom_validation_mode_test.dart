@@ -45,18 +45,11 @@ final class LiveAfterSubmit extends CustomValidationMode {
 final class _Spy extends CustomValidationMode {
   _Spy(this.seen);
 
-  final List<(ValidationEvent, bool, bool, FieldStatus?)> seen;
+  final List<ValidationContext> seen;
 
   @override
   ValidationAction decide(ValidationContext context) {
-    seen.add(
-      (
-        context.event,
-        context.everUnfocused,
-        context.everValidated,
-        context.lastStatus,
-      ),
-    );
+    seen.add(context);
     return ValidationAction.sync;
   }
 }
@@ -91,7 +84,7 @@ void main() {
   tearDown(() => field.dispose());
 
   test('a mode sees the event and what happened before it', () async {
-    final seen = <(ValidationEvent, bool, bool, FieldStatus?)>[];
+    final seen = <ValidationContext>[];
     validator.validationResult = TestError.malformed;
     field
       ..setValidationMode(_Spy(seen))
@@ -103,10 +96,23 @@ void main() {
     field.setValue(11);
 
     expect(seen, const [
-      (ValidationEvent.valueChanged, false, false, null),
-      (ValidationEvent.dependencyChanged, false, true, FieldStatus.invalid),
-      (ValidationEvent.unfocus, false, true, FieldStatus.invalid),
-      (ValidationEvent.valueChanged, true, true, FieldStatus.invalid),
+      ValidationContext(event: ValidationEvent.valueChanged),
+      ValidationContext(
+        event: ValidationEvent.dependencyChanged,
+        everValidated: true,
+        lastStatus: FieldStatus.invalid,
+      ),
+      ValidationContext(
+        event: ValidationEvent.unfocus,
+        everValidated: true,
+        lastStatus: FieldStatus.invalid,
+      ),
+      ValidationContext(
+        event: ValidationEvent.valueChanged,
+        everUnfocused: true,
+        everValidated: true,
+        lastStatus: FieldStatus.invalid,
+      ),
     ]);
   });
 

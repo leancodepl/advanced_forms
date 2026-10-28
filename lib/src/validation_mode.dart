@@ -20,7 +20,7 @@ enum ValidationEvent {
 /// the errors an edit clears never do, so a mode that reads this cannot disarm
 /// itself while the user fixes the value.
 @immutable
-final class ValidationContext {
+final class ValidationContext with Equatable {
   /// Describes [event] on a field with the given past.
   const ValidationContext({
     required this.event,
@@ -46,6 +46,14 @@ final class ValidationContext {
   /// has finished. An edit keeps it; `clearErrors()`, `prefill()` and
   /// `reset()` drop it.
   final FieldStatus? lastStatus;
+
+  @override
+  List<Object?> get props => [event, everUnfocused, everValidated, lastStatus];
+
+  @override
+  String toString() =>
+      'ValidationContext(${event.name}, everUnfocused: $everUnfocused, '
+      'everValidated: $everValidated, lastStatus: ${lastStatus?.name})';
 }
 
 /// What a field runs on an event.
