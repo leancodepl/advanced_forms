@@ -51,9 +51,7 @@ final class ValidationContext with Equatable {
   List<Object?> get props => [event, everUnfocused, everValidated, lastStatus];
 
   @override
-  String toString() =>
-      'ValidationContext(${event.name}, everUnfocused: $everUnfocused, '
-      'everValidated: $everValidated, lastStatus: ${lastStatus?.name})';
+  bool get stringify => true;
 }
 
 /// What a field runs on an event.
